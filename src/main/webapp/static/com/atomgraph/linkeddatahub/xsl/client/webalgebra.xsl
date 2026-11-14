@@ -119,7 +119,7 @@ exclude-result-prefixes="#all"
          same way, as the tree of its operations -->
 
     <!-- the trace: a plan's operations as the rows they will be executed as, nested as the operations are, each
-         folding out its own XML. $open while the plan is what there is to read -->
+         folding out its own XML. Folded under its count unless $open -->
     <xsl:template match="*" mode="ldh:PlanTrace">
         <xsl:param name="open" select="false()" as="xs:boolean"/>
 

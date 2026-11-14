@@ -541,16 +541,40 @@
         <rdfs:label xml:lang="es-ES">Confirmar</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="action-planned-writes">
-        <rdfs:label xml:lang="en-US">This action will make the following changes</rdfs:label>
-        <rdfs:label xml:lang="es-ES">Esta acción hará los siguientes cambios</rdfs:label>
+        <rdfs:label xml:lang="en-US">This will change these documents</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Esto cambiará estos documentos</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="action-flagged">
-        <rdfs:label xml:lang="en-US">changes access control or settings</rdfs:label>
-        <rdfs:label xml:lang="es-ES">cambia el control de acceso o la configuración</rdfs:label>
+        <rdfs:label xml:lang="en-US">changes access control or the dataspace settings</rdfs:label>
+        <rdfs:label xml:lang="es-ES">cambia el control de acceso o la configuración del espacio de datos</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="action-outside-dataspace">
-        <rdfs:label xml:lang="en-US">outside this dataspace: refused</rdfs:label>
-        <rdfs:label xml:lang="es-ES">fuera de este espacio de datos: rechazado</rdfs:label>
+        <rdfs:label xml:lang="en-US">outside this dataspace, so the action cannot run</rdfs:label>
+        <rdfs:label xml:lang="es-ES">fuera de este espacio de datos, así que la acción no puede ejecutarse</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="action-update">
+        <rdfs:label xml:lang="en-US">Update</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Actualizar</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="action-delete">
+        <rdfs:label xml:lang="en-US">Delete</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Eliminar</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="action-add-to">
+        <rdfs:label xml:lang="en-US">Add to</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Añadir a</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="action-replace">
+        <rdfs:label xml:lang="en-US">Replace</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Reemplazar</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="action-create">
+        <rdfs:label xml:lang="en-US">Create</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Crear</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="action-write">
+        <rdfs:label xml:lang="en-US">Write</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Escribir</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="action-no-writes">
         <rdfs:label xml:lang="en-US">This action would change nothing</rdfs:label>

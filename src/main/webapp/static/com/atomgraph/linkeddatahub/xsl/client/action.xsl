@@ -256,9 +256,60 @@ exclude-result-prefixes="#all"
 
     <!-- THE DRY RUN: the write set, checked and shown -->
 
+    <!-- the write set names documents by URI; the reader knows them by title. One query asks the dataspace for the
+         titles of the documents it holds, and the dialog opens with whatever came back: a document with no title
+         here (one in the admin dataspace, one not made yet) keeps its URI -->
     <xsl:function name="ldh:action-planned" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:param name="execution" as="element()"/>
+        <xsl:variable name="uris" select="distinct-values($execution/wa:writes/wa:write[@outcome = 'planned']/@uri)" as="xs:string*"/>
+
+        <xsl:choose>
+            <xsl:when test="$execution/wa:status = 'complete' and exists($uris)">
+                <xsl:variable name="query" select="'PREFIX dct: &lt;http://purl.org/dc/terms/&gt; SELECT ?doc ?title WHERE { VALUES ?doc { ' || string-join($uris ! ('&lt;' || . || '&gt;'), ' ') || ' } GRAPH ?doc { ?doc dct:title ?title } }'" as="xs:string"/>
+                <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('sparql', $context('base')), map{ 'query': $query }), map{})" as="xs:anyURI"/>
+                <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
+                <xsl:sequence select="
+                    ixsl:http-request($request) =>
+                        ixsl:then(ldh:rethread-response(map:put($context, 'execution', $execution), ?, 'titles-response')) =>
+                        ixsl:then(ldh:action-titles-response#1)
+                "/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ldh:action-dialog($context, $execution, map{})"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <!-- no titles is not a failure: the dialog opens with the URIs -->
+    <xsl:function name="ldh:action-titles-response" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('titles-response')" as="map(*)"/>
+        <xsl:variable name="titles" select="if ($response?status = 200) then map:merge(for $result in $response?body//srx:result return map{ string($result/srx:binding[@name = 'doc']/srx:uri): string($result/srx:binding[@name = 'title']/srx:literal) }, map{ 'duplicates': 'use-first' }) else map{}" as="map(*)"/>
+
+        <xsl:sequence select="ldh:action-dialog($context, $context('execution'), $titles)"/>
+    </xsl:function>
+
+    <!-- what a write does, in the reader's words: PATCH updates, DELETE deletes, POST adds to, and PUT creates a
+         document the dataspace does not have yet and replaces one it has -->
+    <xsl:function name="ldh:action-verb" as="xs:string">
+        <xsl:param name="write" as="element()"/>
+        <xsl:param name="titles" as="map(*)"/>
+        <xsl:param name="base" as="xs:anyURI"/>
+
+        <xsl:sequence select="
+            if ($write/@method = 'PATCH') then 'action-update'
+            else if ($write/@method = 'DELETE') then 'action-delete'
+            else if ($write/@method = 'POST') then 'action-add-to'
+            else if (map:contains($titles, string($write/@uri))) then 'action-replace'
+            else if (starts-with($write/@uri, $base)) then 'action-create'
+            else 'action-write'"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:action-dialog" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="execution" as="element()"/>
+        <xsl:param name="titles" as="map(*)"/>
         <xsl:variable name="writes" select="$execution/wa:writes/wa:write[@outcome = 'planned']" as="element()*"/>
         <xsl:variable name="base" select="$context('base')" as="xs:anyURI"/>
         <xsl:variable name="admin" select="$context('admin')" as="xs:anyURI?"/>
@@ -277,10 +328,8 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="body" as="item()*">
                         <form class="ldh-action-form" data-action="{$context('action')}" data-this="{$context('this')}" data-title="{$context('title')}">
                             <fieldset>
-                                <!-- the plan, as the assistant shows one before it runs: the operations, open -->
-                                <xsl:apply-templates select="$context('plan')" mode="ldh:PlanTrace">
-                                    <xsl:with-param name="open" select="true()"/>
-                                </xsl:apply-templates>
+                                <!-- the plan, as the assistant shows one: the operations, folded under their count -->
+                                <xsl:apply-templates select="$context('plan')" mode="ldh:PlanTrace"/>
                                 <xsl:choose>
                                     <xsl:when test="$execution/wa:status = 'error'">
                                         <p>
@@ -302,10 +351,15 @@ exclude-result-prefixes="#all"
                                         <ul class="ldh-action-writes">
                                             <xsl:for-each select="$writes">
                                                 <xsl:variable name="flagged" select="(exists($admin) and starts-with(@uri, $admin)) or @uri = ($base || 'settings', $base || 'settings/')" as="xs:boolean"/>
-                                                <li class="{if (. intersect $outside) then 'is-danger' else if ($flagged) then 'is-flagged' else ()}">
-                                                    <code><xsl:value-of select="@method"/></code>
+                                                <!-- the method and the URI stay on the row, as data and as the link's target -->
+                                                <li class="{if (. intersect $outside) then 'is-danger' else if ($flagged) then 'is-flagged' else ()}" data-method="{@method}">
+                                                    <span class="ldh-action-verb">
+                                                        <xsl:apply-templates select="key('resources', ldh:action-verb(., $titles, $base), ldh:translations())" mode="ac:label"/>
+                                                    </span>
                                                     <xsl:text> </xsl:text>
-                                                    <a href="{@uri}" target="_blank"><xsl:value-of select="@uri"/></a>
+                                                    <a href="{@uri}" title="{@uri}" target="_blank">
+                                                        <xsl:value-of select="if (map:contains($titles, string(@uri))) then $titles(string(@uri)) else @uri"/>
+                                                    </a>
                                                     <xsl:choose>
                                                         <xsl:when test=". intersect $outside">
                                                             <xsl:text> </xsl:text>

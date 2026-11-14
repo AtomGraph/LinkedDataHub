@@ -14,6 +14,8 @@
 - `ldh:RowHook` is sealed; the mode and the view injection live in `client/block.xsl`
 - `ldh:plan` applies to an `ldh:Action` as well as a `ldh:ChatTurn`
 - An action's confirmation shows its plan as the assistant does, as the tree of its operations above the writes; the renderer moves to `client/webalgebra.xsl`
+- A plan's operation tree starts folded under its step count, in the action dialog and the assistant alike
+- An action's confirmation lists its writes in the reader's words: a verb (Update, Delete, Create, ...) and the document's title, the URI behind the link
 
 ### Security
 - `PATCH /settings` refuses to change a dataspace's wiring (`422`): `lds:origin` and `lds:service` are the deployment's, set when the dataspace is made. An owner of one dataspace could otherwise point it at another's SPARQL service, or take another's origin, through their own settings

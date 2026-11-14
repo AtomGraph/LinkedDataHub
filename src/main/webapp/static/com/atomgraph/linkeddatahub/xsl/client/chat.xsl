@@ -969,11 +969,9 @@ exclude-result-prefixes="#all"
         </xsl:if>
         <!-- the trace: the same rows execution reports into - an operation is a step that has not run yet. The rows
              nest as the operations do, and each folds out its own operation's XML - the first, the outermost, the whole
-             plan. Open while the plan is being read and run, since the rows are what there is to see; folded under its
-             count once the answer has been written, which is then what there is to read -->
-        <xsl:apply-templates select="$operation" mode="ldh:PlanTrace">
-            <xsl:with-param name="open" select="true()"/>
-        </xsl:apply-templates>
+             plan. Folded under its count while the plan is read, as everywhere a plan is shown; Execute opens it, since
+             the rows are then what there is to see, and the answer folds it again, which is then what there is to read -->
+        <xsl:apply-templates select="$operation" mode="ldh:PlanTrace"/>
         <div class="ldh-chat-plan-actions">
             <button type="button" class="ac-btn in-primary ap-solid sz-md ldh-chat-execute">
                 <span class="msi sm" aria-hidden="true">play_arrow</span>

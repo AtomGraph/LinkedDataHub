@@ -20,7 +20,8 @@ const SKOS = 'http://www.w3.org/2004/02/skos/core#';
 const menu = block => block.locator('.ldh-action-menu');
 const modal = page => page.locator('div.modal.modal-action');
 const writes = page => modal(page).locator('ul.ldh-action-writes > li');
-const writeFor = (page, method, uri) => writes(page).filter({ has: page.locator(`code:text-is("${method}")`) }).filter({ has: page.locator(`a[href="${uri}"]`) });
+// a row reads as a verb and a title; the method and the URI it stands for are its data-method and its link
+const writeFor = (page, method, uri) => writes(page).and(page.locator(`[data-method="${method}"]`)).filter({ has: page.locator(`a[href="${uri}"]`) });
 
 async function executorAdvertised() {
     const { body } = await get(`${endUserBase}context`, { headers: { Accept: 'application/n-triples' } });
@@ -75,6 +76,10 @@ test.describe('actions', { tag: '@owner' }, () => {
         await expect(writeFor(page, 'PATCH', document('mocha-latte'))).toHaveCount(1);
         await expect(writeFor(page, 'PATCH', document('coffee'))).toHaveCount(1);
         await expect(writeFor(page, 'DELETE', document('mocha'))).toHaveCount(1);
+        // in the reader's words: what happens to which document, by its title
+        await expect(writeFor(page, 'DELETE', document('mocha')).locator('.ldh-action-verb')).toHaveText('Delete');
+        await expect(writeFor(page, 'DELETE', document('mocha')).locator('a')).toHaveText('Mocha');
+        await expect(writeFor(page, 'PATCH', document('coffee')).locator('.ldh-action-verb')).toHaveText('Update');
         // nothing leaves the dataspace, so nothing is refused and the confirmation is offered
         await expect(modal(page).locator('li.is-danger')).toHaveCount(0);
         await expect(modal(page).locator('button.btn-action-confirm')).toBeVisible();
