@@ -239,7 +239,7 @@ exclude-result-prefixes="#all"
                         </wa:request>
                     </xsl:document>
                 </xsl:variable>
-                <xsl:variable name="submission" select="map:merge(($context, map{ 'request': ldh:webalgebra-request($body), 'on-ended': if ($context('dry-run')) then ldh:action-planned#2 else ldh:action-applied#2 }), map{ 'duplicates': 'use-last' })" as="map(*)"/>
+                <xsl:variable name="submission" select="map:merge(($context, map{ 'plan': $plan, 'request': ldh:webalgebra-request($body), 'on-ended': if ($context('dry-run')) then ldh:action-planned#2 else ldh:action-applied#2 }), map{ 'duplicates': 'use-last' })" as="map(*)"/>
 
                 <xsl:sequence select="
                     ixsl:http-request($submission('request')) =>
@@ -277,6 +277,10 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="body" as="item()*">
                         <form class="ldh-action-form" data-action="{$context('action')}" data-this="{$context('this')}" data-title="{$context('title')}">
                             <fieldset>
+                                <!-- the plan, as the assistant shows one before it runs: the operations, open -->
+                                <xsl:apply-templates select="$context('plan')" mode="ldh:PlanTrace">
+                                    <xsl:with-param name="open" select="true()"/>
+                                </xsl:apply-templates>
                                 <xsl:choose>
                                     <xsl:when test="$execution/wa:status = 'error'">
                                         <p>

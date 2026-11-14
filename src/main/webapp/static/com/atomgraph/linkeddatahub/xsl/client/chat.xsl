@@ -333,14 +333,7 @@ exclude-result-prefixes="#all"
                 </p>
             </xsl:if>
             <xsl:if test="exists($operation)">
-                <details class="ldh-chat-trace">
-                    <summary>
-                        <span class="msi sm chev" aria-hidden="true">chevron_right</span>
-                    </summary>
-                    <ul class="ldh-chat-steps">
-                        <xsl:apply-templates select="$operation" mode="ldh:OperationTree"/>
-                    </ul>
-                </details>
+                <xsl:apply-templates select="$operation" mode="ldh:PlanTrace"/>
             </xsl:if>
             <xsl:if test="exists($execution)">
                 <xsl:call-template name="ldh:ChatOutcome">
@@ -978,17 +971,9 @@ exclude-result-prefixes="#all"
              nest as the operations do, and each folds out its own operation's XML - the first, the outermost, the whole
              plan. Open while the plan is being read and run, since the rows are what there is to see; folded under its
              count once the answer has been written, which is then what there is to read -->
-        <details class="ldh-chat-trace" open="">
-            <summary>
-                <span class="msi sm chev" aria-hidden="true">chevron_right</span>
-                <xsl:value-of select="count(ldh:plan-operations($operation))"/>
-                <xsl:text> </xsl:text>
-                <xsl:apply-templates select="key('resources', 'chat-steps', ldh:translations())" mode="ac:label"/>
-            </summary>
-            <ul class="ldh-chat-steps">
-                <xsl:apply-templates select="$operation" mode="ldh:OperationTree"/>
-            </ul>
-        </details>
+        <xsl:apply-templates select="$operation" mode="ldh:PlanTrace">
+            <xsl:with-param name="open" select="true()"/>
+        </xsl:apply-templates>
         <div class="ldh-chat-plan-actions">
             <button type="button" class="ac-btn in-primary ap-solid sz-md ldh-chat-execute">
                 <span class="msi sm" aria-hidden="true">play_arrow</span>
@@ -1003,85 +988,6 @@ exclude-result-prefixes="#all"
             </button>
         </div>
     </xsl:template>
-
-    <!-- an operation before it runs: its glyph says what it does to data (reads, writes, can take away), its state
-         says it is planned. Once the executor reports, the same row is a wa:step -->
-    <!-- an operation before it runs, with the operations inside its arguments nested under it: its glyph says what it
-         does to data (reads, writes, can take away), its state says it is planned. Once the executor reports, the same
-         row is a wa:step -->
-    <xsl:template match="*" mode="ldh:OperationTree">
-        <xsl:variable name="kind" select="ldh:operation-kind(ldh:operation-name(.))" as="xs:string"/>
-        <xsl:variable name="nested" select="ldh:nested-operations(.)" as="element()*"/>
-
-        <li>
-            <details class="ldh-chat-step is-planned kd-{$kind}">
-                <summary>
-                    <span class="st msi sm" aria-hidden="true">
-                        <xsl:value-of select="map{ 'read': 'visibility', 'write': 'edit', 'destructive': 'warning' }($kind)"/>
-                    </span>
-                    <span class="op">
-                        <xsl:value-of select="ldh:operation-name(.)"/>
-                    </span>
-                    <span class="mono muted"/>
-                </summary>
-                <xsl:sequence select="ldh:step-xml(.)"/>
-            </details>
-            <xsl:if test="exists($nested)">
-                <ul>
-                    <xsl:apply-templates select="$nested" mode="ldh:OperationTree"/>
-                </ul>
-            </xsl:if>
-        </li>
-    </xsl:template>
-
-    <!-- the operations directly inside an operation. Arguments are the children and the operations are the
-         arguments' children in the algebra's namespace, anything else there being inline data - except for the
-         sequence form and a Variable, whose steps and value stand directly under them -->
-    <xsl:function name="ldh:nested-operations" as="element()*">
-        <xsl:param name="operation" as="element()"/>
-
-        <xsl:sequence select="if ($operation/self::wa:Sequence or $operation/self::wa:Variable) then $operation/*[namespace-uri() = ('&wa;', '&waldh;')] else $operation/*/*[namespace-uri() = ('&wa;', '&waldh;')]"/>
-    </xsl:function>
-
-    <!-- how the service names an operation: the algebra's own bare, LinkedDataHub's with the family's prefix, as
-         wa:operation/@name and wa:step/@operation carry it -->
-    <xsl:function name="ldh:operation-name" as="xs:string">
-        <xsl:param name="operation" as="element()"/>
-
-        <xsl:sequence select="if (namespace-uri($operation) = '&waldh;') then 'waldh:' || local-name($operation) else local-name($operation)"/>
-    </xsl:function>
-
-    <!-- the operation elements of a plan in the order the service lists them: an operation, then the operations
-         inside it, depth first -->
-    <xsl:function name="ldh:plan-operations" as="element()*">
-        <xsl:param name="operation" as="element()"/>
-
-        <xsl:sequence select="$operation, for $child in ldh:nested-operations($operation) return ldh:plan-operations($child)"/>
-    </xsl:function>
-
-    <!-- the bytes that will be (or were) executed, not a rendering of them -->
-    <xsl:function name="ldh:step-xml" as="element()?">
-        <xsl:param name="operation" as="element()?"/>
-
-        <xsl:for-each select="$operation">
-            <div class="ac-codefield">
-                <pre>
-                    <xsl:value-of select="serialize(., map{ 'method': 'xml', 'indent': true() })"/>
-                </pre>
-            </div>
-        </xsl:for-each>
-    </xsl:function>
-
-    <!-- what an operation does to data, by name: the algebra's writes and the waldh: family's creations and additions
-         change documents, PATCH and the removals can take content away, everything else only reads -->
-    <xsl:function name="ldh:operation-kind" as="xs:string">
-        <xsl:param name="name" as="xs:string"/>
-
-        <xsl:sequence select="
-          if ($name = ('PATCH', 'DELETE', 'waldh:RemoveBlock')) then 'destructive'
-          else if ($name = ('PUT', 'POST') or starts-with($name, 'waldh:Create') or starts-with($name, 'waldh:Add')) then 'write'
-          else 'read'"/>
-    </xsl:function>
 
     <xsl:template match="*[ancestor-or-self::button[contains-token(@class, 'ldh-chat-cancel') or contains-token(@class, 'ldh-chat-dismiss')]]" mode="ixsl:onclick">
         <xsl:variable name="card" select="ancestor::div[contains-token(@class, 'ldh-chat-plan')][1]" as="element()"/>
