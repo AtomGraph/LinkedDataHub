@@ -60,7 +60,7 @@ The [`ldh` command line interface](#command-line-interface) is attached to every
      OWNER_STATE_OR_PROVINCE=Denmark
      OWNER_COUNTRY_NAME=DK
      ```
-     `.env` also needs `PROXY_SECRET`, a random value nginx sends to the platform with every request: `make secrets` appends one, or add `PROXY_SECRET=` followed by the output of `openssl rand -hex 32`. Docker Compose refuses to start without it.
+     `.env` also needs two random values, and Docker Compose refuses to start without either: `PROXY_SECRET`, which nginx sends to the platform with every request, and `FUSEKI_ADMIN_PASSWORD`, the password of Fuseki's admin API. `make secrets` appends whichever is missing, or add each followed by the output of `openssl rand -hex 32`.
   3. Setup server's SSL certificates by running this from command line:
      ```shell
      ./bin/server-cert-gen.sh .env nginx ssl
@@ -253,6 +253,12 @@ _:warning: Do not use blank nodes to identify applications or services. We recom
     <dd>Size of the store the Varnish caches in front of the triplestore keep SPARQL results in, apart from their main one (Varnish size syntax, e.g. <code>64M</code>). A result too large for it ends the fetch, and the triplestore abandons the query, which bounds what one runaway query costs. <code>64M</code> by default</dd>
     <dt><code>COMPOSE_PROFILES</code></dt>
     <dd><code>assistant</code> to run and offer the <a href="#assistant">assistant</a>. Disabled by default</dd>
+    <dt><code>WEBALGEBRA_VERSION</code></dt>
+    <dd>Tag of the <code>ghcr.io/atomgraph/webalgebra-server-ldh</code> image the <a href="#assistant">assistant</a> runs; <code>local</code> for an image built from a REST-VKG checkout. <code>latest</code> by default</dd>
+    <dt><code>OPENAI_MODEL</code></dt>
+    <dd>OpenAI model the <a href="#assistant">assistant</a> writes plans and queries with. <code>gpt-4o</code> by default</dd>
+    <dt><code>FUSEKI_ADMIN_PASSWORD</code></dt>
+    <dd>Password of Fuseki's <code>admin</code> user, for the admin API that creates and removes a dataset per dataspace. Required; <code>make secrets</code> generates one</dd>
     <dt><code>MAIL_SMTP_HOST</code></dt>
     <dd>Hostname of the mail server</dd>
     <dt><code>MAIL_SMTP_PORT</code></dt>
