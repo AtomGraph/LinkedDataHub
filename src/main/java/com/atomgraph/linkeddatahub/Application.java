@@ -894,7 +894,7 @@ public class Application extends ResourceConfig
                 serviceIt.close();
             }
 
-            graphVersioningService = new com.atomgraph.linkeddatahub.server.util.GraphVersioningService(ctxUnion, verifiedClient);
+            graphVersioningService = new com.atomgraph.linkeddatahub.server.util.GraphVersioningService(this::getContextModel, verifiedClient); // the descriptions as they are when asked: a dataspace described later is versioned too
             servletConfig.getServletContext().setAttribute(com.atomgraph.linkeddatahub.server.util.GraphVersioningService.class.getName(), graphVersioningService); // used in GraphVersioningListener to shut down its executor
 
 

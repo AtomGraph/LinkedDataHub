@@ -1,8 +1,10 @@
 ## [Unreleased]
 ### Security
 - `PATCH /settings` refuses to change a dataspace's wiring (`422`): `lds:origin` and `lds:service` are the deployment's, set when the dataspace is made. An owner of one dataspace could otherwise point it at another's SPARQL service, or take another's origin, through their own settings
+- `PATCH /settings` refuses to change `lds:versioningRepository` too: an owner could otherwise have their dataspace commit, with the deployment's credentials, over another dataspace's versions
 
 ### Fixed
+- A dataspace described after the platform started (an extension making dataspaces on the fly, or a context reloaded from a shared store) is versioned when its description says so: the versioning repository is read from the descriptions as they are when a graph is written or a version asked for, not once at startup
 - An empty write through the Linked Data proxy keeps its `Content-Type`, so an empty append is answered `204` as it is directly instead of `400`
 
 ## [6.5.2] - 2026-11-12
