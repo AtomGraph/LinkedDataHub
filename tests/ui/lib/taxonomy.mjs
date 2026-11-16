@@ -230,10 +230,13 @@ export async function waitForPackageStylesheet({ timeout = 180_000, interval = 2
         // The taxonomy container, not the root: a dataspace's ROOT document is served the
         // stock stylesheet even where its children get the composed one, so polling it
         // would wait forever. Any other page names what it was rendered against, and an
-        // unauthenticated 403 names it too, so this needs no certificate. no-cache because
-        // Varnish would otherwise answer with an HTML from before the compile finished.
-        const { body } = await get(taxonomy.container,
-            { headers: { Accept: 'text/html', 'Cache-Control': 'no-cache' } });
+        // unauthenticated 403 names it too, so this needs no certificate. A query parameter
+        // nobody else sends, because the frontend Varnish ignores a request's Cache-Control
+        // and caches an anonymous 200 page for a day: once the container is readable by
+        // anyone, the first poll during the compile would store the shell naming the stock
+        // stylesheet, and every later poll would be answered from that copy.
+        const { body } = await get(`${taxonomy.container}?stylesheet-poll=${Date.now()}`,
+            { headers: { Accept: 'text/html' } });
         if (body.includes(COMPOSED)) return true;
         await new Promise(resolve => setTimeout(resolve, interval));
     }

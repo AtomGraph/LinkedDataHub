@@ -81,7 +81,12 @@ test.describe('send message', { tag: '@owner' }, () => {
         expect(copy).toContain(`<${delivered[0]}> <${DCT}creator> <${local.owner()}>`);
     });
 
-    test('refuses a recipient that advertises no inbox', async ({ page }) => {
+    test('refuses a recipient that advertises no inbox', async ({ page, allowNoise }) => {
+        // the plan ends in its Error operation, which the executor reports as a failed execution: a 500 on the
+        // result, which the dialog turns into the plan's own message
+        allowNoise.push(
+            { pattern: /^HTTP 500: https:\/\/[^/]+\/webalgebra\/[^/]+\/result$/, reason: 'the plan refuses the recipient on purpose' },
+            { pattern: /^console\.error: Failed to load resource: .* 500 /, reason: 'the browser\'s own line for the same refusal' });
         // B's root stays readable, and no longer names an inbox
         await remote.ldh(['patch', remote.base], { stdin: `DELETE WHERE { <${remote.base}> <${LDP}inbox> ?inbox }` });
 
@@ -92,7 +97,8 @@ test.describe('send message', { tag: '@owner' }, () => {
         await argument(page, 'content').locator('textarea').fill(content);
         await modal(page).locator('button.btn-action-preview').click();
 
-        // the plan stopped before any write: nothing to confirm
+        // the plan stopped before any write, and said why: nothing to confirm
+        await expect(modal(page)).toContainText('The recipient advertises no inbox');
         await expect(modal(page).locator('button.btn-action-confirm')).toHaveCount(0);
         await expect(writes(page)).toHaveCount(0);
         expect(await inboxChildren(remote)).toEqual([]);
