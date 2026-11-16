@@ -552,6 +552,10 @@
         <rdfs:label xml:lang="en-US">outside this dataspace, so the action cannot run</rdfs:label>
         <rdfs:label xml:lang="es-ES">fuera de este espacio de datos, así que la acción no puede ejecutarse</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="action-preview">
+        <rdfs:label xml:lang="en-US">Preview</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Vista previa</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="action-update">
         <rdfs:label xml:lang="en-US">Update</rdfs:label>
         <rdfs:label xml:lang="es-ES">Actualizar</rdfs:label>

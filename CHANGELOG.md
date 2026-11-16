@@ -7,6 +7,8 @@
 - `ldh:action` and `ldh:Action`: a package declares what a resource of a class offers to have done, as a Web-Algebra `ldh:plan`
 - Actions render as a menu in the block header where the reader may write and the dataspace has an executor; a click dry-runs the plan, shows and checks its writes, and applies it once confirmed (`client/action.xsl`)
 - `client/webalgebra.xsl`: the executor client, shared by the assistant and the actions
+- An action takes arguments declared as a SPIN template's (`spin:constraint` with `spl:Argument`); the dialog asks for them before the dry run and binds each by its predicate's local name
+- The taxonomy package offers Move concept and Merge concepts, each with a concept argument
 
 ### Changed
 - `ldh:TreeChildrenLoad` returns the predicates that link a node to its children; the platform builds and runs the query
@@ -16,15 +18,15 @@
 - An action's confirmation shows its plan as the assistant does, as the tree of its operations above the writes; the renderer moves to `client/webalgebra.xsl`
 - A plan's operation tree starts folded under its step count, in the action dialog and the assistant alike
 - An action's confirmation lists its writes in the reader's words: a verb (Update, Delete, Create, ...) and the document's title, the URI behind the link
+- The taxonomy package's Delete concept drops every link to the concept instead of re-parenting its narrower concepts, and its plans find documents in the data instead of in URIs
+- An action's `document` is the document it was clicked in, and a deleted document's reader goes to its container as the data names it
+- The `ldh` plugin's skills show how to check which property views a type gets without a browser, with the page's own lookup query against the installed ontology: `ldh get --accept text/html` returns the page before the browser renders its blocks and property views
+- A container's children view lists its documents, not the things they are about: `ldh:SelectChildren` no longer selects each child's `foaf:primaryTopic`, and the list, grid and table modes render each result as itself instead of standing a document's topic in for it. A document's row carries no type tag, as its header carries no type chip. A page that lists things (a catalogue, a table of people) is a view over the things
+- A resource a document describes may be left without a type: `PATCH` refuses only to leave the document itself untyped, which it already did, as the document must keep a document hierarchy class. Imported data often describes entities without a type, and a resource that had one could not be given the same shape (#308 held every resource to keeping one)
 
 ### Security
 - `PATCH /settings` refuses to change a dataspace's wiring (`422`): `lds:origin` and `lds:service` are the deployment's, set when the dataspace is made. An owner of one dataspace could otherwise point it at another's SPARQL service, or take another's origin, through their own settings
 - `PATCH /settings` refuses to change `lds:versioningRepository` too: an owner could otherwise have their dataspace commit, with the deployment's credentials, over another dataspace's versions
-
-### Changed
-- A resource a document describes may be left without a type: `PATCH` refuses only to leave the document itself untyped, which it already did, as the document must keep a document hierarchy class. Imported data often describes entities without a type, and a resource that had one could not be given the same shape (#308 held every resource to keeping one)
-- The `ldh` plugin's skills show how to check which property views a type gets without a browser, with the page's own lookup query against the installed ontology: `ldh get --accept text/html` returns the page before the browser renders its blocks and property views
-- A container's children view lists its documents, not the things they are about: `ldh:SelectChildren` no longer selects each child's `foaf:primaryTopic`, and the list, grid and table modes render each result as itself instead of standing a document's topic in for it. A document's row carries no type tag, as its header carries no type chip. A page that lists things (a catalogue, a table of people) is a view over the things
 
 ### Fixed
 - A lookup restricted to a class answers in a fraction of a second on a large dataspace, where it took 30 s on one of 15M quads: the classes are bound with `VALUES`, one row each, instead of a `FILTER(?Type IN (...))` after the query's `UNION`, which Jena did not push into its `GRAPH ?graph` branch, so that branch walked every typed resource in every graph first. A lookup also asks for at most 100 suggestions, a limit it declared and never applied

@@ -6,6 +6,7 @@
 @prefix owl:    <http://www.w3.org/2002/07/owl#> .
 @prefix sp: 	<http://spinrdf.org/sp#> .
 @prefix spin:	<http://spinrdf.org/spin#> .
+@prefix spl:	<http://spinrdf.org/spl#> .
 @prefix dct:	<http://purl.org/dc/terms/> .
 @prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
 @prefix dh:     <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#> .
@@ -25,175 +26,60 @@
 
 skos:Concept spin:constructor :ConceptConstructor ;
     spin:constraint :MissingPrefLabel , :MissingInScheme ;
-    ldh:action :DeleteConcept , :MakeTopConcept .
+    ldh:action :DeleteConcept , :MakeTopConcept , :MoveConcept , :MergeConcept .
 
 # The structural edits a concept offers, as actions the platform carries out (ldh:action): each is a Web-Algebra
 # plan that takes the concept as $wa:bindings (?this, ?document, ?base, ?admin), is evaluated first to show
 # what it would write, and is applied once the reader confirms. The platform's edit form changes one document;
-# these change the documents around a concept together - every concept is its own document, so re-parenting
-# touches each narrower concept's document, each broader concept's and the scheme's - and the write set is
-# applied with the preconditions the evaluation read, so a concept edited meanwhile refuses rather than loses.
-#
-# The relation is read from both ends throughout (skos:broader on the child, skos:narrower on the parent), as
-# the tree reads it, and only ever written where it was asserted: a parent that never said skos:narrower is
-# not made to say it. The relatives are read once as VALUES rows and spliced into each update, so one document
-# gets one update (two updates whose footprint the executor cannot read would not combine).
+# these change the documents around a concept together - every concept is its own document, and a link to it
+# can be stated in another's (a broader concept's skos:narrower, the scheme's skos:hasTopConcept, a narrower
+# concept's skos:broader) - and the write set is applied with the preconditions the evaluation read, so a
+# concept edited meanwhile refuses rather than loses. A document is always the graph the data is in: the one
+# holding a triple, or the one whose foaf:primaryTopic a resource is.
 
 :DeleteConcept a ldh:Action ;
     dct:title "Delete concept" ;
-    dct:description "Removes the concept's document; its narrower concepts become narrower concepts of its broader concepts (orphans, where it had none), and its broader concepts and scheme lose their links to it" ;
+    dct:description "Removes the concept's document and every link to it from other documents; its narrower concepts are left without it" ;
     ldh:plan """<Sequence xmlns="https://w3id.org/atomgraph/web-algebra">
   <ForEach>
     <select><Value name="$wa:bindings"/></select>
     <operation>
       <Sequence>
         <Variable name="this"><Value name="this"/></Variable>
-        <Variable name="document"><Value name="document"/></Variable>
-        <Variable name="endpoint"><ResolveURI><base><Value name="base"/></base><relative>sparql</relative></ResolveURI></Variable>
 
-        <!-- the concept's relatives as VALUES rows: the broader concepts its narrower concepts move to, the narrower concepts its broader concepts take over -->
-        <Variable name="relatives">
-          <SELECT>
-            <endpoint><Value name="$endpoint"/></endpoint>
-            <query>
-              <Values>
-                <query><![CDATA[PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-SELECT (GROUP_CONCAT(DISTINCT CONCAT("<", STR(?parent), ">"); separator=" ") AS ?parents) (GROUP_CONCAT(DISTINCT CONCAT("<", STR(?child), ">"); separator=" ") AS ?children)
-WHERE {
-  OPTIONAL { GRAPH ?pg { { ?this skos:broader ?parent } UNION { ?parent skos:narrower ?this } } }
-  OPTIONAL { GRAPH ?cg { { ?child skos:broader ?this } UNION { ?this skos:narrower ?child } } }
-}]]></query>
-                <data><Value name="$wa:bindings"/></data>
-                <var>this</var>
-              </Values>
-            </query>
-          </SELECT>
-        </Variable>
-
+        <!-- every other document that links to the concept drops those links -->
         <ForEach>
-          <select><Value name="$relatives"/></select>
+          <select>
+            <SELECT>
+              <endpoint><ResolveURI><base><Value name="base"/></base><relative>sparql</relative></ResolveURI></endpoint>
+              <query>
+                <Values>
+                  <query><![CDATA[SELECT DISTINCT ?g
+WHERE { GRAPH ?g { ?s ?p ?this } FILTER(?g != ?document) }]]></query>
+                  <data><Value name="$wa:bindings"/></data>
+                  <var>this</var>
+                  <var>document</var>
+                </Values>
+              </query>
+            </SELECT>
+          </select>
           <operation>
-            <Sequence>
-              <Variable name="parents"><Value name="parents"/></Variable>
-              <Variable name="children"><Value name="children"/></Variable>
-
-              <!-- each narrower concept, re-parented in its own document -->
-              <ForEach>
-                <select>
-                  <SELECT>
-                    <endpoint><Value name="$endpoint"/></endpoint>
-                    <query>
-                      <Values>
-                        <query><![CDATA[PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-SELECT DISTINCT ?child (IRI(STRBEFORE(STR(?child), "#")) AS ?childDoc)
-WHERE { GRAPH ?g { { ?child skos:broader ?this } UNION { ?this skos:narrower ?child } } }]]></query>
-                        <data><Value name="$wa:bindings"/></data>
-                        <var>this</var>
-                      </Values>
-                    </query>
-                  </SELECT>
-                </select>
-                <operation>
-                  <PATCH>
-                    <url><Value name="childDoc"/></url>
-                    <update>
-                      <Substitute>
-                        <query>
-                          <Concat>
-                            <input><![CDATA[PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-DELETE { ?child skos:broader ?this } INSERT { ?child skos:broader ?parent }
-WHERE { OPTIONAL { VALUES ?parent { ]]></input>
-                            <input><Value name="$parents"/></input>
-                            <input><![CDATA[ } } }]]></input>
-                          </Concat>
-                        </query>
-                        <bindings>
-                          <binding name="child"><Value name="child"/></binding>
-                          <binding name="this"><Value name="$this"/></binding>
-                        </bindings>
-                      </Substitute>
-                    </update>
-                  </PATCH>
-                </operation>
-              </ForEach>
-
-              <!-- each broader concept that names it as narrower takes its narrower concepts over, in its own document -->
-              <ForEach>
-                <select>
-                  <SELECT>
-                    <endpoint><Value name="$endpoint"/></endpoint>
-                    <query>
-                      <Values>
-                        <query><![CDATA[PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-SELECT DISTINCT ?parent (IRI(STRBEFORE(STR(?parent), "#")) AS ?parentDoc)
-WHERE { GRAPH ?g { ?parent skos:narrower ?this } }]]></query>
-                        <data><Value name="$wa:bindings"/></data>
-                        <var>this</var>
-                      </Values>
-                    </query>
-                  </SELECT>
-                </select>
-                <operation>
-                  <PATCH>
-                    <url><Value name="parentDoc"/></url>
-                    <update>
-                      <Substitute>
-                        <query>
-                          <Concat>
-                            <input><![CDATA[PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-DELETE { ?parent skos:narrower ?this } INSERT { ?parent skos:narrower ?child }
-WHERE { OPTIONAL { VALUES ?child { ]]></input>
-                            <input><Value name="$children"/></input>
-                            <input><![CDATA[ } } }]]></input>
-                          </Concat>
-                        </query>
-                        <bindings>
-                          <binding name="parent"><Value name="parent"/></binding>
-                          <binding name="this"><Value name="$this"/></binding>
-                        </bindings>
-                      </Substitute>
-                    </update>
-                  </PATCH>
-                </operation>
-              </ForEach>
-
-              <!-- the scheme that names it as a top concept lets it go -->
-              <ForEach>
-                <select>
-                  <SELECT>
-                    <endpoint><Value name="$endpoint"/></endpoint>
-                    <query>
-                      <Values>
-                        <query><![CDATA[PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-SELECT DISTINCT ?scheme (IRI(STRBEFORE(STR(?scheme), "#")) AS ?schemeDoc)
-WHERE { GRAPH ?g { ?scheme skos:hasTopConcept ?this } }]]></query>
-                        <data><Value name="$wa:bindings"/></data>
-                        <var>this</var>
-                      </Values>
-                    </query>
-                  </SELECT>
-                </select>
-                <operation>
-                  <PATCH>
-                    <url><Value name="schemeDoc"/></url>
-                    <update>
-                      <Substitute>
-                        <query><![CDATA[PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-DELETE { ?scheme skos:hasTopConcept ?this } WHERE { ?scheme skos:hasTopConcept ?this }]]></query>
-                        <bindings>
-                          <binding name="scheme"><Value name="scheme"/></binding>
-                          <binding name="this"><Value name="$this"/></binding>
-                        </bindings>
-                      </Substitute>
-                    </update>
-                  </PATCH>
-                </operation>
-              </ForEach>
-
-              <DELETE><url><Value name="$document"/></url></DELETE>
-            </Sequence>
+            <PATCH>
+              <url><Value name="g"/></url>
+              <update>
+                <Substitute>
+                  <query><![CDATA[DELETE WHERE { ?s ?p ?this }]]></query>
+                  <bindings>
+                    <binding name="this"><Value name="$this"/></binding>
+                  </bindings>
+                </Substitute>
+              </update>
+            </PATCH>
           </operation>
         </ForEach>
+
+        <!-- then its own document -->
+        <DELETE><url><Value name="document"/></url></DELETE>
       </Sequence>
     </operation>
   </ForEach>
@@ -232,8 +118,9 @@ WHERE { ?this skos:inScheme ?scheme OPTIONAL { ?this skos:broader ?parent } }]]>
               <query>
                 <Values>
                   <query><![CDATA[PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-SELECT DISTINCT ?scheme (IRI(STRBEFORE(STR(?scheme), "#")) AS ?schemeDoc)
-WHERE { GRAPH ?g { ?this skos:inScheme ?scheme } }]]></query>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+SELECT DISTINCT ?scheme ?schemeDoc
+WHERE { GRAPH ?g { ?this skos:inScheme ?scheme } GRAPH ?schemeDoc { ?schemeDoc foaf:primaryTopic ?scheme } }]]></query>
                   <data><Value name="$wa:bindings"/></data>
                   <var>this</var>
                 </Values>
@@ -265,8 +152,8 @@ INSERT { ?scheme skos:hasTopConcept ?this } WHERE { }]]></query>
               <query>
                 <Values>
                   <query><![CDATA[PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-SELECT DISTINCT ?parent (IRI(STRBEFORE(STR(?parent), "#")) AS ?parentDoc)
-WHERE { GRAPH ?g { ?parent skos:narrower ?this } }]]></query>
+SELECT DISTINCT ?parent ?parentDoc
+WHERE { GRAPH ?parentDoc { ?parent skos:narrower ?this } }]]></query>
                   <data><Value name="$wa:bindings"/></data>
                   <var>this</var>
                 </Values>
@@ -287,6 +174,215 @@ DELETE { ?parent skos:narrower ?this } WHERE { ?parent skos:narrower ?this }]]><
                 </Substitute>
               </update>
             </PATCH>
+          </operation>
+        </ForEach>
+      </Sequence>
+    </operation>
+  </ForEach>
+</Sequence>"""^^rdf:XMLLiteral .
+
+# The actions that need a second concept take it as an argument, declared as a SPIN template declares one: the
+# dialog asks for it among the instances of its spl:valueType, and the value is the plan's ?target or ?into,
+# by the predicate's local name. Choosing the concept itself does nothing.
+
+:target a rdf:Property ;
+    rdfs:label "Move under" ;
+    rdfs:isDefinedBy : .
+
+:into a rdf:Property ;
+    rdfs:label "Merge into" ;
+    rdfs:isDefinedBy : .
+
+:MoveConcept a ldh:Action ;
+    dct:title "Move concept" ;
+    dct:description "The concept leaves its broader concepts, or its place among the scheme's top concepts, and becomes narrower than the chosen concept" ;
+    spin:constraint [ a spl:Argument ;
+        spl:predicate :target ;
+        spl:valueType skos:Concept ;
+        rdfs:comment "The concept it moves under" ] ;
+    ldh:plan """<Sequence xmlns="https://w3id.org/atomgraph/web-algebra">
+  <ForEach>
+    <select><Value name="$wa:bindings"/></select>
+    <operation>
+      <Sequence>
+        <Variable name="this"><Value name="this"/></Variable>
+        <Variable name="target"><Value name="target"/></Variable>
+        <Variable name="endpoint"><ResolveURI><base><Value name="base"/></base><relative>sparql</relative></ResolveURI></Variable>
+
+        <!-- the concept itself: broader than the target instead, and no longer a top concept -->
+        <ForEach>
+          <select>
+            <SELECT>
+              <endpoint><Value name="$endpoint"/></endpoint>
+              <query>
+                <Values>
+                  <query><![CDATA[SELECT ?document WHERE { FILTER(?target != ?this) }]]></query>
+                  <data><Value name="$wa:bindings"/></data>
+                  <var>this</var>
+                  <var>document</var>
+                  <var>target</var>
+                </Values>
+              </query>
+            </SELECT>
+          </select>
+          <operation>
+            <PATCH>
+              <url><Value name="document"/></url>
+              <update>
+                <Substitute>
+                  <query><![CDATA[PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+DELETE WHERE { ?this skos:broader ?old } ;
+DELETE WHERE { ?this skos:topConceptOf ?scheme } ;
+INSERT { ?this skos:broader ?target } WHERE { }]]></query>
+                  <bindings>
+                    <binding name="this"><Value name="$this"/></binding>
+                    <binding name="target"><Value name="$target"/></binding>
+                  </bindings>
+                </Substitute>
+              </update>
+            </PATCH>
+          </operation>
+        </ForEach>
+
+        <!-- every other document that names it as narrower, or as a top concept, lets it go -->
+        <ForEach>
+          <select>
+            <SELECT>
+              <endpoint><Value name="$endpoint"/></endpoint>
+              <query>
+                <Values>
+                  <query><![CDATA[PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+SELECT DISTINCT ?g
+WHERE { GRAPH ?g { { ?x skos:narrower ?this } UNION { ?x skos:hasTopConcept ?this } } FILTER(?g != ?document) FILTER(?target != ?this) }]]></query>
+                  <data><Value name="$wa:bindings"/></data>
+                  <var>this</var>
+                  <var>document</var>
+                  <var>target</var>
+                </Values>
+              </query>
+            </SELECT>
+          </select>
+          <operation>
+            <PATCH>
+              <url><Value name="g"/></url>
+              <update>
+                <Substitute>
+                  <query><![CDATA[PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+DELETE WHERE { ?x skos:narrower ?this } ;
+DELETE WHERE { ?x skos:hasTopConcept ?this }]]></query>
+                  <bindings>
+                    <binding name="this"><Value name="$this"/></binding>
+                  </bindings>
+                </Substitute>
+              </update>
+            </PATCH>
+          </operation>
+        </ForEach>
+      </Sequence>
+    </operation>
+  </ForEach>
+</Sequence>"""^^rdf:XMLLiteral .
+
+:MergeConcept a ldh:Action ;
+    dct:title "Merge concepts" ;
+    dct:description "Every link to the concept moves to the chosen concept, which keeps its preferred labels as alternative ones; then the concept's document is deleted" ;
+    spin:constraint [ a spl:Argument ;
+        spl:predicate :into ;
+        spl:valueType skos:Concept ;
+        rdfs:comment "The concept it merges into" ] ;
+    ldh:plan """<Sequence xmlns="https://w3id.org/atomgraph/web-algebra">
+  <ForEach>
+    <select><Value name="$wa:bindings"/></select>
+    <operation>
+      <Sequence>
+        <Variable name="this"><Value name="this"/></Variable>
+        <Variable name="into"><Value name="into"/></Variable>
+        <Variable name="endpoint"><ResolveURI><base><Value name="base"/></base><relative>sparql</relative></ResolveURI></Variable>
+
+        <!-- its preferred labels, which the target keeps as alternative ones -->
+        <Variable name="labels">
+          <SELECT>
+            <endpoint><Value name="$endpoint"/></endpoint>
+            <query>
+              <Values>
+                <query><![CDATA[PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+SELECT DISTINCT ?label WHERE { GRAPH ?document { ?this skos:prefLabel ?label } }]]></query>
+                <data><Value name="$wa:bindings"/></data>
+                <var>this</var>
+                <var>document</var>
+              </Values>
+            </query>
+          </SELECT>
+        </Variable>
+
+        <!-- every other document that links to it, and the target's own: one update each, links repointed, and in
+             the target's document (the one whose primary topic it is) the labels added -->
+        <ForEach>
+          <select>
+            <SELECT>
+              <endpoint><Value name="$endpoint"/></endpoint>
+              <query>
+                <Values>
+                  <query><![CDATA[PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+SELECT DISTINCT ?g
+WHERE { { GRAPH ?g { ?s ?p ?this } FILTER(?g != ?document) } UNION { GRAPH ?g { ?g foaf:primaryTopic ?into } } FILTER(?into != ?this) }]]></query>
+                  <data><Value name="$wa:bindings"/></data>
+                  <var>this</var>
+                  <var>document</var>
+                  <var>into</var>
+                </Values>
+              </query>
+            </SELECT>
+          </select>
+          <operation>
+            <PATCH>
+              <url><Value name="g"/></url>
+              <update>
+                <Substitute>
+                  <query>
+                    <Concat>
+                      <input><![CDATA[DELETE { ?s ?p ?this } INSERT { ?s ?p ?into } WHERE { ?s ?p ?this FILTER(?s != ?into) } ;
+DELETE WHERE { ?into ?p ?this } ;
+]]></input>
+                      <input>
+                        <Values>
+                          <query><![CDATA[PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+INSERT { ?into skos:altLabel ?label } WHERE { ?doc foaf:primaryTopic ?into }]]></query>
+                          <data><Value name="$labels"/></data>
+                          <var>label</var>
+                        </Values>
+                      </input>
+                    </Concat>
+                  </query>
+                  <bindings>
+                    <binding name="this"><Value name="$this"/></binding>
+                    <binding name="into"><Value name="$into"/></binding>
+                  </bindings>
+                </Substitute>
+              </update>
+            </PATCH>
+          </operation>
+        </ForEach>
+
+        <!-- then its own document -->
+        <ForEach>
+          <select>
+            <SELECT>
+              <endpoint><Value name="$endpoint"/></endpoint>
+              <query>
+                <Values>
+                  <query><![CDATA[SELECT ?document WHERE { FILTER(?into != ?this) }]]></query>
+                  <data><Value name="$wa:bindings"/></data>
+                  <var>this</var>
+                  <var>document</var>
+                  <var>into</var>
+                </Values>
+              </query>
+            </SELECT>
+          </select>
+          <operation>
+            <DELETE><url><Value name="document"/></url></DELETE>
           </operation>
         </ForEach>
       </Sequence>

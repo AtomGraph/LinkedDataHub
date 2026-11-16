@@ -7,6 +7,7 @@
     <!ENTITY srx    "http://www.w3.org/2005/sparql-results#">
     <!ENTITY wa     "https://w3id.org/atomgraph/web-algebra">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
+    <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
 ]>
 <xsl:stylesheet version="3.0"
 xmlns="http://www.w3.org/1999/xhtml"
@@ -30,7 +31,7 @@ exclude-result-prefixes="#all"
         ACTIONS: what a package wants DONE, declared as data and carried out by the platform.
 
         A package stylesheet renders and nothing else (hooks.xsl, PackageContract). A change to data - several
-        writes across documents, a delete that re-parents what it orphans - is declared in the package's
+        writes across documents, a delete that drops the links other documents hold to it - is declared in the package's
         ontology instead:
 
             skos:Concept ldh:action :DeleteConcept .
@@ -38,7 +39,10 @@ exclude-result-prefixes="#all"
 
         The plan is a Web-Algebra operation (client/webalgebra.xsl). It takes its parameters as $wa:bindings, one
         row: ?this (the resource the action was clicked on), ?document (the document it was clicked in), ?base
-        (the dataspace) and ?admin (its admin dataspace). The platform finds the actions of a resource's classes
+        (the dataspace) and ?admin (its admin dataspace). An action that needs more - the concept a Move puts it
+        under - declares arguments as a SPIN template does (spin:constraint [ a spl:Argument ; spl:predicate
+        :target ; spl:valueType skos:Concept ]): the dialog asks for them first, and each value is one more column
+        of the row, named by the predicate's local name (?target), as SPIN binds an argument. The platform finds the actions of a resource's classes
         the way it finds their constructors - a SPARQL query on /ns, through rdfs:subClassOf - and renders them
         as a menu in the block's header, for a reader who may write and where the dataspace has an executor
         (lds:assistant).
@@ -73,12 +77,19 @@ exclude-result-prefixes="#all"
         <!-- VALUES ?type goes here -->
     </xsl:variable>
 
-    <!-- one action's plan, read when it is clicked rather than kept on the page: the plan is the ontology's,
-         and a click is the only time it is needed -->
+    <!-- one action's plan and its arguments, read when it is clicked rather than kept on the page: the plan is the
+         ontology's, and a click is the only time it is needed. One row per argument, or one row without any -->
     <xsl:function name="ldh:action-plan-query" as="xs:string">
         <xsl:param name="action" as="xs:anyURI"/>
 
-        <xsl:sequence select="'PREFIX ldh: &lt;&ldh;&gt; SELECT ?plan WHERE { &lt;' || $action || '&gt; ldh:plan ?plan }'"/>
+        <xsl:sequence select="'PREFIX ldh: &lt;&ldh;&gt; PREFIX spin: &lt;http://spinrdf.org/spin#&gt; PREFIX spl: &lt;http://spinrdf.org/spl#&gt; PREFIX rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt; SELECT ?plan ?predicate ?valueType ?optional ?label ?comment WHERE { &lt;' || $action || '&gt; ldh:plan ?plan OPTIONAL { &lt;' || $action || '&gt; spin:constraint ?arg . ?arg a spl:Argument ; spl:predicate ?predicate OPTIONAL { ?arg spl:valueType ?valueType } OPTIONAL { ?arg spl:optional ?optional } OPTIONAL { ?predicate rdfs:label ?label } OPTIONAL { ?arg rdfs:comment ?comment } } }'"/>
+    </xsl:function>
+
+    <!-- the variable an argument binds: its predicate's local name, the SPIN rule (arg:target binds ?target) -->
+    <xsl:function name="ldh:argument-name" as="xs:string">
+        <xsl:param name="predicate" as="xs:string"/>
+
+        <xsl:sequence select="tokenize($predicate, '[#/]')[last()]"/>
     </xsl:function>
 
     <!-- DISCOVERY -->
@@ -159,18 +170,19 @@ exclude-result-prefixes="#all"
     <xsl:template match="button[contains-token(@class, 'btn-action')][@data-action]" mode="ixsl:onclick">
         <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][@about][1]" as="element()"/>
         <xsl:variable name="pane" select="ancestor::div[contains-token(@class, 'ldh-pane')]" as="element()"/>
-        <xsl:variable name="context" select="ldh:action-context(xs:anyURI(@data-action), string(span[contains-token(@class, 'it-txt')]), xs:anyURI($block/@about), $pane)" as="map(*)"/>
+        <xsl:variable name="context" select="ldh:action-context(xs:anyURI(@data-action), string(span[contains-token(@class, 'it-txt')]), xs:anyURI($block/@about), ldh:base-uri($block), $pane)" as="map(*)"/>
 
         <xsl:sequence select="ldh:busy-cursor()"/>
         <ixsl:promise select="ldh:action-plan($context, true())" on-failure="ldh:action-failure($context, ?)"/>
     </xsl:template>
 
-    <!-- what a plan runs with, read once from where the action was clicked: the resource, its document, the
-         dataspace and its admin - the one row of $wa:bindings -->
+    <!-- what a plan runs with, read once from where the action was clicked: the resource, the document it is shown
+         in, the dataspace and its admin - the one row of $wa:bindings -->
     <xsl:function name="ldh:action-context" as="map(*)">
         <xsl:param name="action" as="xs:anyURI"/>
         <xsl:param name="title" as="xs:string"/>
         <xsl:param name="this" as="xs:anyURI"/>
+        <xsl:param name="document" as="xs:anyURI"/>
         <xsl:param name="pane" as="element()"/>
 
         <xsl:sequence select="
@@ -178,7 +190,7 @@ exclude-result-prefixes="#all"
                 'action': $action,
                 'title': $title,
                 'this': $this,
-                'document': ac:document-uri($this),
+                'document': $document,
                 'base': lds:base(),
                 'admin': lds:dataspace-description()/lds:admin/@rdf:resource/xs:anyURI(.),
                 'pane': $pane,
@@ -205,11 +217,17 @@ exclude-result-prefixes="#all"
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="literal" select="($response?body//srx:binding[@name = 'plan']/srx:literal)[1]" as="element()?"/>
+        <xsl:variable name="arguments" select="$response?body//srx:result[srx:binding[@name = 'predicate']]" as="element()*"/>
 
         <xsl:choose>
+            <!-- arguments not asked for yet: the dialog asks first, and Preview comes back here with them -->
+            <xsl:when test="$response?status = 200 and exists($literal) and exists($arguments) and not(map:contains($context, 'arguments'))">
+                <xsl:sequence select="ldh:action-arguments-dialog($context, $arguments)"/>
+            </xsl:when>
             <xsl:when test="$response?status = 200 and exists($literal)">
                 <!-- the plan is an rdf:XMLLiteral: its XML, parsed, is the operation -->
                 <xsl:variable name="plan" select="parse-xml(string($literal))/*" as="element()"/>
+                <xsl:variable name="values" select="if (map:contains($context, 'arguments')) then $context('arguments') else ()" as="element()*"/>
                 <xsl:variable name="body" as="document-node()">
                     <xsl:document>
                         <wa:request dry-run="{if ($context('dry-run')) then 'true' else 'false'}">
@@ -220,6 +238,9 @@ exclude-result-prefixes="#all"
                                         <variable name="document"/>
                                         <variable name="base"/>
                                         <variable name="admin"/>
+                                        <xsl:for-each select="$values">
+                                            <variable name="{@name}"/>
+                                        </xsl:for-each>
                                     </head>
                                     <results>
                                         <result>
@@ -229,6 +250,18 @@ exclude-result-prefixes="#all"
                                             <xsl:if test="exists($context('admin'))">
                                                 <binding name="admin"><uri><xsl:value-of select="$context('admin')"/></uri></binding>
                                             </xsl:if>
+                                            <xsl:for-each select="$values">
+                                                <binding name="{@name}">
+                                                    <xsl:choose>
+                                                        <xsl:when test="@datatype">
+                                                            <literal datatype="{@datatype}"><xsl:value-of select="@value"/></literal>
+                                                        </xsl:when>
+                                                        <xsl:otherwise>
+                                                            <uri><xsl:value-of select="@value"/></uri>
+                                                        </xsl:otherwise>
+                                                    </xsl:choose>
+                                                </binding>
+                                            </xsl:for-each>
                                         </result>
                                     </results>
                                 </sparql>
@@ -254,6 +287,142 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:function>
 
+    <!-- THE ARGUMENTS: what the action needs besides the resource, asked for before anything is evaluated. A
+         resource argument is looked up among the instances of its spl:valueType, as an object property's value
+         is; any other is typed in -->
+
+    <xsl:function name="ldh:action-arguments-dialog" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="arguments" as="element()*"/>
+
+        <xsl:sequence select="ldh:reset-cursor()"/>
+
+        <xsl:variable name="modal" as="element()">
+            <div class="ac-backdrop pos-center modal modal-action" id="{'action-modal-' || $context('pane')/@id}">
+                <xsl:apply-templates select="$context('pane')" mode="ldh:Modal">
+                    <xsl:with-param name="size" select="'sz-md'"/>
+                    <xsl:with-param name="title" select="$context('title')"/>
+                    <xsl:with-param name="sub" select="$context('this')"/>
+                    <xsl:with-param name="body" as="item()*">
+                        <form class="ldh-action-args-form" data-action="{$context('action')}" data-this="{$context('this')}" data-document="{$context('document')}" data-title="{$context('title')}">
+                            <fieldset>
+                                <div class="ldh-prop-form is-form-mode">
+                                    <xsl:for-each select="$arguments">
+                                        <xsl:variable name="predicate" select="xs:anyURI(srx:binding[@name = 'predicate']/srx:uri)" as="xs:anyURI"/>
+                                        <xsl:variable name="value-type" select="srx:binding[@name = 'valueType']/srx:uri/xs:anyURI(.)" as="xs:anyURI?"/>
+                                        <xsl:variable name="required" select="not(srx:binding[@name = 'optional']/srx:literal = 'true')" as="xs:boolean"/>
+                                        <xsl:variable name="literal" select="exists($value-type) and starts-with($value-type, '&xsd;')" as="xs:boolean"/>
+                                        <xsl:variable name="id" select="'action-arg-' || ldh:argument-name($predicate)" as="xs:string"/>
+
+                                        <div class="ldh-prop-group ldh-action-arg{if ($required) then ' required' else ()}" data-name="{ldh:argument-name($predicate)}">
+                                            <xsl:if test="$required">
+                                                <xsl:attribute name="data-required" select="'true'"/>
+                                            </xsl:if>
+                                            <xsl:if test="$literal">
+                                                <xsl:attribute name="data-datatype" select="$value-type"/>
+                                            </xsl:if>
+
+                                            <xsl:apply-templates select="." mode="ldh:PropertyLabel">
+                                                <xsl:with-param name="this" select="$predicate"/>
+                                                <xsl:with-param name="label" select="(srx:binding[@name = 'label']/srx:literal, ldh:argument-name($predicate))[1] ! string(.)"/>
+                                                <xsl:with-param name="required" select="$required"/>
+                                                <xsl:with-param name="description" select="srx:binding[@name = 'comment']/srx:literal ! string(.)"/>
+                                            </xsl:apply-templates>
+                                            <div class="ldh-prop-row is-last">
+                                                <div class="value val-stack">
+                                                    <div class="val-main">
+                                                        <xsl:choose>
+                                                            <xsl:when test="$literal">
+                                                                <xsl:apply-templates select="." mode="ac:FieldShell">
+                                                                    <xsl:with-param name="control" as="item()*">
+                                                                        <input type="text" name="ol" id="{$id}"/>
+                                                                    </xsl:with-param>
+                                                                </xsl:apply-templates>
+                                                            </xsl:when>
+                                                            <xsl:otherwise>
+                                                                <xsl:call-template name="ldh:Combobox">
+                                                                    <xsl:with-param name="id" select="$id"/>
+                                                                    <xsl:with-param name="forClass" select="$value-type"/>
+                                                                </xsl:call-template>
+                                                            </xsl:otherwise>
+                                                        </xsl:choose>
+                                                    </div>
+                                                </div>
+                                                <div class="row-actions"></div>
+                                            </div>
+                                        </div>
+                                    </xsl:for-each>
+                                </div>
+                            </fieldset>
+
+                            <div class="ldh-form-bar">
+                                <span class="fb-end">
+                                    <button type="button" class="ac-btn in-neutral ap-outline sz-sm btn-close">
+                                        <span>
+                                            <xsl:apply-templates select="key('resources', 'cancel', ldh:translations())" mode="ac:label"/>
+                                        </span>
+                                    </button>
+                                    <button type="submit" class="ac-btn in-brand ap-solid sz-sm btn-action-preview">
+                                        <span class="msi sm" aria-hidden="true">visibility</span>
+                                        <span>
+                                            <xsl:apply-templates select="key('resources', 'action-preview', ldh:translations())" mode="ac:label"/>
+                                        </span>
+                                    </button>
+                                </span>
+                            </div>
+                        </form>
+                    </xsl:with-param>
+                </xsl:apply-templates>
+            </div>
+        </xsl:variable>
+
+        <xsl:call-template name="ldh:ShowModalForm">
+            <xsl:with-param name="form" select="$modal"/>
+            <xsl:with-param name="target" select="$context('content-body')"/>
+        </xsl:call-template>
+    </xsl:function>
+
+    <!-- one argument's value as the form holds it: a picked resource is the committed chip's input, a typed value the
+         text input's. A lookup left half-typed has no value -->
+    <xsl:function name="ldh:action-argument-value" as="xs:string?">
+        <xsl:param name="group" as="element()"/>
+
+        <xsl:sequence select="(if ($group/@data-datatype) then $group//input[@name = 'ol'] else $group//span[contains-token(@class, 'ac-cb-committed')]//input[@name = 'ou'])[1] ! normalize-space(ixsl:get(., 'value'))[. ne '']"/>
+    </xsl:function>
+
+    <!-- Preview: every required argument has a value, or the empty ones are marked and nothing is sent; then the
+         arguments dialog gives way to the write set, evaluated with them -->
+    <xsl:template match="form[contains-token(@class, 'ldh-action-args-form')]" mode="ixsl:onsubmit">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <xsl:variable name="pane" select="ancestor::div[contains-token(@class, 'ldh-pane')]" as="element()"/>
+        <xsl:variable name="groups" select=".//div[contains-token(@class, 'ldh-action-arg')]" as="element()*"/>
+        <xsl:variable name="missing" select="$groups[@data-required = 'true'][empty(ldh:action-argument-value(.))]" as="element()*"/>
+
+        <!-- the control is marked, as the design system marks an invalid one -->
+        <xsl:for-each select="$groups//div[contains-token(@class, 'ac-combobox') or contains-token(@class, 'ac-field')]">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'st-invalid', exists(ancestor::div[contains-token(@class, 'ldh-action-arg')] intersect $missing) ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+
+        <xsl:if test="empty($missing)">
+            <xsl:variable name="arguments" as="element()*">
+                <xsl:for-each select="$groups[exists(ldh:action-argument-value(.))]">
+                    <arg name="{@data-name}" value="{ldh:action-argument-value(.)}">
+                        <xsl:if test="@data-datatype">
+                            <xsl:attribute name="datatype" select="@data-datatype"/>
+                        </xsl:if>
+                    </arg>
+                </xsl:for-each>
+            </xsl:variable>
+            <xsl:variable name="context" select="map:put(ldh:action-context(xs:anyURI(@data-action), string(@data-title), xs:anyURI(@data-this), xs:anyURI(@data-document), $pane), 'arguments', $arguments)" as="map(*)"/>
+
+            <xsl:for-each select="ancestor::div[contains-token(@class, 'modal')]">
+                <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:for-each>
+            <xsl:sequence select="ldh:busy-cursor()"/>
+            <ixsl:promise select="ldh:action-plan($context, true())" on-failure="ldh:action-failure($context, ?)"/>
+        </xsl:if>
+    </xsl:template>
+
     <!-- THE DRY RUN: the write set, checked and shown -->
 
     <!-- the write set names documents by URI; the reader knows them by title. One query asks the dataspace for the
@@ -266,7 +435,7 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <xsl:when test="$execution/wa:status = 'complete' and exists($uris)">
-                <xsl:variable name="query" select="'PREFIX dct: &lt;http://purl.org/dc/terms/&gt; SELECT ?doc ?title WHERE { VALUES ?doc { ' || string-join($uris ! ('&lt;' || . || '&gt;'), ' ') || ' } GRAPH ?doc { ?doc dct:title ?title } }'" as="xs:string"/>
+                <xsl:variable name="query" select="'PREFIX dct: &lt;http://purl.org/dc/terms/&gt; PREFIX sioc: &lt;http://rdfs.org/sioc/ns#&gt; SELECT ?doc ?title ?container WHERE { VALUES ?doc { ' || string-join($uris ! ('&lt;' || . || '&gt;'), ' ') || ' } GRAPH ?doc { ?doc dct:title ?title OPTIONAL { ?doc sioc:has_container|sioc:has_parent ?container } } }'" as="xs:string"/>
                 <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('sparql', $context('base')), map{ 'query': $query }), map{})" as="xs:anyURI"/>
                 <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
                 <xsl:sequence select="
@@ -281,13 +450,16 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:function>
 
-    <!-- no titles is not a failure: the dialog opens with the URIs -->
+    <!-- no titles is not a failure: the dialog opens with the URIs. The document's container comes back with them,
+         read from the data while the document still exists: where a reader goes once it is deleted -->
     <xsl:function name="ldh:action-titles-response" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('titles-response')" as="map(*)"/>
-        <xsl:variable name="titles" select="if ($response?status = 200) then map:merge(for $result in $response?body//srx:result return map{ string($result/srx:binding[@name = 'doc']/srx:uri): string($result/srx:binding[@name = 'title']/srx:literal) }, map{ 'duplicates': 'use-first' }) else map{}" as="map(*)"/>
+        <xsl:variable name="results" select="if ($response?status = 200) then $response?body//srx:result else ()" as="element()*"/>
+        <xsl:variable name="titles" select="map:merge(for $result in $results return map{ string($result/srx:binding[@name = 'doc']/srx:uri): string($result/srx:binding[@name = 'title']/srx:literal) }, map{ 'duplicates': 'use-first' })" as="map(*)"/>
+        <xsl:variable name="container" select="($results[srx:binding[@name = 'doc']/srx:uri = $context('document')]/srx:binding[@name = 'container']/srx:uri)[1] ! xs:anyURI(.)" as="xs:anyURI?"/>
 
-        <xsl:sequence select="ldh:action-dialog($context, $context('execution'), $titles)"/>
+        <xsl:sequence select="ldh:action-dialog(map:put($context, 'container', $container), $context('execution'), $titles)"/>
     </xsl:function>
 
     <!-- what a write does, in the reader's words: PATCH updates, DELETE deletes, POST adds to, and PUT creates a
@@ -326,7 +498,20 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="title" select="$context('title')"/>
                     <xsl:with-param name="sub" select="$context('this')"/>
                     <xsl:with-param name="body" as="item()*">
-                        <form class="ldh-action-form" data-action="{$context('action')}" data-this="{$context('this')}" data-title="{$context('title')}">
+                        <form class="ldh-action-form" data-action="{$context('action')}" data-this="{$context('this')}" data-document="{$context('document')}" data-title="{$context('title')}">
+                            <xsl:if test="exists($context('container'))">
+                                <xsl:attribute name="data-container" select="$context('container')"/>
+                            </xsl:if>
+                            <!-- the arguments it was evaluated with, so Confirm applies the same -->
+                            <xsl:if test="map:contains($context, 'arguments')">
+                                <xsl:for-each select="$context('arguments')">
+                                    <input type="hidden" name="arg" data-name="{@name}" value="{@value}">
+                                        <xsl:if test="@datatype">
+                                            <xsl:attribute name="data-datatype" select="@datatype"/>
+                                        </xsl:if>
+                                    </input>
+                                </xsl:for-each>
+                            </xsl:if>
                             <fieldset>
                                 <!-- the plan, as the assistant shows one: the operations, folded under their count -->
                                 <xsl:apply-templates select="$context('plan')" mode="ldh:PlanTrace"/>
@@ -415,7 +600,17 @@ exclude-result-prefixes="#all"
     <xsl:template match="form[contains-token(@class, 'ldh-action-form')]" mode="ixsl:onsubmit">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="pane" select="ancestor::div[contains-token(@class, 'ldh-pane')]" as="element()"/>
-        <xsl:variable name="context" select="map:put(ldh:action-context(xs:anyURI(@data-action), string(@data-title), xs:anyURI(@data-this), $pane), 'form', .)" as="map(*)"/>
+        <xsl:variable name="arguments" as="element()*">
+            <xsl:for-each select="input[@name = 'arg']">
+                <arg name="{@data-name}" value="{@value}">
+                    <xsl:if test="@data-datatype">
+                        <xsl:attribute name="datatype" select="@data-datatype"/>
+                    </xsl:if>
+                </arg>
+            </xsl:for-each>
+        </xsl:variable>
+        <xsl:variable name="context" select="ldh:action-context(xs:anyURI(@data-action), string(@data-title), xs:anyURI(@data-this), xs:anyURI(@data-document), $pane)" as="map(*)"/>
+        <xsl:variable name="context" select="map:merge(($context, map{ 'form': ., 'container': @data-container ! xs:anyURI(.) }, if (exists($arguments)) then map{ 'arguments': $arguments } else ()))" as="map(*)"/>
 
         <xsl:for-each select="button[contains-token(@class, 'btn-action-confirm')] | .//button[contains-token(@class, 'btn-action-confirm')]">
             <ixsl:set-attribute name="disabled" select="''"/>
@@ -442,7 +637,7 @@ exclude-result-prefixes="#all"
 
                 <xsl:variable name="deleted" select="exists($execution/wa:writes/wa:write[@method = 'DELETE'][@outcome = 'applied'][@uri = $document])" as="xs:boolean"/>
                 <xsl:call-template name="ldh:DocumentNavigate">
-                    <xsl:with-param name="doc-uri" select="if ($deleted) then resolve-uri('..', $document) else $document"/>
+                    <xsl:with-param name="doc-uri" select="if ($deleted) then ($context('container'), $context('base'))[1] else $document"/>
                     <xsl:with-param name="fragment" select="()"/>
                 </xsl:call-template>
             </xsl:when>
