@@ -77,12 +77,11 @@ async function addProperty(form, property) {
 async function addType(form, cls) {
     await addProperty(form, RDF_TYPE);
 
-    // cleared first, as a reader replaces whatever the box holds
+    // a new row, so an empty lookup: not a copy of a type the resource already has
     const group = typeGroups(form).last();
     const input = group.locator('input.type-combobox');
-    if (!await input.isVisible()) await group.locator('button.add-type-combobox').first().click();
+    await expect(input, 'the added type is an empty lookup').toHaveValue('');
     await input.click();
-    await input.fill('');
     await input.pressSequentially(cls.label, { delay: 60 });
     const choice = group.locator(`div.ac-cb-panel li[title="${cls.uri}"]`).first();
     await expect(choice, 'the class is offered as a type').toBeVisible({ timeout: 15_000 });
