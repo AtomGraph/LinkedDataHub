@@ -12,6 +12,7 @@
 - A value can be added to a resource of more than one class: where the classes bring models of their own the form is built one prototype per class, and the property picker's Add failed with "The form could not be loaded" on finding more than one
 - A type can be added to a resource that has none: the property picker's Add did nothing in a block without types
 - A type added in a form starts as an empty lookup, not filled with a type the resource already has
+- A type picked in the form of a resource that exists is added to that resource: the form is fitted to the new type set, keeping the resource and its values, where it was rebuilt as a new, empty instance of the class under a fresh URI, so a save made after the rebuild created that instead
 - A paged view's status counts its rows: a container's children were described with their topics, so a page of 20 read "1–40"
 - A dataspace described after the platform started (an extension making dataspaces on the fly, or a context reloaded from a shared store) is versioned when its description says so: the versioning repository is read from the descriptions as they are when a graph is written or a version asked for, not once at startup
 - An empty write through the Linked Data proxy keeps its `Content-Type`, so an empty append is answered `204` as it is directly instead of `400`
