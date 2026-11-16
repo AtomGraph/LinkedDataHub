@@ -73,8 +73,10 @@ async function addProperty(form, property) {
 }
 
 // A type added from the picker arrives as a class lookup: typed into (it listens on keyup), answered from
-// the ontology's classes, and committed by clicking the class.
-async function addType(form, cls) {
+// the ontology's classes, and committed by clicking the class. Committing it loads the classes' models and fits
+// the form to them, asynchronously, so the form is read once that has settled: it still edits the same resource,
+// with the values it had - a type is added to the resource, not the resource swapped for a new one of the class.
+async function addType(form, cls, subject) {
     await addProperty(form, RDF_TYPE);
 
     // a new row, so an empty lookup: not a copy of a type the resource already has
@@ -87,7 +89,13 @@ async function addType(form, cls) {
     await expect(choice, 'the class is offered as a type').toBeVisible({ timeout: 15_000 });
     await choice.click();
     await expect(typeGroupOf(form, cls.uri), 'the type is committed').toHaveCount(1, { timeout: 15_000 });
+    // the chain shows the busy cursor from the click until the form is fitted, and clears it when it ends
+    await expect.poll(() => form.page().evaluate(() => document.body.style.cursor),
+        { message: 'committing the type settles', timeout: 30_000 }).not.toBe('progress');
     await expect(form.locator('.ldh-failure'), 'the form took the type without error').toHaveCount(0);
+    const subjects = await form.locator('input[name="su"]').evaluateAll(inputs => [...new Set(inputs.map(input => input.value))]);
+    expect(subjects, 'the form still edits the resource').toEqual([subject]);
+    await expect(fieldFor(form, FOAF_NAME).locator('input[name="ol"]'), 'and keeps its values').toHaveValue(NAME);
 }
 
 async function removeType(form, cls) {
@@ -124,7 +132,7 @@ test.describe('the types of a resource', { tag: '@owner' }, () => {
         const doc = await seedDocument('ui-types-add', []);
         try {
             const { block, form } = await openForm(page, doc);
-            await addType(form, spin);
+            await addType(form, spin, `${doc}#this`);
             await saved(block, form);
             await expectTypes(doc, [spin]);
         } finally {
@@ -148,7 +156,7 @@ test.describe('the types of a resource', { tag: '@owner' }, () => {
         const doc = await seedDocument('ui-types-add-second', [spin.uri]);
         try {
             const { block, form } = await openForm(page, doc);
-            await addType(form, shacl);
+            await addType(form, shacl, `${doc}#this`);
             await saved(block, form);
             await expectTypes(doc, [spin, shacl]);
         } finally {
