@@ -1505,21 +1505,16 @@ WHERE
         <xsl:variable name="shapes" select="$context('shapes')" as="document-node()?"/>
         <xsl:variable name="constructor" select="ldh:build-merged-constructor($shapes, $constructed-doc, $forClass[1])" as="document-node()"/>
 
-        <xsl:variable name="resource" as="element()">
-            <xsl:choose>
-                <!-- $forClass constructor found -->
-                <xsl:when test="key('resources-by-type', $forClass, $constructor)[not(key('predicates-by-object', @rdf:nodeID))]">
-                    <xsl:sequence select="key('resources-by-type', $forClass, $constructor)[not(key('predicates-by-object', @rdf:nodeID))]"/>
-                </xsl:when>
-                <!-- $forClass constructor not found -->
-                <xsl:otherwise>
-                    <rdf:Description rdf:nodeID="A1">
-                        <rdf:type rdf:resource="{$forClass}"/>
-                    </rdf:Description>
-                </xsl:otherwise>
-            </xsl:choose>
+        <!-- the prototypes of the resource's classes: a resource of several is built one per class where a class brings
+             a model of its own, so there may be more than one, and the property's template is the first that has it -->
+        <xsl:variable name="resources" select="key('resources-by-type', $forClass, $constructor)[not(key('predicates-by-object', @rdf:nodeID))]" as="element()*"/>
+        <!-- a type added is a new value, so an empty lookup rather than a copy of a type the resource already has -->
+        <xsl:variable name="blank-type" as="element()">
+            <rdf:Description rdf:nodeID="A1">
+                <rdf:type rdf:resource=""/>
+            </rdf:Description>
         </xsl:variable>
-        <xsl:variable name="property" select="$resource/*[concat(namespace-uri(), local-name()) = $property-uri]" as="element()"/>
+        <xsl:variable name="property" select="if ($property-uri = '&rdf;type') then $blank-type/rdf:type else ($resources/*[concat(namespace-uri(), local-name()) = $property-uri])[1]" as="element()"/>
 
         <!-- append the new group to the row container; the add-statement row stays below it as the fieldset's trailer -->
         <xsl:variable name="prop-form" select="$property-addrow/preceding-sibling::div[contains-token(@class, 'ldh-prop-form')][1]" as="element()"/>
@@ -1549,10 +1544,12 @@ WHERE
 
     </xsl:function>
 
-    <xsl:template match="div[@typeof]//form//button[contains-token(@class, 'add-value')]" mode="ixsl:onclick">
+    <!-- any block, typed or not: a resource without a type is given its first one from here. Its types are the nearest
+         block's own, so an untyped resource does not borrow the types of a block it is nested in -->
+    <xsl:template match="div[contains-token(@class, 'block')]//form//button[contains-token(@class, 'add-value')]" mode="ixsl:onclick">
         <xsl:variable name="property-addrow" select="ancestor::div[contains-token(@class, 'ldh-prop-addrow')][1]" as="element()"/>
         <xsl:variable name="property-uri" select="preceding-sibling::span[contains-token(@class, 'ac-select')]/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
-        <xsl:variable name="forClass" select="for $type in tokenize(ancestor::div[@typeof][contains-token(@class, 'block')][1]/@typeof) return xs:anyURI($type)" as="xs:anyURI*"/>
+        <xsl:variable name="forClass" select="for $type in tokenize(ancestor::div[contains-token(@class, 'block')][1]/@typeof) return xs:anyURI($type)" as="xs:anyURI*"/>
 
         <xsl:sequence select="ldh:busy-cursor()"/>
 

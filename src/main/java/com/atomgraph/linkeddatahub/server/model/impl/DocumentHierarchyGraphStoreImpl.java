@@ -766,15 +766,6 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             if (!isHierarchyTyped(existingModel, getURI().toString()))
                 throw new ClientErrorException("Document <" + getURI() + "> must stay typed with a document hierarchy class", UNPROCESSABLE_ENTITY.getStatusCode());
 
-            // SPIN constraints are class-scoped; allowing rdf:type removal would silently bypass them
-            for (Resource resource : getChangedResources(beforeUpdateModel, existingModel))
-            {
-                Resource before = resource.inModel(beforeUpdateModel);
-                Resource after = resource.inModel(existingModel);
-                if (before.hasProperty(RDF.type) && !after.hasProperty(RDF.type) && after.listProperties().hasNext())
-                    throw new ClientErrorException("rdf:type cannot be removed from resource <" + resource + ">", UNPROCESSABLE_ENTITY.getStatusCode());
-            }
-
             stampModified(getURI(), beforeUpdateModel, existingModel);
 
             try
@@ -1206,32 +1197,6 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
                 throw new InternalServerErrorException("SPARQL endpoint of <" + getService() + "> answered " + cr.getStatus());
             return cr.readEntity(ResultSetRewindable.class).hasNext();
         }
-    }
-    
-    /**
-     * Gets a diff of triples between two models and returns a set of their subject resources.
-     * 
-     * @param beforeUpdateModel model before the update
-     * @param afterUpdateModel model after the update
-     * @return set of changed resources
-     */
-    public Set<Resource> getChangedResources(Model beforeUpdateModel, Model afterUpdateModel)
-    {
-        if (beforeUpdateModel == null) throw new IllegalArgumentException("Model before update cannot be null");
-        if (afterUpdateModel == null) throw new IllegalArgumentException("Model after update cannot be null");
-
-        Model addedTriples = afterUpdateModel.difference(beforeUpdateModel);
-        Model removedTriples = beforeUpdateModel.difference(afterUpdateModel);
-
-        Set<Resource> changedResources = new HashSet<>();
-        addedTriples.listStatements().forEachRemaining(statement -> {
-            changedResources.add(statement.getSubject());
-        });
-        removedTriples.listStatements().forEachRemaining(statement -> {
-            changedResources.add(statement.getSubject());
-        });
-        
-        return changedResources;
     }
     
     /**

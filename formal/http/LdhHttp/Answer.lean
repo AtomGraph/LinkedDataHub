@@ -244,10 +244,6 @@ def deleteB (hs : HSite) (fs : FinStore) (x : Node) (pc : Precond) : Except Refu
     | none => deleteChecked fs x
   else deleteChecked fs x
 
-/-- `rdf:type cannot be removed`: a resource the update leaves described but untyped. -/
-def untypesB (g after : List Triple) : Bool :=
-  g.any fun t => t.p == .rdfType && !(after.any fun u => u.s == t.s && u.p == .rdfType) && after.any fun u => u.s == t.s
-
 /-- `patch()`. -/
 def patchB (hs : HSite) (fs : FinStore) (x : Node) (del ins : List Triple) (pc : Precond) :
     Except Refusal (Success × FinStore) :=
@@ -265,7 +261,6 @@ def patchB (hs : HSite) (fs : FinStore) (x : Node) (del ins : List Triple) (pc :
       else if after.any (fun t => t.s == x && t.p == .rdfType && !hierClassB t.o && !decide (t ∈ g))
         then .error .unprocessable
       else if !typedB x after then .error .unprocessable
-      else if untypesB g after then .error .unprocessable
       else .ok (.noContent, fs.set x after)
 
 /-- What the graph store does with a request: everything after the authorization decision. -/
@@ -490,7 +485,6 @@ theorem answer_write {tr : Tree} {hs : HSite} (h : hs.agrees tr) {fs : FinStore}
     rename_i hft
     split at hd; · cases hd
     rename_i hty
-    split at hd; · cases hd
     cases hd
     refine Or.inr ⟨Req.patch x fun t => t ∈ (graphOf fs x).filter (fun t => !decide (t ∈ del)) ++ ins,
       ⟨rfl, Or.inl rfl⟩, ?_⟩

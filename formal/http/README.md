@@ -86,7 +86,6 @@ formal/http/tracks-code.sh origin/develop
 | `postB`, `putB`, `patchB`, `deleteB`, `deleteChecked` | `DocumentHierarchyGraphStoreImpl.post`, `put`, `patch`, `delete`, in their order of checks; `delete`'s `404` is Core's `GraphStoreBase.delete` |
 | `precondFails` | `evaluatePreconditions`: `428` without `If-Match` or `If-None-Match: *`, and Core's evaluation of either |
 | `HSite.fixed`, `HSite.isRoot` | `allowedMethods`: no `PUT` or `DELETE` of the owner's or the secretary's WebID document, no `DELETE` of the root |
-| `untypesB` | `patch`'s `rdf:type cannot be removed` |
 | `parentIri`, `doubleSlash`, `slashed` (`IO.lean`) | `IRIx.resolve("..")`; `put`'s redirect to a trailing slash and refusal of a double slash |
 | `ETags` | `EntityTags.entityTag`, over `toSortedNTriples` (`server/util/`) |
 | `Cond.resolve` | `evaluatePreconditions`' reading of `If-Match` and `If-None-Match: *` |
