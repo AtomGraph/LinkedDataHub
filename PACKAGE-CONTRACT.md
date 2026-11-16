@@ -80,6 +80,10 @@ skos:Concept ldh:action :DeleteConcept .
   `rdfs:subClassOf`. They render as a menu in the block header, for a reader who may write the document and
   where the dataspace has an executor (`lds:assistant`).
 - A plan takes `$wa:bindings`, one row: `?this` (the resource), `?document`, `?base` (the dataspace), `?admin`.
+- An action that needs more declares arguments as a SPIN template does (`spin:constraint [ a spl:Argument ;
+  spl:predicate :target ; spl:valueType skos:Concept ]`). The dialog asks for them before the dry run, a
+  resource among the instances of its `spl:valueType`, and each is one more column of the row, named by the
+  predicate's local name (`?target`).
 - A click evaluates the plan with `dry-run="true"`. The executor returns the write set: every `PUT`, `PATCH`,
   `POST` and `DELETE` with its URI, derived from a snapshot and carrying `If-Match`/`If-None-Match: *`, and
   sends nothing.
@@ -110,8 +114,9 @@ skos:Concept ldh:action :DeleteConcept .
 **Taxonomy editor** (LinkedDataHub-Apps `packages/editor/taxonomy/`, copied in `tests/packages/`): renders
 (`ldh:TreeNode`, `ldh:ContentColumn`, `ac:PropertyEditor`), names its relations (`TreeChildrenLoad` by depth,
 `TreeParentsLoad` over `skos:broader`/`skos:narrower`), asks for the open concept to be revealed, and offers
-two actions: *Delete concept* (re-parent the narrower concepts, move the parents' `narrower` links, drop the
-scheme's `hasTopConcept`, delete the document) and *Make top concept*. Zero violations; the previous version had 49.
+four actions: *Delete concept* (drop every link to the concept from the documents that hold one, delete
+its document), *Make top concept*, *Move concept* (argument: the concept to move under) and *Merge concepts*
+(argument: the concept to merge into, which takes over every link and keeps the label as `skos:altLabel`). Zero violations; the previous version had 49.
 
 **Messaging** (designed, not built): renders notes, threads and the inbox; contributes a drawer section (#527);
 offers *Accept messages*, *Archive* and *Mark read* as actions. *Send* needs the executor to delegate to another
