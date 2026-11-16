@@ -364,4 +364,31 @@ public class GraphVersioningServiceTest
         assertFalse(service.isCommitPending(doc), "the commit ended");
     }
 
+    @Test
+    public void testADataspaceDescribedLaterIsVersionedFromThen()
+    {
+        // the descriptions change while the platform runs: a dataspace made on the fly is described after the service was built
+        Model context = ModelFactory.createDefaultModel();
+        GraphVersioningService service = new GraphVersioningService(() -> context, mock(jakarta.ws.rs.client.Client.class));
+        String app = "urn:linkeddatahub:apps/workday";
+        assertTrue(service.getRepository(app).isEmpty(), "not described yet: not versioned");
+
+        Resource repo = context.createResource("urn:linkeddatahub:versioning/workday").
+            addProperty(RDF.type, context.createResource(org.apache.jena.sparql.vocabulary.DOAP.NS + "GitRepository")).
+            addProperty(org.apache.jena.sparql.vocabulary.DOAP.location, context.createResource("https://github.com/example/versions")).
+            addProperty(GraphVersioningService.authToken, "token").
+            addProperty(com.atomgraph.linkeddatahub.vocabulary.GitHub.pathPrefix, "workday");
+        context.createResource(app).addProperty(com.atomgraph.linkeddatahub.vocabulary.LDS.versioningRepository, repo);
+        GraphVersioningService.Repository repository = service.getRepository(app).orElseThrow();
+        assertEquals("workday", repository.pathPrefix());
+        assertEquals("versions", repository.client().getRepo());
+        assertTrue(repository == service.getRepository(app).orElseThrow(), "built once for one description");
+
+        repo.removeAll(com.atomgraph.linkeddatahub.vocabulary.GitHub.pathPrefix).addProperty(com.atomgraph.linkeddatahub.vocabulary.GitHub.pathPrefix, "elsewhere");
+        assertEquals("elsewhere", service.getRepository(app).orElseThrow().pathPrefix(), "described otherwise: built anew");
+
+        context.removeAll(context.createResource(app), com.atomgraph.linkeddatahub.vocabulary.LDS.versioningRepository, null);
+        assertTrue(service.getRepository(app).isEmpty(), "its repository taken away: no longer versioned");
+    }
+
 }

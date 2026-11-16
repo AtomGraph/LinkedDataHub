@@ -214,7 +214,7 @@ public class Settings
             if (!wiring(dataspaceModel, appResource).equals(wiring(mutableModel, appResource)))
             {
                 if (log.isWarnEnabled()) log.warn("PATCH would change the wiring of <{}>", getDataspace().getURI());
-                throw new ClientErrorException("The dataspace's wiring (lds:origin, lds:service) is the deployment's, set when the dataspace is made", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
+                throw new ClientErrorException("The dataspace's wiring (lds:origin, lds:service, lds:versioningRepository) is the deployment's, set when the dataspace is made", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
             }
 
             // validate the updated model
@@ -298,8 +298,8 @@ public class Settings
     }
 
     /**
-     * The statements that wire a dataspace into the deployment: its origin and its SPARQL service. A settings PATCH
-     * leaves them as they are.
+     * The statements that wire a dataspace into the deployment: its origin, its SPARQL service and the repository its
+     * graphs are versioned into. A settings PATCH leaves them as they are.
      *
      * @param model a dataspace description
      * @param dataspace the dataspace
@@ -308,7 +308,7 @@ public class Settings
     public static Set<Statement> wiring(Model model, Resource dataspace)
     {
         Set<Statement> wiring = new HashSet<>();
-        for (Property property : List.of(LDS.origin, LDS.service))
+        for (Property property : List.of(LDS.origin, LDS.service, LDS.versioningRepository))
             wiring.addAll(model.listStatements(dataspace, property, (RDFNode) null).toList());
         return wiring;
     }

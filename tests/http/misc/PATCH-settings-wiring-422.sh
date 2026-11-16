@@ -10,8 +10,8 @@ reset_packages
 clear_ontology
 
 # Test: PATCH /settings - the wiring is the deployment's. A dataspace's settings say what it is, not which store
-# backs it or where it is served: changing lds:service or lds:origin answers 422 and the settings stay as they
-# were, while a change of the title goes through
+# backs it, where it is served or which repository it is versioned into: changing lds:service, lds:origin or
+# lds:versioningRepository answers 422 and the settings stay as they were, while a change of the title goes through
 
 settings_url="${END_USER_BASE_URL}settings"
 tag_before=$(etag "$settings_url" "$OWNER_CERT_FILE" "$OWNER_CERT_PWD")
@@ -33,6 +33,12 @@ patch_settings "PREFIX lds: <https://w3id.org/atomgraph/linkeddatahub/dataspaces
 DELETE { ?app lds:service ?service }
 INSERT { ?app lds:service <urn:linkeddatahub:services/admin> }
 WHERE { ?app lds:service ?service }" \
+| grep -q "$STATUS_UNPROCESSABLE_ENTITY"
+
+# another repository to version into, with the deployment's credentials
+patch_settings "PREFIX lds: <https://w3id.org/atomgraph/linkeddatahub/dataspaces#>
+INSERT { ?app lds:versioningRepository <urn:linkeddatahub:versioning/elsewhere> }
+WHERE { ?app a lds:EndUserDataspace }" \
 | grep -q "$STATUS_UNPROCESSABLE_ENTITY"
 
 # another origin
