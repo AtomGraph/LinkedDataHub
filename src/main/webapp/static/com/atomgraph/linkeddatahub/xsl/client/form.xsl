@@ -1533,6 +1533,9 @@ WHERE
                         <xsl:apply-templates select="$property" mode="ac:FormControl">
                             <!-- generate fresh $for value because otherwise we can generate existing IDs from the same constructor -->
                             <xsl:with-param name="for" select="'id' || ac:uuid()"/>
+                            <!-- what the property's objects are is read from the constructor, as when the form opens: without
+                                 it a linked value's lookup searches every resource -->
+                            <xsl:with-param name="constructor" select="$constructor"/>
                         </xsl:apply-templates>
                     </xsl:otherwise>
                 </xsl:choose>
@@ -1626,6 +1629,8 @@ WHERE
                         <xsl:apply-templates select="." mode="ac:FormControl">
                             <!-- generate fresh $for value because otherwise we can generate existing IDs from the same constructor -->
                             <xsl:with-param name="for" select="'id' || ac:uuid()"/>
+                            <!-- the class of a linked value's lookup, as ldh:render-add-value passes it -->
+                            <xsl:with-param name="constructor" select="$constructor"/>
                         </xsl:apply-templates>
                     </xsl:for-each>
                 </xsl:variable>
