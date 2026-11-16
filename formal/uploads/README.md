@@ -76,6 +76,10 @@ the model.
 | `describedTag`, `describedFormat` | `Item.getEntityTag` and `Item.getMediaType` before this model: `getRequiredProperty(FOAF.sha1)`, `getPropertyResourceValue(DCTerms.format)` |
 | `select`, `Spec` | `ByteRange.parse` |
 
+Of `DocumentHierarchyGraphStoreImpl` the model takes the staging and commit of files alone. What `patch()` checks of
+a document's graph (its types, containment and ownership) is `formal/http`'s, and a change there leaves this model as
+it stands: the document-only type rule of `patch()` is one such change.
+
 ## Results
 
 Proven with no `sorry`, using only the axioms `propext`, `Quot.sound` and `Classical.choice`:

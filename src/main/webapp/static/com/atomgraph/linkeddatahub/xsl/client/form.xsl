@@ -1505,21 +1505,16 @@ WHERE
         <xsl:variable name="shapes" select="$context('shapes')" as="document-node()?"/>
         <xsl:variable name="constructor" select="ldh:build-merged-constructor($shapes, $constructed-doc, $forClass[1])" as="document-node()"/>
 
-        <xsl:variable name="resource" as="element()">
-            <xsl:choose>
-                <!-- $forClass constructor found -->
-                <xsl:when test="key('resources-by-type', $forClass, $constructor)[not(key('predicates-by-object', @rdf:nodeID))]">
-                    <xsl:sequence select="key('resources-by-type', $forClass, $constructor)[not(key('predicates-by-object', @rdf:nodeID))]"/>
-                </xsl:when>
-                <!-- $forClass constructor not found -->
-                <xsl:otherwise>
-                    <rdf:Description rdf:nodeID="A1">
-                        <rdf:type rdf:resource="{$forClass}"/>
-                    </rdf:Description>
-                </xsl:otherwise>
-            </xsl:choose>
+        <!-- the prototypes of the resource's classes: a resource of several is built one per class where a class brings
+             a model of its own, so there may be more than one, and the property's template is the first that has it -->
+        <xsl:variable name="resources" select="key('resources-by-type', $forClass, $constructor)[not(key('predicates-by-object', @rdf:nodeID))]" as="element()*"/>
+        <!-- a type added is a new value, so an empty lookup rather than a copy of a type the resource already has -->
+        <xsl:variable name="blank-type" as="element()">
+            <rdf:Description rdf:nodeID="A1">
+                <rdf:type rdf:resource=""/>
+            </rdf:Description>
         </xsl:variable>
-        <xsl:variable name="property" select="$resource/*[concat(namespace-uri(), local-name()) = $property-uri]" as="element()"/>
+        <xsl:variable name="property" select="if ($property-uri = '&rdf;type') then $blank-type/rdf:type else ($resources/*[concat(namespace-uri(), local-name()) = $property-uri])[1]" as="element()"/>
 
         <!-- append the new group to the row container; the add-statement row stays below it as the fieldset's trailer -->
         <xsl:variable name="prop-form" select="$property-addrow/preceding-sibling::div[contains-token(@class, 'ldh-prop-form')][1]" as="element()"/>
@@ -1549,10 +1544,12 @@ WHERE
 
     </xsl:function>
 
-    <xsl:template match="div[@typeof]//form//button[contains-token(@class, 'add-value')]" mode="ixsl:onclick">
+    <!-- any block, typed or not: a resource without a type is given its first one from here. Its types are the nearest
+         block's own, so an untyped resource does not borrow the types of a block it is nested in -->
+    <xsl:template match="div[contains-token(@class, 'block')]//form//button[contains-token(@class, 'add-value')]" mode="ixsl:onclick">
         <xsl:variable name="property-addrow" select="ancestor::div[contains-token(@class, 'ldh-prop-addrow')][1]" as="element()"/>
         <xsl:variable name="property-uri" select="preceding-sibling::span[contains-token(@class, 'ac-select')]/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
-        <xsl:variable name="forClass" select="for $type in tokenize(ancestor::div[@typeof][contains-token(@class, 'block')][1]/@typeof) return xs:anyURI($type)" as="xs:anyURI*"/>
+        <xsl:variable name="forClass" select="for $type in tokenize(ancestor::div[contains-token(@class, 'block')][1]/@typeof) return xs:anyURI($type)" as="xs:anyURI*"/>
 
         <xsl:sequence select="ldh:busy-cursor()"/>
 
@@ -2397,39 +2394,69 @@ WHERE
         </xsl:for-each>
 
         <xsl:variable name="forClass" select="xs:anyURI($resource/@rdf:about)" as="xs:anyURI"/>
-        <xsl:variable name="this" select="xs:anyURI($doc-uri || '#id' || ac:uuid())" as="xs:anyURI"/>
 
-        <!-- update @typeof value on container (synchronous DOM mutation, runs before the promise) -->
-        <ixsl:set-attribute name="typeof" select="$forClass" object="$container"/>
+        <xsl:choose>
+            <!-- a resource that exists (its block names it): the class is a type added to it, or put in place of one it
+                 had. Its type set is what the form's type rows hold, and the form is fitted to that set as a constructor
+                 save fits open forms: what the classes' models add is appended, empty rows they no longer model go, and
+                 the resource, its values and its other types stay -->
+            <xsl:when test="$container/@about">
+                <xsl:variable name="types" select="distinct-values(($fieldset//div[contains-token(@class, 'ldh-prop-group')][input[@name = 'pu']/@value = '&rdf;type']//input[@name = 'ou'][not(ancestor::* intersect current()/../..)]/ixsl:get(., 'value'), $forClass))[. != ''] ! xs:anyURI(.)" as="xs:anyURI*"/>
 
-        <!-- 'types' is initially set to ($forClass) so the shape fetch (which runs before
-             ldh:set-combobox-form-resource and feeds the SHACL+SPIN merge) targets the right class.
-             After ldh:set-combobox-form-resource runs the merge and extracts the real types from the
-             merged document, it overwrites 'types' to the actual derived value used by load-constructors. -->
-        <xsl:variable name="context" as="map(*)" select="map{
-            'container': $container,
-            'fieldset': $fieldset,
-            'doc-uri': $doc-uri,
-            'forClass': $forClass,
-            'types': ($forClass),
-            'this': $this
-        }"/>
+                <ixsl:set-attribute name="typeof" select="string-join($types, ' ')" object="$container"/>
 
-        <ixsl:promise select="ixsl:resolve($context) =>
-            ixsl:then(ldh:fire-load-set-parallel(?, [
-              [ ldh:load-constructed-doc#1, 'constructed-doc-request', 'constructed-doc-response', ldh:set-constructed-doc#1 ],
-              [ ldh:load-shapes#1,          'shapes-request',          'shapes-response',          ldh:set-shapes#1 ]
-            ])) =>
-            ixsl:then(ldh:set-combobox-form-resource#1) =>
-            ixsl:then(ldh:fire-load-set-parallel(?, [
-              [ ldh:load-constructors#1,      'constructors-request',      'constructors-response',      ldh:set-constructors#1 ],
-              [ ldh:load-type-metadata#1,     'type-metadata-request',     'type-metadata-response',     ldh:set-type-metadata#1 ],
-              [ ldh:load-property-metadata#1, 'property-metadata-request', 'property-metadata-response', ldh:set-property-metadata#1 ],
-              [ ldh:load-constraints#1,       'constraints-request',       'constraints-response',       ldh:set-constraints#1 ]
-            ])) =>
-            ixsl:then(ldh:render-combobox-row-form#1) =>
-            ixsl:finally(ldh:reset-cursor#0)"
-            on-failure="ldh:promise-failure($fieldset, 'form-not-loaded', ?)"/>
+                <xsl:variable name="context" as="map(*)" select="map{
+                    'fieldset': $fieldset,
+                    'forClass': $types,
+                    'types': $types
+                }"/>
+
+                <ixsl:promise select="ixsl:resolve($context) =>
+                    ixsl:then(ldh:fire-load-set-parallel(?, [
+                      [ ldh:load-constructed-doc#1, 'constructed-doc-request', 'constructed-doc-response', ldh:set-constructed-doc#1 ],
+                      [ ldh:load-shapes#1,          'shapes-request',          'shapes-response',          ldh:set-shapes#1 ]
+                    ])) =>
+                    ixsl:then(ldh:sync-form-with-constructor#1) =>
+                    ixsl:finally(ldh:reset-cursor#0)"
+                    on-failure="ldh:promise-failure($fieldset, 'form-not-loaded', ?)"/>
+            </xsl:when>
+            <!-- a new instance: the form is rebuilt from the class -->
+            <xsl:otherwise>
+                <xsl:variable name="this" select="xs:anyURI($doc-uri || '#id' || ac:uuid())" as="xs:anyURI"/>
+
+                <!-- update @typeof value on container (synchronous DOM mutation, runs before the promise) -->
+                <ixsl:set-attribute name="typeof" select="$forClass" object="$container"/>
+
+                <!-- 'types' is initially set to ($forClass) so the shape fetch (which runs before
+                     ldh:set-combobox-form-resource and feeds the SHACL+SPIN merge) targets the right class.
+                     After ldh:set-combobox-form-resource runs the merge and extracts the real types from the
+                     merged document, it overwrites 'types' to the actual derived value used by load-constructors. -->
+                <xsl:variable name="context" as="map(*)" select="map{
+                    'container': $container,
+                    'fieldset': $fieldset,
+                    'doc-uri': $doc-uri,
+                    'forClass': $forClass,
+                    'types': ($forClass),
+                    'this': $this
+                }"/>
+
+                <ixsl:promise select="ixsl:resolve($context) =>
+                    ixsl:then(ldh:fire-load-set-parallel(?, [
+                      [ ldh:load-constructed-doc#1, 'constructed-doc-request', 'constructed-doc-response', ldh:set-constructed-doc#1 ],
+                      [ ldh:load-shapes#1,          'shapes-request',          'shapes-response',          ldh:set-shapes#1 ]
+                    ])) =>
+                    ixsl:then(ldh:set-combobox-form-resource#1) =>
+                    ixsl:then(ldh:fire-load-set-parallel(?, [
+                      [ ldh:load-constructors#1,      'constructors-request',      'constructors-response',      ldh:set-constructors#1 ],
+                      [ ldh:load-type-metadata#1,     'type-metadata-request',     'type-metadata-response',     ldh:set-type-metadata#1 ],
+                      [ ldh:load-property-metadata#1, 'property-metadata-request', 'property-metadata-response', ldh:set-property-metadata#1 ],
+                      [ ldh:load-constraints#1,       'constraints-request',       'constraints-response',       ldh:set-constraints#1 ]
+                    ])) =>
+                    ixsl:then(ldh:render-combobox-row-form#1) =>
+                    ixsl:finally(ldh:reset-cursor#0)"
+                    on-failure="ldh:promise-failure($fieldset, 'form-not-loaded', ?)"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
     <!-- select combobox item -->
