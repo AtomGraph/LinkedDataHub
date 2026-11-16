@@ -13,6 +13,7 @@
     <!ENTITY sp     "http://spinrdf.org/sp#">
     <!ENTITY spin   "http://spinrdf.org/spin#">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
+    <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
     <!ENTITY dct    "http://purl.org/dc/terms/">
 ]>
 <xsl:stylesheet version="3.0"
@@ -36,12 +37,12 @@ xmlns:sd="&sd;"
 xmlns:sp="&sp;"
 xmlns:spin="&spin;"
 xmlns:foaf="&foaf;"
+xmlns:sioc="&sioc;"
 xmlns:dct="&dct;"
 extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
 >
 
-    <xsl:key name="resources-by-primary-topic" match="*[@rdf:about][not(ancestor::*[@rdf:parseType = 'Literal'])] | *[@rdf:nodeID][not(ancestor::*[@rdf:parseType = 'Literal'])]" use="foaf:primaryTopic/@rdf:resource"/>
     
     <xsl:param name="ldh:class-modes" as="map(xs:string, xs:anyURI)">
         <xsl:map>
@@ -1543,14 +1544,10 @@ exclude-result-prefixes="#all"
         <xsl:apply-templates select="*" mode="#current"/>
     </xsl:template>
 
-    <!-- hide resources that will be shown paired/nested with a document -->
-    <xsl:template match="*[key('resources-by-primary-topic', @rdf:about)]" mode="ac:List" priority="1"/>
-
-    <!-- a document paired with its primary topic renders as one row carrying the topic's label, description and type.
-         URI-named rows are the link to their document; blank-node rows render the same anatomy inert -->
+    <!-- a result renders as one row carrying its own label, description and type: a document is a
+         document, not the thing it is about, which its own page shows. URI-named rows are the link to
+         their document; blank-node rows render the same anatomy inert -->
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="ac:List" priority="0.8">
-        <xsl:variable name="subject" select="(key('resources', foaf:primaryTopic/@rdf:resource), .)[1]" as="element()"/>
-
         <li>
             <xsl:element name="{if (@rdf:about) then 'a' else 'div'}" namespace="http://www.w3.org/1999/xhtml">
                 <xsl:attribute name="class" select="'row'"/>
@@ -1567,17 +1564,17 @@ exclude-result-prefixes="#all"
                 <!-- the unclassed span is the grid cell: title and description stack inside it -->
                 <span>
                     <span class="ti">
-                        <xsl:apply-templates select="$subject" mode="ac:label"/>
+                        <xsl:apply-templates select="." mode="ac:label"/>
                     </span>
                     <xsl:where-populated>
                         <span class="desc">
-                            <xsl:apply-templates select="$subject" mode="ac:description"/>
+                            <xsl:apply-templates select="." mode="ac:description"/>
                         </span>
                     </xsl:where-populated>
                 </span>
 
                 <xsl:apply-templates select="." mode="ldh:ListRowTimestamp"/>
-                <xsl:apply-templates select="$subject" mode="ldh:ListRowType"/>
+                <xsl:apply-templates select="." mode="ldh:ListRowType"/>
             </xsl:element>
         </li>
     </xsl:template>
@@ -1591,6 +1588,12 @@ exclude-result-prefixes="#all"
                 <xsl:value-of select="format-date(xs:date(ldh:date-time(string(.))), '[D] [MNn] [Y]', ac:langs()[1], (), ())"/>
             </xsl:for-each>
         </span>
+    </xsl:template>
+
+    <!-- a document's .type cell stays empty: its icon already says item or container, and a document carries
+         no type chip, as in the block header (ac:ResourceTypes) -->
+    <xsl:template match="*[sioc:has_parent] | *[sioc:has_container]" mode="ldh:ListRowType" priority="1">
+        <span class="type"/>
     </xsl:template>
 
     <!-- .type cell: the first type by label, rendered as the core type Tag through the single pill
@@ -1616,13 +1619,9 @@ exclude-result-prefixes="#all"
         <xsl:apply-templates select="*" mode="#current"/>
     </xsl:template>
 
-    <!-- hide resources that will be shown paired/nested with a document -->
-    <xsl:template match="*[key('resources-by-primary-topic', @rdf:about)]" mode="ac:Grid" priority="1"/>
-
-    <!-- a document paired with its primary topic renders as one card carrying the topic's label and description.
-         URI-named cards are the link to their document; blank-node cards render the same anatomy inert -->
+    <!-- a result renders as one card carrying its own image, label and description. URI-named cards are the
+         link to their document; blank-node cards render the same anatomy inert -->
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="ac:Grid" priority="0.8">
-        <xsl:variable name="subject" select="(key('resources', foaf:primaryTopic/@rdf:resource), .)[1]" as="element()"/>
         <xsl:variable name="pos" select="position()" as="xs:integer"/>
 
         <li>
@@ -1634,9 +1633,9 @@ exclude-result-prefixes="#all"
                 </xsl:if>
 
                 <xsl:choose>
-                    <xsl:when test="ac:image($subject)">
+                    <xsl:when test="ac:image(.)">
                         <div class="img">
-                            <img src="{ac:image($subject)[1]}" alt="{ac:label($subject)}"/>
+                            <img src="{ac:image(.)[1]}" alt="{ac:label(.)}"/>
                         </div>
                     </xsl:when>
                     <xsl:otherwise>
@@ -1649,12 +1648,12 @@ exclude-result-prefixes="#all"
                 </xsl:choose>
                 <div class="card-body">
                     <span class="ti">
-                        <xsl:apply-templates select="$subject" mode="ac:label"/>
+                        <xsl:apply-templates select="." mode="ac:label"/>
                     </span>
 
                     <xsl:where-populated>
                         <span class="meta">
-                            <xsl:apply-templates select="$subject" mode="ac:description"/>
+                            <xsl:apply-templates select="." mode="ac:description"/>
                         </span>
                     </xsl:where-populated>
                 </div>
@@ -1725,9 +1724,6 @@ exclude-result-prefixes="#all"
     <xsl:template match="srx:sparql" mode="ldh:TableViewBlock" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
         <xsl:apply-templates select="." mode="ac:ResultsTable"/>
     </xsl:template>
-
-    <!-- hide documents that are paired with resources -->
-    <xsl:template match="*[key('resources', foaf:primaryTopic/@rdf:resource)]" mode="ac:ResultsTable"/>
 
     <!-- sortable column header: in view tables the column's predicate reverse-maps to a SELECT variable via $var-predicates, so the th carries the var name for the onclick sort. Columns outside the query's BGP (and non-view tables, where no $var-predicates is tunneled) fall through to the plain th -->
     <xsl:template match="*[@rdf:about or @rdf:nodeID]/*" mode="ac:ResultsTableHeaderCell">

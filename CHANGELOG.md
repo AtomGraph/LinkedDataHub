@@ -2,7 +2,11 @@
 ### Security
 - `PATCH /settings` refuses to change a dataspace's wiring (`422`): `lds:origin` and `lds:service` are the deployment's, set when the dataspace is made. An owner of one dataspace could otherwise point it at another's SPARQL service, or take another's origin, through their own settings
 
+### Changed
+- A container's children view lists its documents, not the things they are about: `ldh:SelectChildren` no longer selects each child's `foaf:primaryTopic`, and the list, grid and table modes render each result as itself instead of standing a document's topic in for it. A document's row carries no type tag, as its header carries no type chip. A page that lists things (a catalogue, a table of people) is a view over the things
+
 ### Fixed
+- A paged view's status counts its rows: a container's children were described with their topics, so a page of 20 read "1–40"
 - An empty write through the Linked Data proxy keeps its `Content-Type`, so an empty append is answered `204` as it is directly instead of `400`
 
 ## [6.5.2] - 2026-11-12
