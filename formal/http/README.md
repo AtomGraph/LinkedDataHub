@@ -115,6 +115,7 @@ Proven with no `sorry`, using only the axioms `propext`, `Quot.sound` and, throu
 | `answer_not_forbidden` | No check of the graph store answers `403`: that status is the authorization decision's |
 | `answer_write` | A request that goes through is a `Write` of it from the store before to the store after, or changes nothing |
 | `answer_inv` | So the graph store keeps `Inv` and `Typed`, as every `Write` does |
+| `patch_untypes_described` | A PATCH that deletes only `rdf:type` statements of resources other than the document is accepted: only the document is held to being typed. The direction `answer_write` leaves out, since a refusal is never a write |
 | `no_lost_update` | A write guarded by `If-Match` with the tag of the graph a client read changes the store only if the document still holds that graph |
 | `concurrent_write_changes_nothing` | Once another write has changed the graph a client read, the client's write quoting its tag changes nothing |
 | `select_mem`, `select_none_iff` | The TimeGate's Memento is one of the document's; there is one exactly when the history is not empty |
