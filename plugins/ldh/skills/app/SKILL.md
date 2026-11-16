@@ -247,8 +247,12 @@ resource then write to that document.
 - Run each view and chart query against the dataspace's SPARQL endpoint (`${LDH_BASE}sparql`)
   before trusting the page. A view with no rows is usually a missing `GRAPH`, or two resources'
   patterns sharing one graph variable.
+- Check that each property view reaches the types it is meant for with the lookup query in ldh:dataset.
+  `ldh get --accept text/html` returns the page before the browser renders its blocks and property views,
+  so the HTML cannot show whether they appear.
 - Open the page in a browser. The HTML is rendered client-side from the same RDF, so an RDF check
-  alone does not show layout problems.
+  alone does not show layout problems. Without a browser, say so, and name the pages the user should
+  open to look.
 
 ## Next
 

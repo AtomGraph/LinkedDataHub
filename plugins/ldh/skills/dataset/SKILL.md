@@ -127,7 +127,24 @@ schema:category rdfs:range schema:ProductGroup ;
   pages whose resource has a type in the property's `rdfs:range`. An `ldh:view` appears on those with a
   type in its `rdfs:domain`. Declare the range or domain in `ns.ttl`, even for a reused term like
   `schema:author`, since the dataspace does not import schema.org. Without it the view never appears.
-  Its query can be correct and still never be run, so check the page itself, not only the query.
+  Its query can be correct and still never be run, so check which views a type gets, not only the query.
+  The page looks them up in the browser with a query against the installed ontology at `${LDH_BASE}ns`,
+  and the same query answers without one. List the page's types in `VALUES ?type`:
+
+  ```bash
+  q='PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+  PREFIX ldh: <https://w3id.org/atomgraph/linkeddatahub#>
+  SELECT ?property ?view ?inverse
+  WHERE {
+    { ?property ldh:view ?view ; rdfs:subPropertyOf*/rdfs:domain ?type BIND(false AS ?inverse) }
+    UNION
+    { ?property ldh:inverseView ?view ; rdfs:subPropertyOf*/rdfs:range ?type BIND(true AS ?inverse) }
+    VALUES ?type { <https://localhost:4443/ns#Category> }
+  }'
+  ldh get --accept text/csv "${LDH_BASE}ns?query=$(python3 -c 'import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1]))' "$q")"
+  ```
+
+  A type with no row gets no panel, however correct the view's own query is.
 - Constraints run on every write, imports included. A violating write answers `422`, and an import
   attaches its violations to the import document. Do not add a constraint the data cannot satisfy.
 - View queries `SELECT` resources (one variable, the resource) and do not aggregate. Aggregates
