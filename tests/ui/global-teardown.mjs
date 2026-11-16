@@ -3,6 +3,7 @@
 // owns the instance, and wrong for one sharing a dev stack with the person running it.
 import { teardown } from './lib/fixtures.mjs';
 import { teardownTaxonomy } from './lib/taxonomy.mjs';
+import { local as messagingLocal, remote as messagingRemote, removeMessaging, teardownMessaging } from './lib/messaging.mjs';
 
 export default async function globalTeardown() {
     if (process.env.UI_TESTS_KEEP_FIXTURES) {
@@ -11,4 +12,7 @@ export default async function globalTeardown() {
     }
     await teardown();
     await teardownTaxonomy();
+    await teardownMessaging(messagingLocal);
+    await teardownMessaging(messagingRemote);
+    await removeMessaging();
 }

@@ -11,7 +11,7 @@
 <> a def:Root ;
     dct:title "LinkedDataHub packages" ;
     dct:description "Catalog of packages available for LinkedDataHub applications" ;
-    rdfs:member <editor/taxonomy/#this> ;
+    rdfs:member <editor/taxonomy/#this> , <messaging/#this> ;
     rdf:_1 <#content> ;
     rdf:_2 <#select-children> .
 
@@ -22,6 +22,9 @@
 
 <#select-children> a ldh:Object ;
     rdf:value ldh:ChildrenView .
+
+<messaging/#this> dct:title "Messaging" ;
+    dct:description "Lets dataspaces message each other: accept messages into an advertised inbox, send a note to another dataspace's inbox on the reader's behalf, and reply to a note received." .
 
 <editor/taxonomy/#this> dct:title "Taxonomy Editor" ;
     dct:description "Turns a dataspace into a taxonomy editor: SKOS concepts, schemes and collections gain a concept tree beside the content, hierarchy views that read both assertion directions, and constructors and constraints that keep a concept labelled and in a scheme." .

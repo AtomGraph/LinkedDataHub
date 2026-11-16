@@ -9,6 +9,7 @@ import { get } from './lib/http.mjs';
 import { adminBase, composedSefPrefix, endUserBase, localSef, remoteEndUserBase, repoRoot, sefDir, sefPath } from './lib/stack.mjs';
 import { fixtures as fixtureUris, itemCount, seed, teardown } from './lib/fixtures.mjs';
 import { seedTaxonomy, taxonomyPackage, teardownTaxonomy, waitForPackageStylesheet } from './lib/taxonomy.mjs';
+import { importMessaging, local as messagingLocal, messagingPackage, remote as messagingRemote, teardownMessaging } from './lib/messaging.mjs';
 
 function onPath(command) {
     return (process.env.PATH ?? '').split(delimiter).some(dir => {
@@ -266,6 +267,20 @@ async function taxonomy() {
     console.log(`  stylesheet composed package SEF published (${Date.now() - composing} ms)`);
 }
 
+// The messaging package, imported once for the run like the taxonomy, so its import composes the stylesheet here
+// rather than in the middle of the specs. What an earlier run's messaging specs left on either instance goes first.
+async function messaging() {
+    if (process.env.UI_TESTS_SKIP_SEED) {
+        console.log('  messaging  reusing what is there (UI_TESTS_SKIP_SEED)');
+        return;
+    }
+    await teardownMessaging(messagingLocal);
+    await teardownMessaging(messagingRemote);
+    const started = Date.now();
+    const added = await importMessaging();
+    console.log(`  messaging  ${added ? `imported ${messagingPackage}` : `${messagingPackage} already imported`} (${Date.now() - started} ms)`);
+}
+
 export default async function globalSetup() {
     console.log('\nPreflight');
     await reachable();
@@ -276,6 +291,7 @@ export default async function globalSetup() {
     await purge();
     await baseline();
     await taxonomy();
+    await messaging();
     // Last: it asks a seeded child document what it runs, and the composed stylesheet it checks is
     // only published once a package-importing dataspace exists.
     await sef();

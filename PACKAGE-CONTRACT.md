@@ -77,9 +77,13 @@ skos:Concept ldh:action :DeleteConcept .
 ```
 
 - The platform finds a resource's actions as it finds its constructors: a SPARQL query on `/ns` through
-  `rdfs:subClassOf`. They render as a menu in the block header, for a reader who may write the document and
-  where the dataspace has an executor (`lds:assistant`).
-- A plan takes `$wa:bindings`, one row: `?this` (the resource), `?document`, `?base` (the dataspace), `?admin`.
+  `rdfs:subClassOf`. Discovery covers the typed rows of the content body, whose actions render as a menu in the
+  block header, and the document itself: the actions of the document resource and of its `foaf:primaryTopic`
+  join the document's Actions menu, each with the resource it was declared for as `?this`. Both for a reader who
+  may write the document and where the dataspace has an executor (`lds:assistant`).
+- A plan takes `$wa:bindings`, one row: `?this` (the resource), `?document`, `?base` (the dataspace), `?admin`,
+  and `?ontology` when the action says what it is `rdfs:isDefinedBy` — a plan is a literal, so that is how it
+  mints the package's own terms (`IRI(CONCAT(STR(?ontology), "Inbox"))`) wherever the package is published.
 - An action that needs more declares arguments as a SPIN template does (`spin:constraint [ a spl:Argument ;
   spl:predicate :target ; spl:valueType skos:Concept ]`). The dialog asks for them before the dry run, a
   resource among the instances of its `spl:valueType`, and each is one more column of the row, named by the
@@ -90,6 +94,9 @@ skos:Concept ldh:action :DeleteConcept .
 - **The policy**, applied to that set by the platform before anything is shown:
   - a write outside `?base` and `?admin` is refused; the dialog names it and offers no confirmation;
   - a write into `?admin` or to `/settings` is flagged: access control and configuration;
+  - a write to another dataspace goes through this one's Linked Data proxy (`?base` with a `uri` query
+    parameter, the proxy's own convention, read off the request URL), which delivers it on the reader's behalf:
+    it is listed as sent to its target and flagged. This is the only way a plan writes outside `?base` and `?admin`;
   - everything else is listed.
 - The reader confirms, and the same plan is submitted again to be applied. The document is read again
   after; its container, when the plan deleted it. A write refused mid-way (`409`) is told in the dialog with
@@ -118,9 +125,12 @@ four actions: *Delete concept* (drop every link to the concept from the document
 its document), *Make top concept*, *Move concept* (argument: the concept to move under) and *Merge concepts*
 (argument: the concept to merge into, which takes over every link and keeps the label as `skos:altLabel`). Zero violations; the previous version had 49.
 
-**Messaging** (designed, not built): renders notes, threads and the inbox; contributes a drawer section (#527);
-offers *Accept messages*, *Archive* and *Mark read* as actions. *Send* needs the executor to delegate to another
-origin, which it does not today (it writes anonymously outside the trusted origin), so it waits on that.
+**Messaging** (`tests/packages/messaging/`, not yet in LinkedDataHub-Apps): renders a note's content as prose
+(a value leaf) and lists a note's replies through an ontology view; offers *Accept messages* on the root (the
+inbox, its `ldp:inbox` link, an `acl:Append` grant to authenticated agents), *Send message* on the inbox
+(arguments: the recipient, a subject, the message) and *Reply* on a note. A message is delivered by copy, as a
+document in the recipient's inbox written through the sender's proxy, so the recipient's server records the
+sender. Still to come: sent copies, *Archive* and *Mark read*, withdrawing consent, the drawer section (#527).
 
 ## Order of work
 

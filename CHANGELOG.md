@@ -9,6 +9,11 @@
 - `client/webalgebra.xsl`: the executor client, shared by the assistant and the actions
 - An action takes arguments declared as a SPIN template's (`spin:constraint` with `spl:Argument`); the dialog asks for them before the dry run and binds each by its predicate's local name
 - The taxonomy package offers Move concept and Merge concepts, each with a concept argument
+- The actions of a document and of its `foaf:primaryTopic` join the document's Actions menu, each naming the resource it was declared for
+- A plan is bound `?ontology`, the one its action is `rdfs:isDefinedBy`, so it can mint the package's own terms wherever the package is published
+- An action's write through the dataspace's Linked Data proxy (its base with a `uri` parameter) is listed as "Send to" its target and flagged as delivered on the reader's behalf
+- An action argument of `xsd:string` is asked for in a text area, one of `xsd:anyURI` in an address field
+- The messaging package (`tests/packages/messaging`): Accept messages (an advertised `ldp:inbox` and an `acl:Append` grant on it), Send message and Reply, delivered by copy through the proxy
 
 ### Changed
 - `ldh:TreeChildrenLoad` returns the predicates that link a node to its children; the platform builds and runs the query
