@@ -186,3 +186,6 @@ The TimeGate is replayed twice:
 - **Versioning's failures and limits:** why a reconcile fails (the model has that it can, and what the TimeGate then
   answers), a write whose response fails after the store has changed (no reconcile is queued for it), and a history longer than `listCommits` pages through. The history's order
   is GitHub's.
+- **Which dataspaces are versioned:** the model takes a document's dataspace as versioned or not. Which ones are, and
+  with which repository, `GraphVersioningService` reads from the dataspace descriptions as they are when asked
+  (`lds:versioningRepository`), building a repository again only when its description changes.

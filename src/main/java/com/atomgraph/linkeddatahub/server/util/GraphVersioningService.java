@@ -82,41 +82,43 @@ public class GraphVersioningService
     /** Per-repository client and file path prefix */
     public record Repository(GitHubClient client, String pathPrefix) { }
 
-    private final Map<String, Repository> repositories;
+    private final java.util.function.Function<String, Optional<Repository>> repositories; // by application URI
     private final Map<String, CompletableFuture<Void>> commitChains = new ConcurrentHashMap<>(); // keyed by repository branch
     private final ExecutorService executor = Executors.newFixedThreadPool(4);
     private final Map<URI, Integer> pending = new ConcurrentHashMap<>(); // queued and running commits, keyed by graph
     private final Set<URI> failed = ConcurrentHashMap.newKeySet(); // graphs whose last commit failed
     private final Map<String, Integer> backlog = new ConcurrentHashMap<>(); // queued and running commits, keyed by repository branch
+    private final Map<String, Resolved> resolved = new ConcurrentHashMap<>(); // the repository last built for an application, with the description it was built from
+
+    /** A repository built from a description: the statements about the repository node, and what they made (empty when they do not make one). */
+    private record Resolved(Set<Statement> description, Optional<Repository> repository) { }
 
     /**
-     * Builds the per-application repository map from the context model.
+     * Versions the applications the descriptions say are versioned, as the descriptions are when asked: an
+     * application described, or given a <code>lds:versioningRepository</code>, after the platform started is
+     * versioned from then on, and one whose repository is taken away is no longer. A repository is built once per
+     * description and built anew when its description changes.
      * Applications without a <code>lds:versioningRepository</code> are not versioned.
+     *
+     * @param context the dataspace descriptions as they are now (the union of the context dataset), asked on every use
+     * @param client HTTP client with standard TLS server verification
+     */
+    public GraphVersioningService(java.util.function.Supplier<Model> context, Client client)
+    {
+        if (context == null) throw new IllegalArgumentException("Context supplier cannot be null");
+        if (client == null) throw new IllegalArgumentException("Client cannot be null");
+        this.repositories = appURI -> resolve(context.get(), appURI, client);
+    }
+
+    /**
+     * Builds the service over the descriptions as they are now, and as they stay: a change to them later is not seen.
      *
      * @param contextModel union model of the context dataset
      * @param client HTTP client with standard TLS server verification
      */
     public GraphVersioningService(Model contextModel, Client client)
     {
-        repositories = new HashMap<>();
-
-        StmtIterator it = contextModel.listStatements(null, LDS.versioningRepository, (org.apache.jena.rdf.model.RDFNode)null);
-        try
-        {
-            while (it.hasNext())
-            {
-                Statement stmt = it.nextStatement();
-                Resource app = stmt.getSubject();
-                Resource repo = stmt.getResource();
-
-                Repository repository = repository(app, repo, client);
-                if (repository != null) repositories.put(app.getURI(), repository);
-            }
-        }
-        finally
-        {
-            it.close();
-        }
+        this(() -> contextModel, client);
     }
 
     /**
@@ -126,7 +128,28 @@ public class GraphVersioningService
      */
     protected GraphVersioningService(Map<String, Repository> repositories)
     {
-        this.repositories = new HashMap<>(repositories);
+        Map<String, Repository> fixed = new HashMap<>(repositories);
+        this.repositories = appURI -> Optional.ofNullable(fixed.get(appURI));
+    }
+
+    /** The repository the descriptions give the application now, built again only when its description changed. */
+    private Optional<Repository> resolve(Model context, String appURI, Client client)
+    {
+        if (appURI == null) return Optional.empty();
+        Resource repo = context.createResource(appURI).getPropertyResourceValue(LDS.versioningRepository);
+        if (repo == null)
+        {
+            resolved.remove(appURI);
+            return Optional.empty();
+        }
+
+        Set<Statement> description = repo.listProperties().toSet();
+        Resolved last = resolved.get(appURI);
+        if (last != null && last.description().equals(description)) return last.repository();
+
+        Optional<Repository> repository = Optional.ofNullable(repository(context.createResource(appURI), repo, client));
+        resolved.put(appURI, new Resolved(description, repository));
+        return repository;
     }
 
     private Repository repository(Resource app, Resource repo, Client client)
@@ -161,7 +184,7 @@ public class GraphVersioningService
      */
     public Optional<Repository> getRepository(String appURI)
     {
-        return Optional.ofNullable(repositories.get(appURI));
+        return repositories.apply(appURI);
     }
 
     /**
@@ -177,7 +200,7 @@ public class GraphVersioningService
      */
     public void commitAsync(ServiceContext serviceContext, String appURI, URI appBase, URI graphURI, String agentWebID, String method)
     {
-        Repository repository = repositories.get(appURI);
+        Repository repository = repositories.apply(appURI).orElse(null);
         if (repository == null) return;
 
         String path = path(repository.pathPrefix(), appBase, graphURI);
@@ -233,7 +256,7 @@ public class GraphVersioningService
      */
     public int getCommitBacklog(String appURI)
     {
-        Repository repository = repositories.get(appURI);
+        Repository repository = repositories.apply(appURI).orElse(null);
         if (repository == null) return 0;
         return backlog.getOrDefault(branchKey(repository), 0);
     }
@@ -284,7 +307,7 @@ public class GraphVersioningService
      */
     public Optional<Version> getVersion(String appURI, URI appBase, URI graphURI, String ref)
     {
-        Repository repository = repositories.get(appURI);
+        Repository repository = repositories.apply(appURI).orElse(null);
         if (repository == null) return Optional.empty();
 
         String path = path(repository.pathPrefix(), appBase, graphURI);
@@ -345,7 +368,7 @@ public class GraphVersioningService
      */
     public Optional<GitHubClient.CommitInfo> getMemento(String appURI, URI appBase, URI graphURI, Instant datetime)
     {
-        Repository repository = repositories.get(appURI);
+        Repository repository = repositories.apply(appURI).orElse(null);
         if (repository == null) return Optional.empty();
 
         String path = path(repository.pathPrefix(), appBase, graphURI);
@@ -381,7 +404,7 @@ public class GraphVersioningService
      */
     public Optional<Model> getTimeMap(String appURI, URI appBase, URI graphURI)
     {
-        Repository repository = repositories.get(appURI);
+        Repository repository = repositories.apply(appURI).orElse(null);
         if (repository == null) return Optional.empty();
 
         String path = path(repository.pathPrefix(), appBase, graphURI);
