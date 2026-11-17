@@ -63,8 +63,9 @@ What each open mode returns:
 | `ldh:TreeParentsLoad` | the `ul.ldh-tree` | the same map, for the climb |
 | the value leaves | a property, value or control | markup |
 
-`ldh:RowHook` is sealed: a factory of deferred work is control flow, which a package does not get. The mode and
-the platform's own rules in it live in `client/block.xsl`.
+`ldh:HydrationHook`, the work a rendered element schedules, is sealed: a factory of deferred work is control flow,
+which a package does not get. The mode, the `ldh:Hydrate` walk that asks it and the platform's own rules in it live in
+`client/block.xsl`.
 
 ## Rule 2: behaviour is declared and carried out
 

@@ -13,7 +13,7 @@
 ### Changed
 - `ldh:TreeChildrenLoad` returns the predicates that link a node to its children; the platform builds and runs the query
 - The drawer's document tree descends and activates through the generic tree operations
-- `ldh:RowHook` is sealed; the mode and the view injection live in `client/block.xsl`
+- The work a rendered element schedules is sealed and named for what it does: the walk is `ldh:Hydrate` (was `ldh:RenderRow`) and the mode it asks is `ldh:HydrationHook` (was `ldh:RowHook`), both in `client/block.xsl` with the view injection. Every caller starts an element's jobs through `ldh:hydrate`, or takes them from `ldh:hydration-jobs`, and passes what the element's own defaults cannot read as `ldh:hydration-params`
 - `ldh:plan` applies to an `ldh:Action` as well as a `ldh:ChatTurn`
 - An action's confirmation shows its plan as the assistant does, as the tree of its operations above the writes; the renderer moves to `client/webalgebra.xsl`
 - A plan's operation tree starts folded under its step count, in the action dialog and the assistant alike
@@ -30,6 +30,8 @@
 
 ### Fixed
 - A lookup restricted to a class answers in a fraction of a second on a large dataspace, where it took 30 s on one of 15M quads: the classes are bound with `VALUES`, one row each, instead of a `FILTER(?Type IN (...))` after the query's `UNION`, which Jena did not push into its `GRAPH ?graph` branch, so that branch walked every typed resource in every graph first. A lookup also asks for at most 100 suggestions, a limit it declared and never applied
+- A typed resource saved in its inline form is drawn again with its property views and, where the dataspace has an executor, its actions menu: the redraw took the row's jobs as one at most, failed on the second the actions menu brought, and drew the row a second time into the element it had replaced. An object block naming such a resource starts both too, where it started neither
+- The query block's View tab renders its results: the view it builds outside the page was started without the block and results container it belongs to, which the walk that starts it dropped
 - A value linking to another resource, added from the property picker or appended when a type is added, is looked up among the class its constructor declares, as the field the form opens with is: it searched every resource of the dataspace, and was named "Resource" instead of its class
 - A value can be added to a resource of more than one class: where the classes bring models of their own the form is built one prototype per class, and the property picker's Add failed with "The form could not be loaded" on finding more than one
 - A type can be added to a resource that has none: the property picker's Add did nothing in a block without types

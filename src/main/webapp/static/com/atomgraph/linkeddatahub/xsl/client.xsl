@@ -768,15 +768,10 @@ WHERE
             <xsl:with-param name="href" select="ldh:href($doc-uri, ldh:build-query($mode), $fragment)"/>
         </xsl:call-template>
 
-        <!-- fire factories for top-level content blocks in the rendered pane -->
+        <!-- fire factories for top-level content blocks in the rendered pane; taken one by one rather than joined
+             (ldh:hydrate), since the fragment scroll below counts each down -->
         <xsl:variable name="content-body" select="id($pane-id, ixsl:page())/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()?"/>
-        <xsl:variable name="factories" as="(function(item()?) as item()*)*">
-            <xsl:for-each select="$content-body/div">
-                <xsl:apply-templates select="." mode="ldh:RenderRow">
-                    <xsl:with-param name="refresh-content" select="$refresh-content"/>
-                </xsl:apply-templates>
-            </xsl:for-each>
-        </xsl:variable>
+        <xsl:variable name="factories" select="ldh:hydration-jobs($content-body/div, map{ 'refresh-content': $refresh-content })" as="(function(item()?) as item()*)*"/>
         <xsl:choose>
             <!-- a fragment scroll cannot run until the blocks hydrate (their async loads shift the layout under it): chain each factory so ldh:block-hydrated counts them down and scrolls on the last one -->
             <xsl:when test="$fragment and exists($factories)">

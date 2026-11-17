@@ -216,7 +216,7 @@ exclude-result-prefixes="#all"
     
     <!-- render chart block -->
     
-    <xsl:template match="*[@typeof = ('&ldh;ResultSetChart', '&ldh;GraphChart')][descendant::*[@property = '&spin;query'][@resource]][descendant::*[@property = '&ldh;chartType'][@resource]]" mode="ldh:RowHook" as="function(item()?) as map(*)">
+    <xsl:template match="*[@typeof = ('&ldh;ResultSetChart', '&ldh;GraphChart')][descendant::*[@property = '&spin;query'][@resource]][descendant::*[@property = '&ldh;chartType'][@resource]]" mode="ldh:HydrationHook" as="function(item()?) as map(*)">
         <xsl:param name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
         <!-- the resource the chart is shown about - the @about of the block it sits in, as a view's $about (block/view.xsl): for

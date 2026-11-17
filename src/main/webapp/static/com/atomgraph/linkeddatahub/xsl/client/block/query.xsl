@@ -141,7 +141,7 @@ exclude-result-prefixes="#all"
     
     <!-- render query block -->
     
-    <xsl:template match="*[@typeof = ('&sp;Ask', '&sp;Select', '&sp;Describe', '&sp;Construct')][descendant::*[@property = '&sp;text'][.//pre/text()]]" mode="ldh:RowHook" as="function(item()?) as map(*)">
+    <xsl:template match="*[@typeof = ('&sp;Ask', '&sp;Select', '&sp;Describe', '&sp;Construct')][descendant::*[@property = '&sp;text'][.//pre/text()]]" mode="ldh:HydrationHook" as="function(item()?) as map(*)">
         <xsl:param name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:param name="container" select="." as="element()"/>
         <xsl:param name="mode" select="descendant::*[@property = '&ac;mode']/@resource" as="xs:anyURI?"/>
@@ -608,7 +608,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="query-type" select="xs:anyURI('&sp;' || upper-case(substring($query-form, 1, 1)) || lower-case(substring($query-form, 2)))" as="xs:anyURI"/>
         <xsl:variable name="view-block-id" select="'id' || ac:uuid()" as="xs:string"/>
         <xsl:variable name="view-block-uri" select="xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $view-block-id)" as="xs:anyURI"/>
-        <xsl:variable name="view-html" as="document-node()"> <!-- make sure the structure will match the ldh:RenderRow pattern in view.xsl -->
+        <xsl:variable name="view-html" as="document-node()"> <!-- make sure the structure will match the view hook's pattern in view.xsl -->
             <xsl:document>
                 <div about="{$view-block-uri}" typeof="&ldh;View">
                     <div property="&spin;query" resource="{$block/@about}"/>
@@ -649,18 +649,9 @@ exclude-result-prefixes="#all"
             </xsl:if>
         </xsl:variable>
 
-        <xsl:variable name="factory" as="function(item()?) as item()*?">
-            <xsl:apply-templates select="$view-html" mode="ldh:RenderRow">
-                <xsl:with-param name="block" select="$block"/>
-                <xsl:with-param name="container" select="$view-container"/>
-                <xsl:with-param name="this" select="$this"/>
-                <xsl:with-param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))"/>
-                <xsl:with-param name="form-actions" select="$form-actions"/>
-            </xsl:apply-templates>
-        </xsl:variable>
-        
-        <!-- invoke the factory -->
-        <ixsl:promise select="$factory(()) => ixsl:finally(ldh:reset-cursor#0)" on-failure="ldh:promise-failure($view-container, 'results-not-loaded', ?)"/>
+        <!-- the view is built outside the page, so it is told the block, the results container and the document it belongs to,
+             which its own defaults would read off a node with no ancestors -->
+        <ixsl:promise select="ldh:hydrate($view-html/*, map{ 'block': $block, 'container': $view-container, 'this': $this, 'form-actions': $form-actions }) => ixsl:finally(ldh:reset-cursor#0)" on-failure="ldh:promise-failure($view-container, 'results-not-loaded', ?)"/>
     </xsl:template>
     
     <!-- save query onclick -->

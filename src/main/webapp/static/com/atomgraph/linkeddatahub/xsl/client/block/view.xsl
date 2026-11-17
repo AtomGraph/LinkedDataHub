@@ -60,18 +60,21 @@ exclude-result-prefixes="#all"
 
     <!-- render view -->
 
-    <xsl:template match="*[@typeof = '&ldh;View'][descendant::*[@property = '&spin;query'][@resource]]" mode="ldh:RowHook" as="function(item()?) as map(*)">
-        <xsl:param name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][1]" as="element()"/>
+    <xsl:template match="*[@typeof = '&ldh;View'][descendant::*[@property = '&spin;query'][@resource]]" mode="ldh:HydrationHook" as="function(item()?) as map(*)">
+        <!-- what the hydrating caller passes: the query block's view tab builds the view outside the page, so it names the
+             block, the container, the document and the footer the view's own defaults cannot read off it -->
+        <xsl:param name="ldh:hydration-params" select="map{}" as="map(*)" tunnel="yes"/>
+        <xsl:param name="block" select="($ldh:hydration-params?block, ancestor-or-self::div[contains-token(@class, 'block')][1])[1]" as="element()"/>
         <!-- the hosting document's URL, derived page-level: ldh:base-uri() would resolve an embed's data-base-uri stamp, which names the content's source document (the edit target), while $this anchors the query to the document the view is embedded in -->
-        <xsl:param name="this" select="if (ac:uri()) then ac:document-uri(ac:uri()) else ac:absolute-path(ldh:request-uri())" as="xs:anyURI"/>
+        <xsl:param name="this" select="($ldh:hydration-params?this, if (ac:uri()) then ac:document-uri(ac:uri()) else ac:absolute-path(ldh:request-uri()))[1]" as="xs:anyURI"/>
         <xsl:param name="parent-about" select="$block/ancestor::*[@about][1]/@about" as="xs:anyURI"/> <!-- outer @about context -->
-        <xsl:param name="container" select="." as="element()"/>
+        <xsl:param name="container" select="($ldh:hydration-params?container, .)[1]" as="element()"/>
         <xsl:param name="mode" select="descendant::*[@property = '&ac;mode']/@resource" as="xs:anyURI?"/>
-        <xsl:param name="refresh-content" as="xs:boolean?"/>
+        <xsl:param name="refresh-content" select="$ldh:hydration-params?refresh-content" as="xs:boolean?"/>
         <xsl:param name="query-uri" select="descendant::*[@property = '&spin;query']/@resource" as="xs:anyURI"/>
         <!-- footer emitted below the results by ldh:RenderViewResults, the same slot ldh:Chart offers charts.
              Empty for a saved view block; the query block fills it with its Create button -->
-        <xsl:param name="form-actions" as="element()?"/>
+        <xsl:param name="form-actions" select="$ldh:hydration-params?form-actions" as="element()?"/>
 
         <!-- ldh:showWhenEmpty false: the view stays out of the flow until its results say it has anything to
              show. Its card is already in the DOM - client/block.xsl appended it and builds these factories in
@@ -3803,7 +3806,7 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:function>
 
-    <!-- Re-query the view block's results with fresh data (Cache-Control: no-cache). Rebuilds the request context from the contents cache like the pager/order/mode listeners do: the view's RDFa (spin:query) is replaced by the toolbar on the initial render, so re-entering ldh:RenderRow would no longer match the view template -->
+    <!-- Re-query the view block's results with fresh data (Cache-Control: no-cache). Rebuilds the request context from the contents cache like the pager/order/mode listeners do: the view's RDFa (spin:query) is replaced by the toolbar on the initial render, so re-entering ldh:Hydrate would no longer match the view template -->
     <xsl:function name="ldh:refresh-view" as="item()*" ixsl:updating="yes">
         <xsl:param name="block-id" as="xs:string"/>
 

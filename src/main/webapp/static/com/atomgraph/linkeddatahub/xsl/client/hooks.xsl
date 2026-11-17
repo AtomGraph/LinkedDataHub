@@ -62,9 +62,9 @@ exclude-result-prefixes="#all"
     <xsl:mode name="ldh:TreeChildrenLoad" on-no-match="deep-skip"/>
     <xsl:mode name="ldh:TreeParentsLoad" on-no-match="deep-skip"/>
 
-    <!-- ldh:RowHook, the factories of deferred work for a rendered row, is not here and not open: a
+    <!-- ldh:HydrationHook, the factories of deferred work for a rendered row, is not here and not open: a
          factory runs inside ixsl:promise, which is control flow a package does not get (a package has
          no ixsl: at all). The mode and the platform's own rules in it live in client/block.xsl, beside
-         the ldh:RenderRow walk that asks it. -->
+         the ldh:Hydrate walk that asks it. -->
 
 </xsl:stylesheet>

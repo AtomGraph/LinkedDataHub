@@ -516,7 +516,7 @@ exclude-result-prefixes="#all"
         <xsl:apply-templates select="." mode="ac:PropertyEditor"/>
     </xsl:template>
 
-    <!-- a view's body is its results, not its definition: ldh:RowHook (client/block/view.xsl) reads spin:query, ac:mode
+    <!-- a view's body is its results, not its definition: ldh:HydrationHook (client/block/view.xsl) reads spin:query, ac:mode
          and ldh:graph off this RDFa, and ldh:RenderViewResults then replaces the body. Rendered as the property list, the
          view's own metadata painted until the results arrived - visibly so for ontology-defined views, which are fetched
          and injected client-side. Invisible link/meta carriers keep the triples the hook reads without painting them -->
@@ -559,7 +559,7 @@ exclude-result-prefixes="#all"
          the card, since there is no row to carry them. Which chrome a member drops is the CALLER's to say -
          the same parameters ldh:Object's embed passes in client/block/object.xsl - because it is derivation,
          not membership, that costs a block its drag grip and its edit pencil -->
-    <!-- TO-DO: replace with fully client-side wrapper in ldh:RenderRow in block.xsl -->
+    <!-- TO-DO: replace with fully client-side wrapper in ldh:Hydrate in block.xsl -->
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ldh:BlockRow">
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>

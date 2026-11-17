@@ -186,14 +186,53 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="($element/ancestor::div[contains-token(@class, 'ldh-obj-value')][1], $element)[1]/ancestor::div[contains-token(@class, 'block')][@about][1]"/>
     </xsl:function>
 
+    <!-- the jobs rendered elements bring once they are on the page, as factories: the ldh:Hydrate walk asks every element
+         what its ldh:HydrationHook rules schedule, and an element may bring none, one or several (a typed resource's row
+         brings its views and, where the dataspace has an executor, its actions). The only place the walk is applied, so
+         that no caller assumes how many jobs come back. $params is what the caller knows of the elements it hydrates and
+         their own defaults cannot read (the block and container of a view built outside the page): it reaches the hook
+         rules of those elements, not of what they contain -->
+    <xsl:function name="ldh:hydration-jobs" as="(function(item()?) as item()*)*">
+        <xsl:param name="elements" as="element()*"/>
+        <xsl:param name="params" as="map(*)"/>
+
+        <xsl:apply-templates select="$elements" mode="ldh:Hydrate">
+            <xsl:with-param name="ldh:hydration-params" select="$params" tunnel="yes"/>
+        </xsl:apply-templates>
+    </xsl:function>
+
+    <xsl:function name="ldh:hydration-jobs" as="(function(item()?) as item()*)*">
+        <xsl:param name="elements" as="element()*"/>
+
+        <xsl:sequence select="ldh:hydration-jobs($elements, map{})"/>
+    </xsl:function>
+
+    <!-- starts every job the elements bring, joined into one promise; called inside a promise chain or ixsl:promise, which
+         gives ixsl:http-request the active promise it requires. The jobs are independent, each writing its own part of
+         the page, so the join is ixsl:all: it rejects with the first failing job's own error for the caller to report, and
+         the other jobs run on regardless. No jobs resolves at once -->
+    <xsl:function name="ldh:hydrate" as="item()" ixsl:updating="yes">
+        <xsl:param name="elements" as="element()*"/>
+        <xsl:param name="params" as="map(*)"/>
+
+        <xsl:sequence select="ixsl:all(array { for $job in ldh:hydration-jobs($elements, $params) return $job(()) })"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:hydrate" as="item()" ixsl:updating="yes">
+        <xsl:param name="elements" as="element()*"/>
+
+        <xsl:sequence select="ldh:hydrate($elements, map{})"/>
+    </xsl:function>
+
     <!-- TEMPLATES -->
 
-    <!-- render row -->
+    <!-- hydrate -->
 
-    <!-- work to schedule for one rendered row, as FACTORIES rather than work: the ldh:RenderRow walk
-         below applies this mode to every element it visits, collects what comes back inside a
-         non-updating binding and invokes the factories later inside ixsl:promise, which is also what
-         gives ixsl:http-request the active promise it requires.
+    <!-- work to schedule for one rendered element, as FACTORIES rather than work: the ldh:Hydrate walk
+         below applies this mode to every element it visits, and ldh:hydrate (above) invokes the factories
+         it collects inside the caller's promise, which is also what gives ixsl:http-request the active
+         promise it requires. A rule declares what its caller may pass as entries of the tunnel parameter
+         ldh:hydration-params, falling back to what it reads off the element itself.
 
          The walk only ever descends; this mode is what it asks at each node. So a rule here can add
          work for a node and can never take the node's subtree out of the walk, which is exactly the
@@ -202,20 +241,23 @@ exclude-result-prefixes="#all"
          Sealed: a factory is control flow, and a package has none (it has no ixsl: at all, see
          hooks.xsl). A package's tree asks for its reveal with data instead (data-tree-reveal,
          client/tree.xsl), and the platform contributes the factory. -->
-    <xsl:mode name="ldh:RowHook" on-no-match="deep-skip"/>
+    <xsl:mode name="ldh:HydrationHook" on-no-match="deep-skip"/>
 
-    <!-- the walk over rendered rows: it descends through every element and asks ldh:RowHook what to
+    <!-- the walk over rendered elements: it descends through every element and asks ldh:HydrationHook what to
          schedule for each one, contributing nothing itself - the platform's own view injection is a
          hook rule like the others. Splitting the two is what makes a hook safe: a rule that wins in
-         ldh:RowHook adds work for its node and cannot take the node's subtree out of the walk, which
-         a rule winning HERE would. -->
-    <xsl:template match="*" mode="ldh:RenderRow" as="(function(item()?) as map(*))*">
-        <xsl:apply-templates select="." mode="ldh:RowHook"/>
+         ldh:HydrationHook adds work for its node and cannot take the node's subtree out of the walk, which
+         a rule winning HERE would. What a caller passes is for the elements it hydrates, so the walk
+         hands it to their hook rules and not to their descendants' -->
+    <xsl:template match="*" mode="ldh:Hydrate" as="(function(item()?) as map(*))*">
+        <xsl:apply-templates select="." mode="ldh:HydrationHook"/>
 
-        <xsl:apply-templates mode="#current"/>
+        <xsl:apply-templates mode="#current">
+            <xsl:with-param name="ldh:hydration-params" select="map{}" tunnel="yes"/>
+        </xsl:apply-templates>
     </xsl:template>
 
-    <xsl:template match="text()" mode="ldh:RenderRow" as="(function(item()?) as map(*))*"/>
+    <xsl:template match="text()" mode="ldh:Hydrate" as="(function(item()?) as map(*))*"/>
 
     <!-- ontology-driven view blocks for any row wrapper produced by resource.xsl - outer
          div.ldh-block-row[@about] whose div.row-main child contains the inner typed resource block
@@ -224,7 +266,7 @@ exclude-result-prefixes="#all"
          Typed-block rows (Object/View/Query/Chart) are excluded automatically: their card carries no
          @typeof (the typeof rides the inner .block-row container), so the inner [@typeof] predicate
          excludes them. -->
-    <xsl:template match="child::div[contains-token(@class, 'ldh-block-row')][@about][child::div[contains-token(@class, 'row-main')]/div[contains-token(@class, 'block')][@typeof]]" mode="ldh:RowHook" as="(function(item()?) as map(*))*">
+    <xsl:template match="child::div[contains-token(@class, 'ldh-block-row')][@about][child::div[contains-token(@class, 'row-main')]/div[contains-token(@class, 'block')][@typeof]]" mode="ldh:HydrationHook" as="(function(item()?) as map(*))*">
         <xsl:variable name="block" select="child::div[contains-token(@class, 'row-main')]/div[contains-token(@class, 'block')][@typeof]" as="element()"/>
         <xsl:variable name="typeof-uris" select="tokenize($block/@typeof, ' ') ! xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:variable name="values-clause" select="' VALUES ?type { ' || string-join(for $t in $typeof-uris return '&lt;' || $t || '&gt;', ' ') || ' }'" as="xs:string"/>
@@ -1128,7 +1170,7 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="map:merge(($context, map{ 'container-acl-modes': $acl-modes }))"/>
     </xsl:function>
 
-    <!-- append the rendered view block into the wrapper's .span12 alongside the typed resource block, stamp the inline-creation metadata as data-* attributes, hydrate via existing ldh:RenderRow chain -->
+    <!-- append the rendered view block into the wrapper's .span12 alongside the typed resource block, stamp the inline-creation metadata as data-* attributes, hydrate via existing ldh:Hydrate chain -->
     <xsl:function name="ldh:ontology-view-insert" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
@@ -1148,7 +1190,7 @@ exclude-result-prefixes="#all"
                     <xsl:when test="exists($view-resource)">
                         <!-- the block is derived, not stored: re-deriving it on the next load has to reproduce the same
                              subject URI, so the fragment is a function of what identifies the block - the host resource
-                             and the view attached to it. Both are needed: ldh:RenderRow visits every wrapper, so a
+                             and the view attached to it. Both are needed: ldh:Hydrate visits every wrapper, so a
                              container listing injects the same view under each of its children, and the view URI alone
                              would give them all one @about. A space separates the two because a URI cannot contain one -->
                         <xsl:variable name="id" select="'id' || ldh:hash-code($container/@about || ' ' || $view-uri)" as="xs:string"/>
@@ -1181,7 +1223,7 @@ exclude-result-prefixes="#all"
                             </xsl:result-document>
                         </xsl:for-each>
 
-                        <!-- hydrate the freshly-injected wrapper via the existing view.xsl:62 RenderRow handler.
+                        <!-- hydrate the freshly-injected wrapper through the view hook in client/block/view.xsl.
                              Addressed by @id, not by position: a resource carrying several ontology views has one
                              of these chains per view running concurrently under the ixsl:all fan-out, and $id is
                              already unique per host-and-view -->
@@ -1204,13 +1246,9 @@ exclude-result-prefixes="#all"
                                     </xsl:if>
                                 </xsl:for-each>
 
-                                <xsl:variable name="factories" as="(function(item()?) as item()*)*">
-                                    <xsl:apply-templates select="$injected" mode="ldh:RenderRow"/>
-                                </xsl:variable>
-
                                 <!-- joined rather than fired: the block's own view results are what give it its height, and
                                      the deferred fragment scroll upstream would otherwise land on a block that then grows under it -->
-                                <xsl:sequence select="ixsl:all(array { for $factory in $factories return $factory(()) }) => ixsl:then(ldh:ontology-views-inserted($context, ?))"/>
+                                <xsl:sequence select="ldh:hydrate($injected) => ixsl:then(ldh:ontology-views-inserted($context, ?))"/>
                             </xsl:when>
                             <xsl:otherwise>
                                 <xsl:sequence select="$context"/>
