@@ -42,6 +42,8 @@
     <urn:linkeddatahub:services/end-user> a sd:Service ;
         dct:title "LinkedDataHub service" ;
         sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
+        # the end-user dataset carries a text index (config/fuseki/config.ttl), which the search box uses where it is declared
+        sd:propertyFeature <http://jena.apache.org/text#query> ;
         sd:endpoint <http://fuseki:3030/end-user/> ;
         a:graphStore <http://fuseki:3030/end-user/> ;
         a:quadStore <http://fuseki:3030/end-user/> .
