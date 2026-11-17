@@ -12,13 +12,14 @@
 // The editor unfolds from the card header, and Run re-queries with whatever it says - which is
 // the assertion that matters, since a Run that re-ran the STORED query would table the same rows.
 //
-// The View tab is the last test. Its handler (client/block/query.xsl, the view-mode tab) builds a
-// detached `<div typeof="ldh:View">` and starts it with the block and the results container it
-// belongs to, since a view's own defaults, read from a node with no ancestors, find neither. Those
-// parameters were dropped by the walk that starts the view until it learnt to pass them on: the
-// page reported "Required cardinality of value in 'xsl:param name=\"block\"' expression is exactly
-// one; supplied value is empty" and the results container stayed empty (measured 2026-09-28 on
-// develop, when the test was pinned as an expected failure).
+// The View tab is the last pair of tests. Its handler (client/block/query.xsl, the view-mode tab)
+// writes a `<div typeof="ldh:View">` into the results container and starts it as any other view:
+// the view reads the block it belongs to off its ancestors, and the Create footer the tab wrote
+// beside its results stays where the results render leaves it. It once built the view as a detached
+// document instead and told it the block and container by parameter, which the walk that starts a
+// view dropped: the page reported "Required cardinality of value in 'xsl:param name=\"block\"'
+// expression is exactly one; supplied value is empty" and the results container stayed empty
+// (measured 2026-09-28 on develop, when the test was pinned as an expected failure).
 import { test, expect } from '../../../lib/console.mjs';
 import { goto } from '../../../lib/settle.mjs';
 import { fixtures, itemCount, itemTitle, itemUri, ldh } from '../../../lib/fixtures.mjs';
@@ -145,8 +146,6 @@ test.describe('the query block', { tag: '@owner' }, () => {
         await expect(page.locator('.ldh-failure')).toHaveCount(0);
     });
 
-    // The tab builds the view it shows as a document of its own, outside the page, and names the block and the results
-    // container it belongs to when it starts it: the view's own defaults, read from that detached copy, find neither
     test('the View tab renders the same result set as rows', async ({ page }) => {
         await goto(page, fixtures.queryDocument);
         const block = queryBlock(page);
@@ -160,6 +159,19 @@ test.describe('the query block', { tag: '@owner' }, () => {
         await expect(rows).toHaveCount(Math.min(20, itemCount));
         await expect(rows.first().locator('.ti')).toHaveText(itemTitle(1));
         await expect(resultsTable(block)).toHaveCount(0);
+    });
+
+    // Creating POSTs a view into the document, so the button is offered to an agent who may append to it, in
+    // the layout that renders the document's resources - the rule the chart tab's Create follows
+    test('the View tab offers Create to an agent who may append', async ({ page }) => {
+        await goto(page, fixtures.queryDocument);
+        const block = queryBlock(page);
+        await expect(resultsTable(block)).toBeVisible({ timeout: 30_000 });
+
+        await block.locator('.query-results-tabs button.view-mode').click();
+
+        await expect(block.locator('.sparql-query-results li a.row').first()).toBeVisible({ timeout: 30_000 });
+        await expect(block.locator('.sparql-query-results .ldh-block-foot button.btn-create-view')).toBeVisible();
     });
 });
 
