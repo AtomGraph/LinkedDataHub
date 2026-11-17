@@ -424,7 +424,7 @@ gsp_append_quads()
     local auth_user="$2"
     local auth_pwd="$3"
     local filename="$4"
-    # $5 is content_type (ignored; hardcoded to application/n-triples internally)
+    # $5 is content_type (ignored; hardcoded to text/turtle internally)
     local auth_token="$6"
 
     # Create temporary SPARQL query to extract distinct graph URIs
@@ -457,8 +457,9 @@ EOF
 CONSTRUCT { ?s ?p ?o } WHERE { GRAPH <$graph_uri> { ?s ?p ?o } }
 EOF
 
-            # Extract triples for this specific graph as N-Triples
-            sparql --data="$filename" --query="$extract_query" --results=NT > "$temp_file"
+            # Extract triples for this specific graph as Turtle - since Jena 6 the sparql command writes a CONSTRUCT result
+            # as Turtle whatever --results says (NT included), so the body is labelled text/turtle, which N-Triples is a subset of
+            sparql --data="$filename" --query="$extract_query" --results=TTL > "$temp_file"
 
             # Send the graph's triples to the graph store using standard GSP
             if [ -n "$auth_token" ]; then
@@ -467,7 +468,7 @@ EOF
                     --url-query "graph=$graph_uri" \
                     "$graph_store_url" \
                     -H "Authorization: Bearer $auth_token" \
-                    -H "Content-Type: application/n-triples" \
+                    -H "Content-Type: text/turtle" \
                     --data-binary @"$temp_file"
             elif [ -n "$auth_user" ] && [ -n "$auth_pwd" ]; then
                 curl \
@@ -476,14 +477,14 @@ EOF
                     --user "$auth_user":"$auth_pwd" \
                     --url-query "graph=$graph_uri" \
                     "$graph_store_url" \
-                    -H "Content-Type: application/n-triples" \
+                    -H "Content-Type: text/turtle" \
                     --data-binary @"$temp_file"
             else
                 curl \
                     -f \
                     --url-query "graph=$graph_uri" \
                     "$graph_store_url" \
-                    -H "Content-Type: application/n-triples" \
+                    -H "Content-Type: text/turtle" \
                     --data-binary @"$temp_file"
             fi
 
@@ -779,7 +780,7 @@ for app in "${apps[@]}"; do
         printf "\n### Quad store URL: %s\n" "$app_quad_store_url"
     else
         app_store_url="$app_graph_store_url"
-        app_store_content_type="application/n-triples"
+        app_store_content_type="text/turtle"
         app_store_fn="gsp_append_quads"
         printf "\n### Graph store URL (GSP fallback): %s\n" "$app_graph_store_url"
     fi

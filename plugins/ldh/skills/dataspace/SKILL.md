@@ -126,6 +126,10 @@ publish it.
 
 and the same pair for the admin app with `lds:AdminDataspace` and `inventory.admin`.
 
+`a:quadStore` is optional: only the bootstrap reads it, to load the seed datasets as N-Quads in one
+request. Leave it out for a store that accepts neither TriG nor N-Quads (QLever), and the bootstrap
+loads graph by graph into `a:graphStore`.
+
 Several dataspaces may share one service, but then they share one dataset and see each other's
 documents. Give each dataspace its own pair unless that is the point.
 

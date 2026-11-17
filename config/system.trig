@@ -17,6 +17,8 @@
 }
 
 # root admin - service description
+# a:quadStore is optional and read only by the bootstrap, which loads the seed datasets into it as N-Quads in one request;
+# leave it out for a store that takes neither TriG nor N-Quads (QLever), and the bootstrap loads graph by graph into a:graphStore
 
 <urn:linkeddatahub:services/admin>
 {
