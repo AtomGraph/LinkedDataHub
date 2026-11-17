@@ -95,9 +95,19 @@ WHERE
          says so with this parameter. The client mints the document's URI under the value, which is all the server reads -->
     <xsl:template match="*[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/sioc:has_container | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/sioc:has_parent" mode="ac:FormControl" priority="1">
         <xsl:param name="containment-editable" select="false()" as="xs:boolean" tunnel="yes"/>
+        <!-- what the fieldset hands every property group, passed on: xsl:next-match forwards nothing by itself -->
+        <xsl:param name="violations" as="element()*"/>
+        <xsl:param name="constructor" as="document-node()?"/>
+        <xsl:param name="type-constraints" as="element()*"/>
+        <xsl:param name="type-shapes" as="element()*"/>
 
         <xsl:if test="$containment-editable">
-            <xsl:next-match/>
+            <xsl:next-match>
+                <xsl:with-param name="violations" select="$violations"/>
+                <xsl:with-param name="constructor" select="$constructor"/>
+                <xsl:with-param name="type-constraints" select="$type-constraints"/>
+                <xsl:with-param name="type-shapes" select="$type-shapes"/>
+            </xsl:next-match>
         </xsl:if>
     </xsl:template>
     

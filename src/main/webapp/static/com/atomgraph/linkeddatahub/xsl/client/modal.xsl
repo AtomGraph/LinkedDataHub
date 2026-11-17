@@ -796,9 +796,11 @@ LIMIT   10
         <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
         <xsl:sequence select="map:merge(($context, map{
             'constructed-doc': $constructed-doc,
+            'prototype-doc': $context('constructed-doc'),
             'resource': $resource,
             'types': $types,
-            'property-uris': distinct-values($resource/*/concat(namespace-uri(), local-name()))
+            'property-uris': distinct-values($resource/*/concat(namespace-uri(), local-name())),
+            'object-uris': $context('base-uri')
         }), map{ 'duplicates': 'use-last' })"/>
     </xsl:function>
 
@@ -825,7 +827,8 @@ LIMIT   10
                     <xsl:with-param name="classes" select="$classes"/>
                     <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                     <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
-                    <xsl:with-param name="constructor" select="$constructed-doc" tunnel="yes"/>
+                    <xsl:with-param name="object-metadata" select="$context('object-metadata')" tunnel="yes"/> <!-- the page's, so the prefilled containment renders as a chip -->
+                    <xsl:with-param name="constructor" select="$context('prototype-doc')" tunnel="yes"/> <!-- with its markers: the form reads a value's class off them -->
                     <xsl:with-param name="constructors" select="()" tunnel="yes"/> <!-- can be empty because modal form is only used to create Container/Item instances -->
                     <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
                     <xsl:with-param name="shapes" select="()" tunnel="yes"/> <!-- there will be no shapes as modal form is only used to create Container/Item instances -->
@@ -877,6 +880,7 @@ LIMIT   10
             'forClass': $forClass,
             'doc-uri': $doc-uri,
             'base-uri': $base-uri,
+            'endpoint': sd:endpoint(),
             'this': $this
         }"/>
 
@@ -888,8 +892,11 @@ LIMIT   10
             ixsl:then(ldh:fire-load-set-parallel(?, [
               [ ldh:load-type-metadata#1,     'type-metadata-request',     'type-metadata-response',     ldh:set-type-metadata#1 ],
               [ ldh:load-property-metadata#1, 'property-metadata-request', 'property-metadata-response', ldh:set-property-metadata#1 ],
-              [ ldh:load-constraints#1,       'constraints-request',       'constraints-response',       ldh:set-constraints#1 ]
+              [ ldh:load-constraints#1,       'constraints-request',       'constraints-response',       ldh:set-constraints#1 ],
+              [ ldh:load-object-metadata#1,   'metadata-request',          'metadata-response',          ldh:set-object-metadata#1 ],
+              [ ldh:load-object-metadata#1,   'ns-metadata-request',       'ns-metadata-response',       ldh:set-object-metadata-ns#1 ]
             ])) =>
+            ixsl:then(ldh:merge-object-metadata#1) =>
             ixsl:then(ldh:render-add-modal-form#1) =>
             ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure($content-body, 'form-not-loaded', ?)"/>

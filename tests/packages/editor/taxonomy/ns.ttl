@@ -234,7 +234,10 @@ WHERE
 """ ;
     rdfs:isDefinedBy : .
 
-skos:inScheme ldh:view :ConceptScheme .
+# what the scheme's inverse views construct: the platform reads it off the property's domain (client/block.xsl,
+# ldh:ontology-view-query), and SKOS declares none, so without this line Concepts in scheme offers no Create at all
+skos:inScheme rdfs:domain skos:Concept ;
+    ldh:view :ConceptScheme .
 
 :ConceptScheme a ldh:View ;
     dct:title "Scheme" ;

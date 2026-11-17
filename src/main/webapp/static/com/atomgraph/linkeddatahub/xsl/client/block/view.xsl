@@ -3577,9 +3577,21 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="map:put($context, 'document-constructed-doc-request', ldh:load-constructed-doc(map:put($context, 'forClass', xs:anyURI('&dh;Item')))('constructed-doc-request'))"/>
     </xsl:function>
 
+    <!-- the constructors' markers are labelled by position within each constructed document, so the document's are
+         prefixed as soon as it is built: a marker of the one must not answer for the other's once the two share one
+         form, and the form resolves a value's class by looking a constructor's marker up under the same label -->
     <xsl:function name="ldh:set-view-document-constructed-doc" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-        <xsl:sequence select="map:put($context, 'document-constructed-doc', ldh:set-constructed-doc(map:merge(($context, map{ 'forClass': xs:anyURI('&dh;Item'), 'constructed-doc-response': $context('document-constructed-doc-response') }), map{ 'duplicates': 'use-last' }))('constructed-doc'))"/>
+        <xsl:variable name="constructed-doc" select="ldh:set-constructed-doc(map:merge(($context, map{ 'forClass': xs:anyURI('&dh;Item'), 'constructed-doc-response': $context('document-constructed-doc-response') }), map{ 'duplicates': 'use-last' }))('constructed-doc')" as="document-node()"/>
+        <xsl:variable name="prefixed" as="document-node()">
+            <xsl:document>
+                <xsl:apply-templates select="$constructed-doc" mode="ldh:PrefixBnodes">
+                    <xsl:with-param name="prefix" select="'document-'" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:document>
+        </xsl:variable>
+
+        <xsl:sequence select="map:put($context, 'document-constructed-doc', $prefixed)"/>
     </xsl:function>
 
     <xsl:function name="ldh:load-view-entity-shapes" as="map(*)" ixsl:updating="yes">
@@ -3606,16 +3618,7 @@ exclude-result-prefixes="#all"
     <xsl:function name="ldh:set-view-instance-document" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="doc-uri" select="$context('doc-uri')" as="xs:anyURI"/>
-        <!-- the constructors' markers are labelled by position within each constructed document, so the document's are
-             prefixed before the two documents share one form: a marker of the one must not answer for the other's -->
-        <xsl:variable name="prefixed" as="document-node()">
-            <xsl:document>
-                <xsl:apply-templates select="$context('document-constructed-doc')" mode="ldh:PrefixBnodes">
-                    <xsl:with-param name="prefix" select="'document-'" tunnel="yes"/>
-                </xsl:apply-templates>
-            </xsl:document>
-        </xsl:variable>
-        <xsl:variable name="instantiated" select="ldh:instantiate-constructor($prefixed, xs:anyURI('&dh;Item'), $doc-uri, ())" as="document-node()"/>
+        <xsl:variable name="instantiated" select="ldh:instantiate-constructor($context('document-constructed-doc'), xs:anyURI('&dh;Item'), $doc-uri, ())" as="document-node()"/>
         <xsl:variable name="with-topic" select="ldh:set-object($instantiated, $doc-uri, xs:anyURI('&foaf;primaryTopic'), $context('this'))" as="document-node()"/>
         <xsl:variable name="document-doc" select="if (map:contains($context, 'container-uri')) then ldh:set-object($with-topic, $doc-uri, xs:anyURI('&sioc;has_container'), $context('container-uri')) else $with-topic" as="document-node()"/>
         <xsl:variable name="document" select="key('resources', $doc-uri, $document-doc)" as="element()"/>
@@ -3623,7 +3626,8 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="map:merge(($context, map{
             'document-doc': $document-doc,
             'types': distinct-values(($context('types'), $document/rdf:type/@rdf:resource)),
-            'property-uris': distinct-values(($context('property-uris'), $document/*/concat(namespace-uri(), local-name())))
+            'property-uris': distinct-values(($context('property-uris'), $document/*/concat(namespace-uri(), local-name()))),
+            'object-uris': (if (map:contains($context, 'container-uri')) then $context('container-uri') else ())
         }), map{ 'duplicates': 'use-last' })"/>
     </xsl:function>
 
@@ -3647,6 +3651,7 @@ exclude-result-prefixes="#all"
             'forClass': $forClass,
             'entity-class': $forClass,
             'types': ($forClass),
+            'endpoint': sd:endpoint(),
             'doc-uri': $doc-uri,
             'this': $this,
             'view-property': xs:anyURI($view-block/@data-property),
@@ -3663,8 +3668,11 @@ exclude-result-prefixes="#all"
               [ ldh:load-constructors#1,      'constructors-request',      'constructors-response',      ldh:set-constructors#1 ],
               [ ldh:load-type-metadata#1,     'type-metadata-request',     'type-metadata-response',     ldh:set-type-metadata#1 ],
               [ ldh:load-property-metadata#1, 'property-metadata-request', 'property-metadata-response', ldh:set-property-metadata#1 ],
-              [ ldh:load-constraints#1,       'constraints-request',       'constraints-response',       ldh:set-constraints#1 ]
+              [ ldh:load-constraints#1,       'constraints-request',       'constraints-response',       ldh:set-constraints#1 ],
+              [ ldh:load-object-metadata#1,   'metadata-request',          'metadata-response',          ldh:set-object-metadata#1 ],
+              [ ldh:load-object-metadata#1,   'ns-metadata-request',       'ns-metadata-response',       ldh:set-object-metadata-ns#1 ]
             ])) =>
+            ixsl:then(ldh:merge-object-metadata#1) =>
             ixsl:then(ldh:render-view-instance-modal-form#1) =>
             ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure(($view-block//div[contains-token(@class, 'main')])[1], 'form-not-loaded', ?)"/>
@@ -3699,6 +3707,9 @@ exclude-result-prefixes="#all"
 
                 <xsl:for-each select="($doc/rdf:RDF/*[@rdf:about = $doc-uri], $doc/rdf:RDF/*[@rdf:about = $this])">
                     <xsl:apply-templates select="." mode="ac:ResourceForm">
+                        <!-- the shell's tunnel parameters do not reach a body given to it, so the ones the fieldsets read are passed here too -->
+                        <xsl:with-param name="action" select="ldh:href($doc-uri)" as="xs:anyURI" tunnel="yes"/>
+                        <xsl:with-param name="base-uri" select="$doc-uri" tunnel="yes"/>
                         <xsl:with-param name="inline" select="false()" tunnel="yes"/>
                         <xsl:with-param name="constructor" select="if (@rdf:about = $doc-uri) then $context('document-constructed-doc') else $context('constructed-doc')" tunnel="yes"/>
                         <xsl:with-param name="constructors" select="$context('constructors')" tunnel="yes"/>
