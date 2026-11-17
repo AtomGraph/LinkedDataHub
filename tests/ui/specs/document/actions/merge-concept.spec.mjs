@@ -37,7 +37,8 @@ test.describe('merging concepts', { tag: '@owner' }, () => {
     });
 
     // mocha under coffee, which names it as narrower, and mocha-latte under mocha: links to mocha in two other
-    // documents, and latte, the target, in a third
+    // documents, and latte, the target, in a third. Coffee names latte as narrower in the fixture already, so the
+    // merge moves coffee's link to mocha onto one it has, and the teardown leaves that one where the fixture put it
     const narrower = (parent, child) => `<${concept(parent)}> <${SKOS}narrower> <${concept(child)}>`;
     const altLabel = `<${concept('latte')}> <${SKOS}altLabel> "Mocha"@en`;
     test.beforeEach(async () => {
@@ -48,7 +49,6 @@ test.describe('merging concepts', { tag: '@owner' }, () => {
 
     test.afterEach(async () => {
         await removeTriple(document('coffee'), narrower('coffee', 'mocha'));
-        await removeTriple(document('coffee'), narrower('coffee', 'latte'));
         await removeTriple(document('latte'), altLabel);
         await ldh(['delete', document('mocha-latte')], { allowFailure: true });
         await ldh(['delete', document('mocha')], { allowFailure: true });
@@ -83,6 +83,7 @@ test.describe('merging concepts', { tag: '@owner' }, () => {
         const { code } = await ldh(['get', '--accept', 'application/n-triples', document('mocha')], { allowFailure: true });
         expect(code, 'the merged concept\'s document should be gone').not.toBe(0);
         expect(await triples('mocha-latte')).toContain(`<${concept('mocha-latte')}> <${SKOS}broader> <${concept('latte')}>`);
+        expect(await triples('coffee')).not.toContain(`<${concept('mocha')}>`);
         expect(await triples('coffee')).toContain(narrower('coffee', 'latte'));
         expect(await triples('latte')).toContain(altLabel);
     });
