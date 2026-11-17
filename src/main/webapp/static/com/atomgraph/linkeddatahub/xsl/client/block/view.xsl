@@ -15,6 +15,7 @@
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
     <!ENTITY dct    "http://purl.org/dc/terms/">
+    <!ENTITY dh     "https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#">
 ]>
 <xsl:stylesheet version="3.0"
 xmlns="http://www.w3.org/1999/xhtml"
@@ -454,11 +455,12 @@ exclude-result-prefixes="#all"
             on-failure="ldh:promise-failure($create-slot[ancestor::div[contains-token(@class, 'block')][1]/@data-for-class], 'create-unavailable', ?)"/>
     </xsl:template>
 
-    <!-- Exactly one row means the destination is determined. None means the projection is empty - there is
-         nothing to generalise from, which is the bootstrap case - and two mean the solutions span containers,
-         so nothing here can say where a new one belongs. Both non-answers leave the slot empty rather than
-         guessing: a majority would let placement be decided by counting, and picking the host's own container
-         would key it on where the view happens to be rendered rather than on what is being created. -->
+    <!-- Exactly one row means the destination is determined, and the modal opens with it filled in. None means the
+         projection is empty - there is nothing to generalise from, which is the bootstrap case - and two mean the
+         solutions span containers, so nothing here can say where a new one belongs. Neither non-answer is guessed
+         at: a majority would let placement be decided by counting, and the host's own container would key it on
+         where the view happens to be rendered rather than on what is being created. The button is offered all the
+         same, and the modal's container field, empty, is the reader's to fill. -->
     <xsl:function name="ldh:view-container-response" as="map(*)" ixsl:updating="no">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
@@ -491,18 +493,24 @@ exclude-result-prefixes="#all"
     <xsl:function name="ldh:view-container-acl-thunk" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
 
-        <xsl:if test="map:contains($context, 'create-container')">
-            <xsl:variable name="container-request" select="map{ 'method': 'HEAD', 'href': ldh:href($context('create-container'), map{}), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
-            <xsl:variable name="container-context" select="map:merge(($context, map{ 'container-request': $container-request }))" as="map(*)"/>
+        <xsl:choose>
+            <xsl:when test="map:contains($context, 'create-container')">
+                <xsl:variable name="container-request" select="map{ 'method': 'HEAD', 'href': ldh:href($context('create-container'), map{}), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                <xsl:variable name="container-context" select="map:merge(($context, map{ 'container-request': $container-request }))" as="map(*)"/>
 
-            <xsl:sequence select="
-                ixsl:resolve($container-context) =>
-                    ixsl:then(ldh:http-request-threaded(?, 'container-request', 'container-response')) =>
-                    ixsl:then(ldh:handle-response(?, 'container-response')) =>
-                    ixsl:then(ldh:set-container-acl-modes#1) =>
-                    ixsl:then(ldh:view-create-insert#1)
-                "/>
-        </xsl:if>
+                <xsl:sequence select="
+                    ixsl:resolve($container-context) =>
+                        ixsl:then(ldh:http-request-threaded(?, 'container-request', 'container-response')) =>
+                        ixsl:then(ldh:handle-response(?, 'container-response')) =>
+                        ixsl:then(ldh:set-container-acl-modes#1) =>
+                        ixsl:then(ldh:view-create-insert#1)
+                    "/>
+            </xsl:when>
+            <!-- no container to probe: the one the reader picks answers for itself, with a 403 on the PUT at worst -->
+            <xsl:otherwise>
+                <xsl:sequence select="ldh:view-create-insert($context)"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:function>
 
     <!-- Fills the card header's create slot. The class to construct is still read off the view card, where
@@ -517,14 +525,18 @@ exclude-result-prefixes="#all"
              linking triple into this document, so it needs acl:Write here too -->
         <xsl:variable name="document-acl-modes" select="$context('acl-modes')" as="xs:anyURI*"/>
 
-        <xsl:if test="$acl-modes = '&acl;Write'">
+        <xsl:if test="not(map:contains($context, 'create-container')) or $acl-modes = '&acl;Write'">
             <xsl:for-each select="$context('create-slot')">
                 <xsl:variable name="view-block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()?"/>
                 <xsl:variable name="create-for-class" select="$view-block/@data-for-class" as="xs:string?"/>
 
                 <xsl:if test="exists($create-for-class) and (exists($view-block/@data-inverse) or $document-acl-modes = '&acl;Write')">
                     <xsl:result-document href="?." method="ixsl:replace-content">
-                        <button type="button" class="ac-btn in-primary ap-solid sz-sm add-instance" data-for-class="{$create-for-class}" data-container="{$context('create-container')}" title="{ac:label(key('resources', 'create-instance-title', ldh:translations()))}">
+                        <button type="button" class="ac-btn in-primary ap-solid sz-sm add-instance" data-for-class="{$create-for-class}" title="{ac:label(key('resources', 'create-instance-title', ldh:translations()))}">
+                            <!-- the container the rows determined, when they did; the modal prefills its container field from it -->
+                            <xsl:if test="map:contains($context, 'create-container')">
+                                <xsl:attribute name="data-container" select="$context('create-container')"/>
+                            </xsl:if>
                             <xsl:value-of>
                                 <xsl:apply-templates select="key('resources', 'create', ldh:translations())" mode="ac:label"/>
                             </xsl:value-of>
@@ -3539,23 +3551,101 @@ exclude-result-prefixes="#all"
         ]]>
     </xsl:variable>
 
-    <!-- open the instance creation modal form. @data-container was written by ldh:view-create-insert from the
-         container determination, @data-for-class by ldh:ontology-view-insert from the ontology query -->
-    <xsl:template match="div[contains-token(@class, 'block')]//button[contains-token(@class, 'add-instance')][@data-for-class][@data-container]" mode="ixsl:onclick">
+    <!-- The two constructors a creation from a view instantiates, as one pair list the first render and the violation
+         re-render load alike: the entity's, of the class the view constructs, and the document's, a dh:Item's, with
+         the entity's shapes. The loaders are the shared ones called under another key: the context's own forClass and
+         types are the entity's on the first path and both resources' on the second, so each wrapper names what it
+         loads for and keeps the rest of the context as it was -->
+    <xsl:variable name="ldh:view-instance-constructor-pairs" as="array(*)" select="[
+        [ ldh:load-view-entity-constructed-doc#1,   'entity-constructed-doc-request',   'entity-constructed-doc-response',   ldh:set-view-entity-constructed-doc#1 ],
+        [ ldh:load-view-document-constructed-doc#1, 'document-constructed-doc-request', 'document-constructed-doc-response', ldh:set-view-document-constructed-doc#1 ],
+        [ ldh:load-view-entity-shapes#1,            'entity-shapes-request',            'entity-shapes-response',            ldh:set-view-entity-shapes#1 ]
+    ]"/>
+
+    <xsl:function name="ldh:load-view-entity-constructed-doc" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:sequence select="map:put($context, 'entity-constructed-doc-request', ldh:load-constructed-doc(map:put($context, 'forClass', $context('entity-class')))('constructed-doc-request'))"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:set-view-entity-constructed-doc" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:sequence select="map:put($context, 'constructed-doc', ldh:set-constructed-doc(map:merge(($context, map{ 'forClass': $context('entity-class'), 'constructed-doc-response': $context('entity-constructed-doc-response') }), map{ 'duplicates': 'use-last' }))('constructed-doc'))"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:load-view-document-constructed-doc" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:sequence select="map:put($context, 'document-constructed-doc-request', ldh:load-constructed-doc(map:put($context, 'forClass', xs:anyURI('&dh;Item')))('constructed-doc-request'))"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:set-view-document-constructed-doc" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:sequence select="map:put($context, 'document-constructed-doc', ldh:set-constructed-doc(map:merge(($context, map{ 'forClass': xs:anyURI('&dh;Item'), 'constructed-doc-response': $context('document-constructed-doc-response') }), map{ 'duplicates': 'use-last' }))('constructed-doc'))"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:load-view-entity-shapes" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:sequence select="map:put($context, 'entity-shapes-request', ldh:load-shapes(map:put($context, 'types', $context('entity-class')))('shapes-request'))"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:set-view-entity-shapes" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:sequence select="map:put($context, 'shapes', ldh:set-shapes(map:put($context, 'shapes-response', $context('entity-shapes-response')))('shapes'))"/>
+    </xsl:function>
+
+    <xsl:mode name="ldh:PrefixBnodes" on-no-match="shallow-copy"/>
+
+    <xsl:template match="@rdf:nodeID" mode="ldh:PrefixBnodes">
+        <xsl:param name="prefix" as="xs:string" tunnel="yes"/>
+
+        <xsl:attribute name="rdf:nodeID" select="$prefix || ."/>
+    </xsl:template>
+
+    <!-- The document the entity is written into, instantiated at its URI from dh:Item's constructors with what the flow
+         already knows written in: the entity as its topic, and the container the view's rows determined, when they
+         did. Both resources' types and properties go on to the metadata loads -->
+    <xsl:function name="ldh:set-view-instance-document" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="doc-uri" select="$context('doc-uri')" as="xs:anyURI"/>
+        <!-- the constructors' markers are labelled by position within each constructed document, so the document's are
+             prefixed before the two documents share one form: a marker of the one must not answer for the other's -->
+        <xsl:variable name="prefixed" as="document-node()">
+            <xsl:document>
+                <xsl:apply-templates select="$context('document-constructed-doc')" mode="ldh:PrefixBnodes">
+                    <xsl:with-param name="prefix" select="'document-'" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:document>
+        </xsl:variable>
+        <xsl:variable name="instantiated" select="ldh:instantiate-constructor($prefixed, xs:anyURI('&dh;Item'), $doc-uri, ())" as="document-node()"/>
+        <xsl:variable name="with-topic" select="ldh:set-object($instantiated, $doc-uri, xs:anyURI('&foaf;primaryTopic'), $context('this'))" as="document-node()"/>
+        <xsl:variable name="document-doc" select="if (map:contains($context, 'container-uri')) then ldh:set-object($with-topic, $doc-uri, xs:anyURI('&sioc;has_container'), $context('container-uri')) else $with-topic" as="document-node()"/>
+        <xsl:variable name="document" select="key('resources', $doc-uri, $document-doc)" as="element()"/>
+
+        <xsl:sequence select="map:merge(($context, map{
+            'document-doc': $document-doc,
+            'types': distinct-values(($context('types'), $document/rdf:type/@rdf:resource)),
+            'property-uris': distinct-values(($context('property-uris'), $document/*/concat(namespace-uri(), local-name())))
+        }), map{ 'duplicates': 'use-last' })"/>
+    </xsl:function>
+
+    <!-- open the instance creation modal form. @data-container was written by ldh:view-create-insert from the container
+         determination, when there was one, @data-for-class by ldh:ontology-view-insert from the ontology query -->
+    <xsl:template match="div[contains-token(@class, 'block')]//button[contains-token(@class, 'add-instance')][@data-for-class]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:variable name="view-block" select="ancestor::div[contains-token(@class, 'block')][@data-property][1]" as="element()"/>
         <xsl:variable name="content-body" select="ancestor::div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
         <xsl:variable name="forClass" select="xs:anyURI(@data-for-class)" as="xs:anyURI"/>
-        <xsl:variable name="container-uri" select="xs:anyURI(@data-container)" as="xs:anyURI"/>
-        <xsl:variable name="doc-uri" select="resolve-uri(ac:uuid() || '/', $container-uri)" as="xs:anyURI"/> <!-- build a relative URI for the container's child document -->
+        <xsl:variable name="container-uri" select="@data-container/xs:anyURI(.)" as="xs:anyURI?"/>
+        <!-- the container's child document; under the page, as a placeholder the container field replaces, when no container is known -->
+        <xsl:variable name="doc-uri" select="resolve-uri(ac:uuid() || '/', ($container-uri, ac:absolute-path(ldh:base-uri(.)))[1])" as="xs:anyURI"/>
         <xsl:variable name="this" select="xs:anyURI($doc-uri || '#id' || ac:uuid())" as="xs:anyURI"/> <!-- the instance is a fragment resource within the new document, same minting as the type-combobox flow -->
 
         <xsl:sequence select="ldh:busy-cursor()"/>
 
         <!-- 'types' is initially set to ($forClass) so the shape fetch targets the right class, same as the type-combobox flow; 'view-*' keys carry the linkage metadata through the chain -->
-        <xsl:variable name="context" as="map(*)" select="map{
+        <xsl:variable name="context" as="map(*)" select="map:merge((map{
             'content-body': $content-body,
             'forClass': $forClass,
+            'entity-class': $forClass,
             'types': ($forClass),
             'doc-uri': $doc-uri,
             'this': $this,
@@ -3563,14 +3653,12 @@ exclude-result-prefixes="#all"
             'view-inverse': exists($view-block/@data-inverse),
             'view-about': xs:anyURI($view-block/ancestor::*[@about][1]/@about),
             'view-block-id': string($view-block/@id)
-        }"/>
+        }, if (exists($container-uri)) then map{ 'container-uri': $container-uri } else map{}))"/>
 
         <ixsl:promise select="ixsl:resolve($context) =>
-            ixsl:then(ldh:fire-load-set-parallel(?, [
-              [ ldh:load-constructed-doc#1, 'constructed-doc-request', 'constructed-doc-response', ldh:set-constructed-doc#1 ],
-              [ ldh:load-shapes#1,          'shapes-request',          'shapes-response',          ldh:set-shapes#1 ]
-            ])) =>
+            ixsl:then(ldh:fire-load-set-parallel(?, $ldh:view-instance-constructor-pairs)) =>
             ixsl:then(ldh:set-combobox-form-resource#1) =>
+            ixsl:then(ldh:set-view-instance-document#1) =>
             ixsl:then(ldh:fire-load-set-parallel(?, [
               [ ldh:load-constructors#1,      'constructors-request',      'constructors-response',      ldh:set-constructors#1 ],
               [ ldh:load-type-metadata#1,     'type-metadata-request',     'type-metadata-response',     ldh:set-type-metadata#1 ],
@@ -3582,7 +3670,52 @@ exclude-result-prefixes="#all"
             on-failure="ldh:promise-failure(($view-block//div[contains-token(@class, 'main')])[1], 'form-not-loaded', ?)"/>
     </xsl:template>
 
-    <!-- Terminal callback for the add-instance onclick chain. Renders the instantiated resource with the same ac:ResourceForm pipeline as the type-combobox row form (ldh:render-combobox-row-form), but with method='put' targeting the new document — the RDF/POST body then describes the fragment instance and the PUT auto-creates the containing Item document around it. Stamps the linkage metadata on the modal element so the submit and response handlers (separate events) can read it. -->
+    <!-- The one form of both resources, for the first render and the violation re-render alike: the document's fieldset
+         first, with its containment as a field, the entity's below it, each with its own constructor so each shows the
+         fields its class declares. $doc holds the two resources and whatever stands beside them - the constructors'
+         markers on the first render, the response's violations on the second; $context the URIs, the constructors and
+         the metadata. The shell's own body is replaced, as it would order the two by label. -->
+    <xsl:function name="ldh:view-instance-form" as="element()*">
+        <xsl:param name="doc" as="document-node()"/>
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="doc-uri" select="$context('doc-uri')" as="xs:anyURI"/>
+        <xsl:variable name="this" select="$context('this')" as="xs:anyURI"/>
+        <xsl:variable name="object-metadata" select="if (map:contains($context, 'object-metadata')) then $context('object-metadata') else ()" as="document-node()?"/>
+
+        <xsl:apply-templates select="$doc" mode="ac:ResourceForm">
+            <xsl:with-param name="method" select="'put'"/>
+            <xsl:with-param name="action" select="ldh:href($doc-uri)" as="xs:anyURI" tunnel="yes"/>
+            <xsl:with-param name="form-actions-class" select="'ldh-form-bar'" as="xs:string?"/>
+            <xsl:with-param name="show-close-button" select="true()"/>
+            <xsl:with-param name="classes" select="()"/>
+            <xsl:with-param name="type-metadata" select="$context('type-metadata')" tunnel="yes"/>
+            <xsl:with-param name="property-metadata" select="$context('property-metadata')" tunnel="yes"/>
+            <xsl:with-param name="constructors" select="$context('constructors')" tunnel="yes"/>
+            <xsl:with-param name="constraints" select="$context('constraints')" tunnel="yes"/>
+            <xsl:with-param name="shapes" select="$context('shapes')" tunnel="yes"/>
+            <xsl:with-param name="base-uri" select="$doc-uri" tunnel="yes"/>
+            <xsl:with-param name="body" as="node()*">
+                <xsl:apply-templates select="$doc/rdf:RDF/*" mode="ldh:Exception"/>
+
+                <xsl:for-each select="($doc/rdf:RDF/*[@rdf:about = $doc-uri], $doc/rdf:RDF/*[@rdf:about = $this])">
+                    <xsl:apply-templates select="." mode="ac:ResourceForm">
+                        <xsl:with-param name="inline" select="false()" tunnel="yes"/>
+                        <xsl:with-param name="constructor" select="if (@rdf:about = $doc-uri) then $context('document-constructed-doc') else $context('constructed-doc')" tunnel="yes"/>
+                        <xsl:with-param name="constructors" select="$context('constructors')" tunnel="yes"/>
+                        <xsl:with-param name="constraints" select="$context('constraints')" tunnel="yes"/>
+                        <xsl:with-param name="shapes" select="$context('shapes')" tunnel="yes"/>
+                        <xsl:with-param name="type-metadata" select="$context('type-metadata')" tunnel="yes"/>
+                        <xsl:with-param name="property-metadata" select="$context('property-metadata')" tunnel="yes"/>
+                        <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
+                        <xsl:with-param name="required" select="true()" tunnel="yes"/>
+                        <xsl:with-param name="containment-editable" select="boolean(@rdf:about = $doc-uri)" tunnel="yes"/>
+                    </xsl:apply-templates>
+                </xsl:for-each>
+            </xsl:with-param>
+        </xsl:apply-templates>
+    </xsl:function>
+
+    <!-- Terminal callback for the add-instance onclick chain. Renders the document and the entity as one form, method='put' targeting the new document: the RDF/POST body then describes both, and the PUT creates the document around the entity. Stamps the linkage metadata on the modal element so the submit and response handlers (separate events) can read it. -->
     <xsl:function name="ldh:render-view-instance-modal-form" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="content-body" select="$context('content-body')" as="element()"/>
@@ -3590,34 +3723,21 @@ exclude-result-prefixes="#all"
         <xsl:variable name="this" select="$context('this')" as="xs:anyURI"/>
         <xsl:variable name="forClass" select="$context('forClass')" as="xs:anyURI"/>
         <xsl:variable name="instance-doc" select="$context('instance-doc')" as="document-node()"/>
-        <xsl:variable name="constructed-doc" select="$context('constructed-doc')" as="document-node()"/>
-        <xsl:variable name="type-metadata" select="$context('type-metadata')" as="document-node()?"/>
-        <xsl:variable name="property-metadata" select="$context('property-metadata')" as="document-node()?"/>
-        <xsl:variable name="constraints" select="$context('constraints')" as="document-node()?"/>
-        <xsl:variable name="constructors" select="$context('constructors')" as="document-node()?"/>
-        <xsl:variable name="shapes" select="$context('shapes')" as="document-node()?"/>
-        <xsl:variable name="classes" select="()" as="element()*"/>
+        <xsl:variable name="document-doc" select="$context('document-doc')" as="document-node()"/>
 
         <xsl:message>ldh:render-view-instance-modal-form</xsl:message>
 
         <xsl:for-each select="$content-body">
-            <!-- the document-level ac:ResourceForm template renders the form shell (hidden rdf input, form actions); prototype-only object bnodes are suppressed by resource.xsl -->
-            <xsl:variable name="form" as="element()*">
-                <xsl:apply-templates select="$instance-doc" mode="ac:ResourceForm">
-                    <xsl:with-param name="method" select="'put'"/>
-                    <xsl:with-param name="action" select="ldh:href($doc-uri)" as="xs:anyURI" tunnel="yes"/>
-                    <xsl:with-param name="form-actions-class" select="'ldh-form-bar'" as="xs:string?"/>
-                    <xsl:with-param name="show-close-button" select="true()"/>
-                    <xsl:with-param name="classes" select="$classes"/>
-                    <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
-                    <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
-                    <xsl:with-param name="constructor" select="$constructed-doc" tunnel="yes"/>
-                    <xsl:with-param name="constructors" select="$constructors" tunnel="yes"/>
-                    <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
-                    <xsl:with-param name="shapes" select="$shapes" tunnel="yes"/>
-                    <xsl:with-param name="base-uri" select="$doc-uri" tunnel="yes"/>
-                </xsl:apply-templates>
+            <!-- the two instances and their constructors' markers in one document; prototype-only object bnodes are suppressed by resource.xsl -->
+            <xsl:variable name="form-doc" as="document-node()">
+                <xsl:document>
+                    <rdf:RDF>
+                        <xsl:copy-of select="$document-doc/rdf:RDF/*"/>
+                        <xsl:copy-of select="$instance-doc/rdf:RDF/*"/>
+                    </rdf:RDF>
+                </xsl:document>
             </xsl:variable>
+            <xsl:variable name="form" select="ldh:view-instance-form($form-doc, $context)" as="element()*"/>
 
 
             <!-- a modal takes over from the chrome that opened it: a drop-down the pick came from is dismissed here, once its own handler has run -->
@@ -3651,11 +3771,11 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:function>
 
-    <!-- Submit the inline creation modal form. The PUT creates the new document around the fragment
-         instance, so the document's own metadata ships inside the body: the graph store asserts dh:Item,
-         sioc:has_container and the created/creator/owner provenance itself, but the topic link and the
-         title are the client's to supply - without them the new document renders an empty body and the
-         list/table/grid renderers have no topic to pair it with.
+    <!-- Submit the creation modal form. The PUT creates the document around the entity, and the form describes both:
+         the document's type, title, description, topic and containment are its fields (the graph store strips the
+         containment and asserts it from the URI, with the created/creator/owner provenance). What the form does not
+         supply is the title, when left empty: it is derived from the entity's label, so the common case stays one
+         field. A document with no container named has nowhere to go and is not sent: the containment field is marked.
 
          An inverse view additionally ships its linking triple <new> <property> <about> here, because that
          triple belongs in the new document's graph; a forward view's <about> <property> <new> belongs in
@@ -3666,64 +3786,73 @@ exclude-result-prefixes="#all"
         <xsl:variable name="modal" select="ancestor::div[contains-token(@class, 'modal-constructor')][1]" as="element()"/>
         <xsl:variable name="doc-uri" select="xs:anyURI($modal/@about)" as="xs:anyURI"/>
         <xsl:variable name="instance" select="xs:anyURI($modal/@data-instance)" as="xs:anyURI"/>
-        <!-- pre-process form before submitting it: syncs input values, so it must precede ldh:parse-rdf-post -->
-        <xsl:apply-templates select="." mode="ldh:FormPreSubmit"/>
-        <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
-        <xsl:variable name="link-triple" as="element()?">
-            <xsl:if test="$modal/@data-inverse">
-                <json:map>
-                    <json:string key="subject"><xsl:sequence select="string($instance)"/></json:string>
-                    <json:string key="predicate"><xsl:sequence select="string($modal/@data-property)"/></json:string>
-                    <json:string key="object"><xsl:sequence select="string($modal/@data-about)"/></json:string>
-                </json:map>
-            </xsl:if>
-        </xsl:variable>
+        <!-- the document's containment field, and whether a container is committed in it (a chip, not text in the lookup) -->
+        <xsl:variable name="containment" select="(.//div[contains-token(@class, 'ldh-prop-group')][input[@name = 'pu'][@value = '&sioc;has_container']])[1]" as="element()?"/>
 
-        <!-- The document is titled after its topic, read with the same ac:label chain that renders the
-             instance everywhere else. That chain answers for any URI resource, falling back to the '#id…'
-             fragment when no label property is there to read, so it is applied to the properties alone:
-             the vocabulary templates are then the only ones that can match and an unlabelled topic
-             yields no title rather than a minted one. Untagged, as document titles are throughout the
-             platform, even where the topic's own label carries a language. -->
-        <xsl:variable name="topic" as="document-node()">
-            <xsl:document>
-                <xsl:for-each select="ldh:triples-to-descriptions($triples)[@rdf:about = $instance]">
-                    <xsl:copy>
-                        <xsl:copy-of select="*"/>
-                    </xsl:copy>
+        <xsl:choose>
+            <xsl:when test="exists($containment) and not($containment//span[contains-token(@class, 'ac-cb-committed')]//input[@name = 'ou'])">
+                <ixsl:set-attribute name="class" select="ldh:set-token($containment/@class, 'is-violation', true())" object="$containment"/>
+                <xsl:for-each select="($containment//input[contains-token(@class, 'resource-combobox')])[1]">
+                    <xsl:sequence select="ixsl:call(., 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
-            </xsl:document>
-        </xsl:variable>
-        <xsl:variable name="title" as="xs:string*">
-            <xsl:apply-templates select="$topic/*" mode="ac:label"/>
-        </xsl:variable>
+            </xsl:when>
+            <xsl:otherwise>
+                <!-- pre-process form before submitting it: syncs input values, so it must precede ldh:parse-rdf-post -->
+                <xsl:apply-templates select="." mode="ldh:FormPreSubmit"/>
+                <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
+                <xsl:variable name="descriptions" select="ldh:triples-to-descriptions($triples)" as="element()*"/>
+                <xsl:variable name="link-triple" as="element()?">
+                    <xsl:if test="$modal/@data-inverse">
+                        <json:map>
+                            <json:string key="subject"><xsl:sequence select="string($instance)"/></json:string>
+                            <json:string key="predicate"><xsl:sequence select="string($modal/@data-property)"/></json:string>
+                            <json:string key="object"><xsl:sequence select="string($modal/@data-about)"/></json:string>
+                        </json:map>
+                    </xsl:if>
+                </xsl:variable>
 
-        <xsl:variable name="doc-triples" as="element()*">
-            <json:map>
-                <json:string key="subject"><xsl:sequence select="string($doc-uri)"/></json:string>
-                <json:string key="predicate">&foaf;primaryTopic</json:string>
-                <json:string key="object"><xsl:sequence select="string($instance)"/></json:string>
-            </json:map>
-            <xsl:if test="exists($title)">
-                <json:map>
-                    <json:string key="subject"><xsl:sequence select="string($doc-uri)"/></json:string>
-                    <json:string key="predicate">&dct;title</json:string>
-                    <json:string key="object">"<xsl:value-of select="$title[1]"/>"</json:string>
-                </json:map>
-            </xsl:if>
-        </xsl:variable>
+                <!-- The title left empty is derived from the topic, read with the same ac:label chain that renders the
+                     entity everywhere else. That chain answers for any URI resource, falling back to the '#id…'
+                     fragment when no label property is there to read, so it is applied to the properties alone:
+                     the vocabulary templates are then the only ones that can match and an unlabelled topic
+                     yields no title rather than a minted one. Untagged, as document titles are throughout the
+                     platform, even where the topic's own label carries a language. -->
+                <xsl:variable name="topic" as="document-node()">
+                    <xsl:document>
+                        <xsl:for-each select="$descriptions[@rdf:about = $instance]">
+                            <xsl:copy>
+                                <xsl:copy-of select="*"/>
+                            </xsl:copy>
+                        </xsl:for-each>
+                    </xsl:document>
+                </xsl:variable>
+                <xsl:variable name="title" as="xs:string*">
+                    <xsl:apply-templates select="$topic/*" mode="ac:label"/>
+                </xsl:variable>
 
-        <xsl:next-match>
-            <xsl:with-param name="callback" select="ldh:view-instance-form-response#1"/>
-            <!-- append the document metadata and the inverse linking triple to the $request-body sent with the request, but not to the $resources rendered afterwards -->
-            <xsl:with-param name="request-body" as="document-node()">
-                <xsl:document>
-                    <rdf:RDF>
-                        <xsl:sequence select="ldh:triples-to-descriptions(($triples, $link-triple, $doc-triples))"/>
-                    </rdf:RDF>
-                </xsl:document>
-            </xsl:with-param>
-        </xsl:next-match>
+                <xsl:variable name="doc-triples" as="element()*">
+                    <xsl:if test="not($descriptions[@rdf:about = $doc-uri]/dct:title) and exists($title)">
+                        <json:map>
+                            <json:string key="subject"><xsl:sequence select="string($doc-uri)"/></json:string>
+                            <json:string key="predicate">&dct;title</json:string>
+                            <json:string key="object">"<xsl:value-of select="$title[1]"/>"</json:string>
+                        </json:map>
+                    </xsl:if>
+                </xsl:variable>
+
+                <xsl:next-match>
+                    <xsl:with-param name="callback" select="ldh:view-instance-form-response#1"/>
+                    <!-- append the derived title and the inverse linking triple to the $request-body sent with the request, but not to the $resources rendered afterwards -->
+                    <xsl:with-param name="request-body" as="document-node()">
+                        <xsl:document>
+                            <rdf:RDF>
+                                <xsl:sequence select="ldh:triples-to-descriptions(($triples, $link-triple, $doc-triples))"/>
+                            </rdf:RDF>
+                        </xsl:document>
+                    </xsl:with-param>
+                </xsl:next-match>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 
     <!-- Per-flow callback for the inline creation PUT response. On 201 Created: close the modal, establish the forward linking triple (inverse ones shipped in the PUT body), refresh the view. Everything else delegates to the plain constructor modal flow (violation re-render, error alert). -->
@@ -3770,11 +3899,83 @@ exclude-result-prefixes="#all"
                     </xsl:otherwise>
                 </xsl:choose>
             </xsl:when>
-            <!-- 200/204, constraint violations and errors take the same path as the plain constructor modal flow -->
+            <!-- a refused save: the whole form again, both resources, which the plain modal flow would not keep -->
+            <xsl:when test="$response?status = (400, 422) and starts-with($response?media-type, 'application/rdf+xml') and not(ldh:is-uri-syntax-violation($response))">
+                <xsl:sequence select="ldh:view-instance-form-violation($context)"/>
+            </xsl:when>
+            <!-- 200/204 and errors take the same path as the plain constructor modal flow -->
             <xsl:otherwise>
                 <xsl:sequence select="ldh:constructor-form-response($context)"/>
             </xsl:otherwise>
         </xsl:choose>
+    </xsl:function>
+
+    <!-- The refused save's re-render, from what was submitted and what the response says about it. The shared
+         ldh:modal-form-submit-violation reads the types off the response body, which describes the violating resources
+         alone, so a violation of the entity would come back as a form of the entity alone, the document's half and
+         its typed-in title gone. This one asks the metadata for both resources, reloads both constructors, and renders
+         the submitted form again with the violations beside it. -->
+    <xsl:function name="ldh:view-instance-form-violation" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="modal" select="$context('block')" as="element()"/>
+        <xsl:variable name="body" select="$context('response')?body" as="document-node()"/>
+        <xsl:variable name="resources" select="$context('resources')" as="document-node()"/>
+        <xsl:variable name="doc-uri" select="xs:anyURI($modal/@about)" as="xs:anyURI"/>
+        <xsl:variable name="this" select="xs:anyURI($modal/@data-instance)" as="xs:anyURI"/>
+        <xsl:variable name="entity-class" select="xs:anyURI($modal/@typeof)" as="xs:anyURI"/>
+        <xsl:variable name="submitted" select="$resources/rdf:RDF/*[@rdf:about = ($doc-uri, $this)]" as="element()*"/>
+
+        <xsl:message>ldh:view-instance-form-violation</xsl:message>
+
+        <xsl:variable name="new-context" as="map(*)" select="map:merge((
+            $context,
+            map{
+                'doc-uri': $doc-uri,
+                'this': $this,
+                'entity-class': $entity-class,
+                'forClass': $entity-class,
+                'body': $body,
+                'types': distinct-values($submitted/rdf:type/@rdf:resource),
+                'endpoint': sd:endpoint(),
+                'property-uris': distinct-values($submitted/*/concat(namespace-uri(), local-name())),
+                'object-uris': distinct-values($submitted/*/@rdf:resource[not(key('resources', ., $resources))]),
+                'render-fn': ldh:render-view-instance-form-violation#2
+            }
+        ), map{ 'duplicates': 'use-last' })"/>
+        <xsl:variable name="pairs" as="array(*)" select="array:join(($ldh:view-instance-constructor-pairs, [
+              [ ldh:load-type-metadata#1,     'type-metadata-request',     'type-metadata-response',     ldh:set-type-metadata#1 ],
+              [ ldh:load-property-metadata#1, 'property-metadata-request', 'property-metadata-response', ldh:set-property-metadata#1 ],
+              [ ldh:load-constraints#1,       'constraints-request',       'constraints-response',       ldh:set-constraints#1 ],
+              [ ldh:load-constructors#1,      'constructors-request',      'constructors-response',      ldh:set-constructors#1 ],
+              [ ldh:load-object-metadata#1,   'metadata-request',          'metadata-response',          ldh:set-object-metadata#1 ],
+              [ ldh:load-object-metadata#1,   'ns-metadata-request',       'ns-metadata-response',       ldh:set-object-metadata-ns#1 ]
+            ]))"/>
+
+        <ixsl:promise select="ixsl:resolve($new-context) =>
+            ixsl:then(ldh:fire-load-set-parallel(?, $pairs)) =>
+            ixsl:then(ldh:merge-object-metadata#1) =>
+            ixsl:then(ldh:render-modal-form-violation#1) =>
+            ixsl:finally(ldh:reset-cursor#0)"
+            on-failure="ldh:promise-failure($context('form'), 'form-not-loaded', ?)"/>
+    </xsl:function>
+
+    <!-- the render ldh:render-modal-form-violation calls: the submitted resources, with what the response says beside
+         them - its violations and their sources, never its copy of the resources, which the form as submitted describes better -->
+    <xsl:function name="ldh:render-view-instance-form-violation" as="element()*">
+        <xsl:param name="body" as="document-node()"/>
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="doc-uri" select="$context('doc-uri')" as="xs:anyURI"/>
+        <xsl:variable name="this" select="$context('this')" as="xs:anyURI"/>
+        <xsl:variable name="form-doc" as="document-node()">
+            <xsl:document>
+                <rdf:RDF>
+                    <xsl:copy-of select="$context('resources')/rdf:RDF/*[@rdf:about = ($doc-uri, $this)]"/>
+                    <xsl:copy-of select="$body/rdf:RDF/*[not(@rdf:about = ($doc-uri, $this))]"/>
+                </rdf:RDF>
+            </xsl:document>
+        </xsl:variable>
+
+        <xsl:sequence select="ldh:view-instance-form($form-doc, $context)"/>
     </xsl:function>
 
     <!-- callback for the forward linking triple PATCH -->

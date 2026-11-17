@@ -88,7 +88,18 @@ WHERE
     <xsl:template match="*[key('predicates-by-object', (@rdf:nodeID, @rdf:about))[self::spin:violationSource or self::sh:sourceShape]]" mode="ac:ResourceForm" priority="3"/>
 
     <!-- suppress the system properties of document resources (they are set automatically by LinkedDataHub) -->
-    <xsl:template match="*[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/dct:created | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/dct:modified | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/sioc:has_container | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/sioc:has_parent | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/dct:creator | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/acl:owner | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container')]/*[namespace-uri() = '&rdf;'][starts-with(local-name(), '_')][@rdf:resource] | *[rdf:type/@rdf:resource = '&dh;Item']/*[namespace-uri() = '&rdf;'][starts-with(local-name(), '_')]" mode="ac:FormControl" priority="1"/>
+    <xsl:template match="*[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/dct:created | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/dct:modified | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/dct:creator | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/acl:owner | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container')]/*[namespace-uri() = '&rdf;'][starts-with(local-name(), '_')][@rdf:resource] | *[rdf:type/@rdf:resource = '&dh;Item']/*[namespace-uri() = '&rdf;'][starts-with(local-name(), '_')]" mode="ac:FormControl" priority="1"/>
+
+    <!-- a document's containment is the server's once the document is written, so an edit form hides it; a form that
+         creates the document shows it as the field that says where the document goes (ldh:ItemContainerConstructor), and
+         says so with this parameter. The client mints the document's URI under the value, which is all the server reads -->
+    <xsl:template match="*[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/sioc:has_container | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/sioc:has_parent" mode="ac:FormControl" priority="1">
+        <xsl:param name="containment-editable" select="false()" as="xs:boolean" tunnel="yes"/>
+
+        <xsl:if test="$containment-editable">
+            <xsl:next-match/>
+        </xsl:if>
+    </xsl:template>
     
     <xsl:template match="*" mode="ldh:RenderRowForm">
         <xsl:apply-templates mode="#current"/>
