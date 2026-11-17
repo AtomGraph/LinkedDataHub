@@ -333,14 +333,7 @@ exclude-result-prefixes="#all"
                 </p>
             </xsl:if>
             <xsl:if test="exists($operation)">
-                <details class="ldh-chat-trace">
-                    <summary>
-                        <span class="msi sm chev" aria-hidden="true">chevron_right</span>
-                    </summary>
-                    <ul class="ldh-chat-steps">
-                        <xsl:apply-templates select="$operation" mode="ldh:OperationTree"/>
-                    </ul>
-                </details>
+                <xsl:apply-templates select="$operation" mode="ldh:PlanTrace"/>
             </xsl:if>
             <xsl:if test="exists($execution)">
                 <xsl:call-template name="ldh:ChatOutcome">
@@ -790,7 +783,7 @@ exclude-result-prefixes="#all"
              context a plan against this instance needs. Read now rather than stamped at render, since navigation moves them -->
         <xsl:variable name="ontology" select="if (exists(lds:ontology())) then map{ 'ontology': string(lds:ontology()) } else map{}" as="map(xs:string, xs:string)"/>
         <xsl:variable name="body" select="serialize(map:merge((map{ 'question': $question, 'document': string(ac:absolute-path(ldh:request-uri())), 'endpoint': string(sd:endpoint()), 'history': $history }, $ontology)), map{ 'method': 'json' })" as="xs:string"/>
-        <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:chat-href('webalgebra/plans'), 'media-type': 'application/json', 'body': $body, 'headers': map{ 'Accept': 'application/xml' } }" as="map(*)"/>
+        <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:webalgebra-href('webalgebra/plans'), 'media-type': 'application/json', 'body': $body, 'headers': map{ 'Accept': 'application/xml' } }" as="map(*)"/>
         <xsl:variable name="context" select="map{ 'request': $request, 'card': id($card-id, ixsl:page()), 'form': $form, 'chat': $chat, 'doc-uri': xs:anyURI($chat/@data-doc), 'question': $question }" as="map(*)"/>
 
         <xsl:choose>
@@ -976,19 +969,9 @@ exclude-result-prefixes="#all"
         </xsl:if>
         <!-- the trace: the same rows execution reports into - an operation is a step that has not run yet. The rows
              nest as the operations do, and each folds out its own operation's XML - the first, the outermost, the whole
-             plan. Open while the plan is being read and run, since the rows are what there is to see; folded under its
-             count once the answer has been written, which is then what there is to read -->
-        <details class="ldh-chat-trace" open="">
-            <summary>
-                <span class="msi sm chev" aria-hidden="true">chevron_right</span>
-                <xsl:value-of select="count(ldh:plan-operations($operation))"/>
-                <xsl:text> </xsl:text>
-                <xsl:apply-templates select="key('resources', 'chat-steps', ldh:translations())" mode="ac:label"/>
-            </summary>
-            <ul class="ldh-chat-steps">
-                <xsl:apply-templates select="$operation" mode="ldh:OperationTree"/>
-            </ul>
-        </details>
+             plan. Folded under its count while the plan is read, as everywhere a plan is shown; Execute opens it, since
+             the rows are then what there is to see, and the answer folds it again, which is then what there is to read -->
+        <xsl:apply-templates select="$operation" mode="ldh:PlanTrace"/>
         <div class="ldh-chat-plan-actions">
             <button type="button" class="ac-btn in-primary ap-solid sz-md ldh-chat-execute">
                 <span class="msi sm" aria-hidden="true">play_arrow</span>
@@ -1003,85 +986,6 @@ exclude-result-prefixes="#all"
             </button>
         </div>
     </xsl:template>
-
-    <!-- an operation before it runs: its glyph says what it does to data (reads, writes, can take away), its state
-         says it is planned. Once the executor reports, the same row is a wa:step -->
-    <!-- an operation before it runs, with the operations inside its arguments nested under it: its glyph says what it
-         does to data (reads, writes, can take away), its state says it is planned. Once the executor reports, the same
-         row is a wa:step -->
-    <xsl:template match="*" mode="ldh:OperationTree">
-        <xsl:variable name="kind" select="ldh:operation-kind(ldh:operation-name(.))" as="xs:string"/>
-        <xsl:variable name="nested" select="ldh:nested-operations(.)" as="element()*"/>
-
-        <li>
-            <details class="ldh-chat-step is-planned kd-{$kind}">
-                <summary>
-                    <span class="st msi sm" aria-hidden="true">
-                        <xsl:value-of select="map{ 'read': 'visibility', 'write': 'edit', 'destructive': 'warning' }($kind)"/>
-                    </span>
-                    <span class="op">
-                        <xsl:value-of select="ldh:operation-name(.)"/>
-                    </span>
-                    <span class="mono muted"/>
-                </summary>
-                <xsl:sequence select="ldh:step-xml(.)"/>
-            </details>
-            <xsl:if test="exists($nested)">
-                <ul>
-                    <xsl:apply-templates select="$nested" mode="ldh:OperationTree"/>
-                </ul>
-            </xsl:if>
-        </li>
-    </xsl:template>
-
-    <!-- the operations directly inside an operation. Arguments are the children and the operations are the
-         arguments' children in the algebra's namespace, anything else there being inline data - except for the
-         sequence form and a Variable, whose steps and value stand directly under them -->
-    <xsl:function name="ldh:nested-operations" as="element()*">
-        <xsl:param name="operation" as="element()"/>
-
-        <xsl:sequence select="if ($operation/self::wa:Sequence or $operation/self::wa:Variable) then $operation/*[namespace-uri() = ('&wa;', '&waldh;')] else $operation/*/*[namespace-uri() = ('&wa;', '&waldh;')]"/>
-    </xsl:function>
-
-    <!-- how the service names an operation: the algebra's own bare, LinkedDataHub's with the family's prefix, as
-         wa:operation/@name and wa:step/@operation carry it -->
-    <xsl:function name="ldh:operation-name" as="xs:string">
-        <xsl:param name="operation" as="element()"/>
-
-        <xsl:sequence select="if (namespace-uri($operation) = '&waldh;') then 'waldh:' || local-name($operation) else local-name($operation)"/>
-    </xsl:function>
-
-    <!-- the operation elements of a plan in the order the service lists them: an operation, then the operations
-         inside it, depth first -->
-    <xsl:function name="ldh:plan-operations" as="element()*">
-        <xsl:param name="operation" as="element()"/>
-
-        <xsl:sequence select="$operation, for $child in ldh:nested-operations($operation) return ldh:plan-operations($child)"/>
-    </xsl:function>
-
-    <!-- the bytes that will be (or were) executed, not a rendering of them -->
-    <xsl:function name="ldh:step-xml" as="element()?">
-        <xsl:param name="operation" as="element()?"/>
-
-        <xsl:for-each select="$operation">
-            <div class="ac-codefield">
-                <pre>
-                    <xsl:value-of select="serialize(., map{ 'method': 'xml', 'indent': true() })"/>
-                </pre>
-            </div>
-        </xsl:for-each>
-    </xsl:function>
-
-    <!-- what an operation does to data, by name: the algebra's writes and the waldh: family's creations and additions
-         change documents, PATCH and the removals can take content away, everything else only reads -->
-    <xsl:function name="ldh:operation-kind" as="xs:string">
-        <xsl:param name="name" as="xs:string"/>
-
-        <xsl:sequence select="
-          if ($name = ('PATCH', 'DELETE', 'waldh:RemoveBlock')) then 'destructive'
-          else if ($name = ('PUT', 'POST') or starts-with($name, 'waldh:Create') or starts-with($name, 'waldh:Add')) then 'write'
-          else 'read'"/>
-    </xsl:function>
 
     <xsl:template match="*[ancestor-or-self::button[contains-token(@class, 'ldh-chat-cancel') or contains-token(@class, 'ldh-chat-dismiss')]]" mode="ixsl:onclick">
         <xsl:variable name="card" select="ancestor::div[contains-token(@class, 'ldh-chat-plan')][1]" as="element()"/>
@@ -1141,8 +1045,8 @@ exclude-result-prefixes="#all"
                 <xsl:copy-of select="$operation"/>
             </xsl:document>
         </xsl:variable>
-        <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:chat-href('webalgebra'), 'media-type': 'application/xml', 'body': $body, 'headers': map{ 'Accept': 'application/xml' } }" as="map(*)"/>
-        <xsl:variable name="context" select="map{ 'request': $request, 'card': $card, 'form': $form }" as="map(*)"/>
+        <!-- the execution is followed by client/webalgebra.xsl, which reports back here: the steps as they happen, and the end -->
+        <xsl:variable name="context" select="map{ 'request': ldh:webalgebra-request($body), 'card': $card, 'form': $form, 'on-progress': ldh:chat-steps-progress#2, 'on-ended': ldh:execution-ended#2 }" as="map(*)"/>
         <ixsl:promise select="
           ixsl:http-request($context('request'))
             => ixsl:then(ldh:rethread-response($context, ?))
@@ -1152,68 +1056,12 @@ exclude-result-prefixes="#all"
         " on-failure="ldh:chat-failure($context, 'execution-not-started', ?)"/>
     </xsl:template>
 
-    <!-- 202: the execution has an id, and its result is polled from here on -->
-    <xsl:function name="ldh:execution-response" as="item()*" ixsl:updating="yes">
+    <!-- the execution's progress, as client/webalgebra.xsl reports it while polling: the card's step rows -->
+    <xsl:function name="ldh:chat-steps-progress" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
-        <xsl:variable name="id" select="$response?body/wa:execution/wa:id" as="xs:string?"/>
+        <xsl:param name="execution" as="element()"/>
 
-        <xsl:choose>
-            <xsl:when test="$response?status = 202 and $id">
-                <xsl:variable name="result-request" select="map{ 'method': 'GET', 'href': ldh:chat-href('webalgebra/' || $id || '/result'), 'headers': map{ 'Accept': 'application/xml' } }" as="map(*)"/>
-                <xsl:sequence select="ldh:poll-execution(map:put($context, 'result-request', $result-request))"/>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:sequence select="ldh:response-error($response)"/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:function>
-
-    <!-- a second between polls: the steps arrive as they happen, and a plan is seconds to minutes long -->
-    <xsl:function name="ldh:poll-execution" as="item()*" ixsl:updating="yes">
-        <xsl:param name="context" as="map(*)"/>
-
-        <xsl:sequence select="
-          ixsl:sleep(1000)
-            => ixsl:then(ldh:result-request($context, ?))
-        "/>
-    </xsl:function>
-
-    <!-- 'result-request'/'result-response' rather than 'request'/'response', so a 429 on a poll retries the poll and
-         not the submission (ldh:retry-request pairs the keys by name) -->
-    <xsl:function name="ldh:result-request" as="item()*" ixsl:updating="yes">
-        <xsl:param name="context" as="map(*)"/>
-        <xsl:param name="sleep-result" as="item()?"/>
-
-        <xsl:sequence select="
-          ixsl:http-request($context('result-request'))
-            => ixsl:then(ldh:rethread-response($context, ?, 'result-response'))
-            => ixsl:then(ldh:handle-response(?, 'result-response'))
-            => ixsl:then(ldh:result-response#1)
-        "/>
-    </xsl:function>
-
-    <xsl:function name="ldh:result-response" as="item()*" ixsl:updating="yes">
-        <xsl:param name="context" as="map(*)"/>
-        <xsl:variable name="response" select="$context('result-response')" as="map(*)"/>
-        <xsl:variable name="execution" select="$response?body/wa:execution" as="element()?"/>
-
-        <xsl:choose>
-            <xsl:when test="$response?status = 202 and exists($execution)">
-                <xsl:sequence select="ldh:chat-steps($context('card'), $execution)"/>
-                <xsl:sequence select="ldh:poll-execution($context)"/>
-            </xsl:when>
-            <xsl:when test="$response?status = 200 and $execution/wa:status = 'complete'">
-                <xsl:sequence select="ldh:execution-ended($context, $execution)"/>
-            </xsl:when>
-            <!-- a plan that failed answers 500 with the steps and writes that did happen; they are reported, not discarded -->
-            <xsl:when test="$execution/wa:status = 'error'">
-                <xsl:sequence select="ldh:execution-ended($context, $execution)"/>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:sequence select="ldh:response-error($response)"/>
-            </xsl:otherwise>
-        </xsl:choose>
+        <xsl:sequence select="ldh:chat-steps($context('card'), $execution)"/>
     </xsl:function>
 
     <!-- the rows as the executor reports them: one per operation entered, in execution order, so a ForEach shows its
@@ -1692,7 +1540,7 @@ exclude-result-prefixes="#all"
           if (exists($result/self::srx:sparql | $result/self::rdf:RDF)) then map{ 'rows': $rows } else map{},
           map{ 'values': array { for $value in $result/self::wa:value return string($value) } }
         ))"/>
-        <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:chat-href('webalgebra/answers'), 'media-type': 'application/json', 'body': serialize($body, map{ 'method': 'json' }), 'headers': map{ 'Accept': 'application/xml' } }" as="map(*)"/>
+        <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:webalgebra-href('webalgebra/answers'), 'media-type': 'application/json', 'body': serialize($body, map{ 'method': 'json' }), 'headers': map{ 'Accept': 'application/xml' } }" as="map(*)"/>
         <xsl:variable name="context" select="map{ 'request': $request, 'card': $card }" as="map(*)"/>
         <ixsl:promise select="
           ixsl:http-request($context('request'))
@@ -1878,14 +1726,6 @@ exclude-result-prefixes="#all"
     </xsl:function>
 
     <!-- HELPERS -->
-
-    <!-- the plan service is on this dataspace's origin, behind nginx at /webalgebra: the page's origin, never lds:base(),
-         which a proxied document's lds:dataspace link moves to the origin it names -->
-    <xsl:function name="ldh:chat-href" as="xs:anyURI">
-        <xsl:param name="path" as="xs:string"/>
-
-        <xsl:sequence select="resolve-uri($path, xs:anyURI(lds:origin(ldh:request-uri()) || '/'))"/>
-    </xsl:function>
 
     <!-- the design's ProgressBar at its thinnest: a label, a value when there is one to count, and a bar that is
          indeterminate until then -->

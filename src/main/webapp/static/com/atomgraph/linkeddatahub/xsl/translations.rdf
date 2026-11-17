@@ -536,6 +536,70 @@
         <rdfs:label xml:lang="en-US">Actions</rdfs:label>
         <rdfs:label xml:lang="es-ES">Acciones</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="confirm">
+        <rdfs:label xml:lang="en-US">Confirm</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Confirmar</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="action-planned-writes">
+        <rdfs:label xml:lang="en-US">This will change these documents</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Esto cambiará estos documentos</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="action-flagged">
+        <rdfs:label xml:lang="en-US">changes access control or the dataspace settings</rdfs:label>
+        <rdfs:label xml:lang="es-ES">cambia el control de acceso o la configuración del espacio de datos</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="action-outside-dataspace">
+        <rdfs:label xml:lang="en-US">outside this dataspace, so the action cannot run</rdfs:label>
+        <rdfs:label xml:lang="es-ES">fuera de este espacio de datos, así que la acción no puede ejecutarse</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="action-preview">
+        <rdfs:label xml:lang="en-US">Preview</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Vista previa</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="action-update">
+        <rdfs:label xml:lang="en-US">Update</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Actualizar</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="action-delete">
+        <rdfs:label xml:lang="en-US">Delete</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Eliminar</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="action-add-to">
+        <rdfs:label xml:lang="en-US">Add to</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Añadir a</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="action-replace">
+        <rdfs:label xml:lang="en-US">Replace</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Reemplazar</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="action-create">
+        <rdfs:label xml:lang="en-US">Create</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Crear</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="action-write">
+        <rdfs:label xml:lang="en-US">Write</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Escribir</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="action-no-writes">
+        <rdfs:label xml:lang="en-US">This action would change nothing</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Esta acción no cambiaría nada</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="action-not-started">
+        <rdfs:label xml:lang="en-US">The action could not be prepared</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudo preparar la acción</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="action-not-started-explanation">
+        <rdfs:label xml:lang="en-US">Its plan could not be read or evaluated</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Su plan no se pudo leer ni evaluar</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="action-refused">
+        <rdfs:label xml:lang="en-US">The action was not applied</rdfs:label>
+        <rdfs:label xml:lang="es-ES">La acción no se aplicó</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="action-refused-explanation">
+        <rdfs:label xml:lang="en-US">A change was refused; the changes made before it stand</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Un cambio fue rechazado; los cambios hechos antes se mantienen</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="upload">
         <rdfs:label xml:lang="en-US">Upload</rdfs:label>
         <rdfs:label xml:lang="es-ES">Subir</rdfs:label>

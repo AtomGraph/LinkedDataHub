@@ -58,7 +58,8 @@ else. **Import precedence beats template priority**, so its position is the whol
 Open modes: `ldh:TreeNode`, `ac:PropertyEditor`, `ldh:ContentColumn`, the value leaves in
 `imports/values.xsl` (`ac:FormControl`, `ac:PropertyListValue`, `ac:ValueAnnotations`,
 `ldh:TypeControl`, `ac:property-label`, `ac:object-label`, `ac:ResultsTableHeaderCell`, the unnamed
-mode's property row and value link), and client-only `ldh:TreeChildrenLoad` and `ldh:RowHook`.
+mode's property row and value link), and client-only `ldh:TreeChildrenLoad` and `ldh:TreeParentsLoad`.
+`ldh:RowHook` is sealed: a factory of deferred work is control flow, which a package does not get.
 Read the fallback in the platform source before overriding it. A replacement must emit the same
 markup contract (element, classes, attributes) the fallback does, or the rest of the page breaks.
 
@@ -68,8 +69,9 @@ shapes in a way that changes rendering for data that is not yours.
 ## The stylesheet runs on the server AND in the browser
 
 The same stylesheet is composed into the server-side tree (Saxon-HE) and the client-side tree
-(Saxon-JS, compiled to SEF). Anything client-only, meaning `ixsl:` instructions and functions, event
-handlers, `ixsl:updating` functions and the `ldh:RowHook`/`ldh:TreeChildrenLoad` rules, must carry
+(Saxon-JS, compiled to SEF). A package has nothing in `ixsl:` (the contract bans it), so its only
+client-only rules are the ones in `ldh:TreeChildrenLoad` and `ldh:TreeParentsLoad`, modes the client
+tree alone declares; those must carry
 `use-when="system-property('xsl:product-name') = 'SaxonJS'"`. A client-only construct without the
 guard fails the **server** compile. The dataspace then silently falls back to its stylesheet
 *without any package rules*, so the package appears to do nothing at all.

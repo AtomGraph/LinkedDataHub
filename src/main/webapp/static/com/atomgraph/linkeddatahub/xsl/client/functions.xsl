@@ -44,7 +44,7 @@ exclude-result-prefixes="#all"
 
     <!-- overrides the Web-Client stub; server-side ac:uuid() is the com.atomgraph.client.writer.function.UUID extension function.
          crypto.randomUUID() is the platform's own generator, which retires the hand-written UUID.js the page used to load for this
-         alone. It is a secure-context API, and LDH is served over https - on an insecure origin crypto.randomUUID is undefined -->
+         alone. It is a secure-context API, and LDH is served over https - on an insecure origin crypto.randomUUID is undefined. -->
     <xsl:function name="ac:uuid" as="xs:string">
         <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'crypto'), 'randomUUID', [])"/>
     </xsl:function>

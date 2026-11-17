@@ -283,6 +283,8 @@ public class Application extends ResourceConfig
     public static final String ORCID_ISSUER = "https://orcid.org";
     /** Path of the client stylesheet source in the webapp, composed with package stylesheets per import set */
     public static final String CLIENT_XSL_PATH = "/static/com/atomgraph/linkeddatahub/xsl/client.xsl";
+    /** The platform's server layout stylesheet, which the deployment's entry stylesheet imports */
+    public static final String LAYOUT_XSL_PATH = "/static/com/atomgraph/linkeddatahub/xsl/layout.xsl";
 
     private final ExecutorService importThreadPool;
     private final ServletConfig servletConfig;
@@ -338,6 +340,7 @@ public class Application extends ResourceConfig
     private Map<String, com.atomgraph.linkeddatahub.model.ServiceContext> serviceContextMap;
     private final com.atomgraph.linkeddatahub.server.util.GraphVersioningService graphVersioningService;
     private final com.atomgraph.linkeddatahub.server.util.ClientStylesheetService clientStylesheetService;
+    private final com.atomgraph.linkeddatahub.server.util.PackageContract packageContract;
 
     /**
      * Constructs system application and configures it using sevlet config.
@@ -954,6 +957,15 @@ public class Application extends ResourceConfig
             clientStylesheetService = stylesheetService;
             if (clientStylesheetService != null)
                 servletConfig.getServletContext().setAttribute(com.atomgraph.linkeddatahub.server.util.ClientStylesheetService.class.getName(), clientStylesheetService); // used in ClientStylesheetListener to shut down its executor
+
+            // what a package stylesheet may declare and call, derived from the platform's own stylesheets on both paths
+            com.atomgraph.linkeddatahub.server.util.PackageContract contract = null;
+            java.net.URL layoutStylesheet = servletConfig.getServletContext().getResource(LAYOUT_XSL_PATH);
+            java.net.URL stockClientStylesheet = servletConfig.getServletContext().getResource(CLIENT_XSL_PATH);
+            if (layoutStylesheet != null && stockClientStylesheet != null)
+                contract = com.atomgraph.linkeddatahub.server.util.PackageContract.fromPlatform(xsltProc, List.of(layoutStylesheet, stockClientStylesheet));
+            else if (log.isWarnEnabled()) log.warn("Platform stylesheets '{}' and '{}' not found in the webapp, package stylesheets will not be checked", LAYOUT_XSL_PATH, CLIENT_XSL_PATH);
+            packageContract = contract;
 
             if (mailUser != null && mailPassword !=  null) // enable SMTP authentication
             {
@@ -2842,6 +2854,16 @@ public class Application extends ResourceConfig
     public com.atomgraph.linkeddatahub.server.util.ClientStylesheetService getClientStylesheetService()
     {
         return clientStylesheetService;
+    }
+
+    /**
+     * Returns what a package stylesheet may declare and call, or null if the platform stylesheets were not found.
+     *
+     * @return package contract, or null
+     */
+    public com.atomgraph.linkeddatahub.server.util.PackageContract getPackageContract()
+    {
+        return packageContract;
     }
 
     /**
