@@ -259,11 +259,13 @@ WHERE
 
 skos:inScheme ldh:inverseView :ConceptsInScheme , :OrphanConcepts , :NarrowerCountsInScheme .
 
+# shown though empty: its Create is how a scheme gets a concept, the first one included (the new concept is linked to
+# the scheme on save), so an empty scheme hiding it would have no way in
 :ConceptsInScheme a ldh:View ;
     dct:title "Concepts in scheme" ;
     spin:query :SelectConceptsInScheme ;
     ac:mode ac:TableMode ;
-    ldh:showWhenEmpty false ;
+    ldh:showWhenEmpty true ;
     rdfs:isDefinedBy : .
 
 :SelectConceptsInScheme a sp:Select ;
