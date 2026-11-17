@@ -23,6 +23,7 @@
 import { test, expect } from '../../../lib/console.mjs';
 import { goto } from '../../../lib/settle.mjs';
 import { fixtures, itemCount, itemTitle, itemUri, ldh } from '../../../lib/fixtures.mjs';
+import { inMode, READ_MODE } from '../../../lib/mode.mjs';
 import { endUserBase } from '../../../lib/stack.mjs';
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -161,10 +162,13 @@ test.describe('the query block', { tag: '@owner' }, () => {
         await expect(resultsTable(block)).toHaveCount(0);
     });
 
-    // Creating POSTs a view into the document, so the button is offered to an agent who may append to it, in
-    // the layout that renders the document's resources - the rule the chart tab's Create follows
+    // Creating POSTs a view into the document, so the button is offered to an agent who may append to it, and
+    // only in the Properties layout, which renders the document's own resources - the rule the chart tab's
+    // Create follows. The query document above opens on its content, an Object block naming the query, where
+    // the button is not offered; the container document describes the query itself, and its Properties layout
+    // renders the block the button goes under
     test('the View tab offers Create to an agent who may append', async ({ page }) => {
-        await goto(page, fixtures.queryDocument);
+        await goto(page, inMode(fixtures.container, READ_MODE));
         const block = queryBlock(page);
         await expect(resultsTable(block)).toBeVisible({ timeout: 30_000 });
 
