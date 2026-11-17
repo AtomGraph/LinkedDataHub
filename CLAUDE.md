@@ -267,8 +267,9 @@ Template mode names carry the rendering layer:
   outrank the open modes' generic fallbacks declared there and nothing else. `hooks.xsl` holds the
   structural hooks; `imports/values.xsl`, which it imports, holds the value leaves (property row, value
   cell, form control, annotation), so a package's rule for its own property or datatype wins. An open
-  mode is a leaf: it renders or contributes for one node and carries no control flow (`ldh:RenderRow`
-  walks, `ldh:RowHook` is what it asks). Everything else is sealed by precedence, including
+  mode is a leaf: it renders or contributes for one node and carries no control flow; `ldh:RenderRow`,
+  which walks, and `ldh:RowHook`, whose factories of deferred work it asks for, are both sealed in
+  `client/block.xsl`. Everything else is sealed by precedence, including
   `imports/default.xsl`, which is the library (keys, params, functions, component emitters, rewriters);
   a core fallback a package should be able to specialise moves down into the open tier, never the
   other way round.
