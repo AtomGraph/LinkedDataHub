@@ -1345,6 +1345,7 @@ ORDER BY DESC(?created)
         <xsl:param name="cache" as="item()"/>
         <xsl:param name="select-string" select="$ldh:select-labelled-string" as="xs:string"/>
         <xsl:param name="label-var-name" select="'label'" as="xs:string"/>
+        <xsl:param name="resource-var-name" select="'resource'" as="xs:string"/>
 
         <xsl:sequence select="ldh:busy-cursor()"/>
 
@@ -1353,14 +1354,28 @@ ORDER BY DESC(?created)
         </xsl:variable>
         <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
         <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
-        <!-- append FILTER(regex(?label, $text, 'iq')) to the WHERE clause -->
+        <!-- where the pane's endpoint declares a text index (sd:propertyFeature text:query, off the document's Link headers),
+             prepend ?resource text:query "word* AND word*" to the WHERE clause: a prefix lookup in the index, answered
+             in a fraction of a second on a large dataspace. Otherwise append FILTER(regex(?label, $text, 'iq')), which
+             runs over every label there is and needs them all before ORDER BY and LIMIT apply -->
+        <xsl:variable name="lucene-query" select="if (xs:anyURI('http://jena.apache.org/text#query') = sd:property-features()) then ldh:lucene-prefix-query($text) else ()" as="xs:string?"/>
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:document>
-                <xsl:apply-templates select="$select-xml" mode="ldh:add-regex-filter">
-                    <xsl:with-param name="var-name" select="$label-var-name" tunnel="yes"/>
-                    <xsl:with-param name="pattern" select="$text" tunnel="yes"/>
-                    <xsl:with-param name="flags" select="'iq'" tunnel="yes"/>
-                </xsl:apply-templates>
+                <xsl:choose>
+                    <xsl:when test="exists($lucene-query)">
+                        <xsl:apply-templates select="$select-xml" mode="ldh:add-text-query">
+                            <xsl:with-param name="var-name" select="$resource-var-name" tunnel="yes"/>
+                            <xsl:with-param name="query" select="$lucene-query" tunnel="yes"/>
+                        </xsl:apply-templates>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:apply-templates select="$select-xml" mode="ldh:add-regex-filter">
+                            <xsl:with-param name="var-name" select="$label-var-name" tunnel="yes"/>
+                            <xsl:with-param name="pattern" select="$text" tunnel="yes"/>
+                            <xsl:with-param name="flags" select="'iq'" tunnel="yes"/>
+                        </xsl:apply-templates>
+                    </xsl:otherwise>
+                </xsl:choose>
             </xsl:document>
         </xsl:variable>
         <!-- LIMIT $page-size -->

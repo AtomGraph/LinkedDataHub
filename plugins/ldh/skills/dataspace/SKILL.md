@@ -95,11 +95,20 @@ Add a `fuseki:Service` and a `tdb2:DatasetTDB2` per role, copying an existing pa
     fuseki:endpoint [ fuseki:operation fuseki:gsp-rw ] ;
     fuseki:dataset <#inventory.end-user-dataset> .
 
-<#inventory.end-user-dataset> a tdb2:DatasetTDB2 ;
-    tdb2:location "/fuseki/databases/inventory.end-user/DB2" .
+<#inventory.end-user-dataset> a text:TextDataset ;
+    text:dataset [ a tdb2:DatasetTDB2 ; tdb2:location "/fuseki/databases/inventory.end-user/DB2" ] ;
+    text:index [ a text:TextIndexLucene ;
+        text:directory <file:/fuseki/databases/inventory.end-user/lucene> ;
+        text:storeValues false ;
+        text:entityMap [ ... ] ] .   # copy the end-user dataset's entity map as it is: the labels the search reads
 ```
 
-and the same for `inventory.admin`.
+and the same for `inventory.admin`, whose dataset stays a plain `tdb2:DatasetTDB2`: the admin app searches by
+regex. The end-user dataset's text index is what the search box asks once the dataspace's service declares it
+(step 3); without the index and the declaration the search runs a regex over every label, which takes 30 s on a
+large dataspace. Keep the index and the entity map nested as blank nodes under the dataset, as the root
+`<#end-user-dataset>` has them: `make reindex DATASET=inventory.end-user` describes the dataset to rebuild the index
+after a bulk load, and the description has to be whole.
 
 ### 3. `config/system.trig` — internal wiring
 

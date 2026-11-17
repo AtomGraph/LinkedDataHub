@@ -249,6 +249,23 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="if ($active-pane and ixsl:contains($active-pane, 'dataset.endpoint')) then xs:anyURI(ixsl:get($active-pane, 'dataset.endpoint')) else resolve-uri('sparql', lds:base())"/>
     </xsl:function>
 
+    <!-- the property functions the active pane's endpoint supports, as its document's response declared them in Link
+         headers (rel=sd:propertyFeature) beside the endpoint's; none for a pane whose document declared none -->
+    <xsl:function name="sd:property-features" as="xs:anyURI*">
+        <xsl:variable name="active-pane" select="ldh:active-pane()" as="element()?"/>
+        <xsl:sequence select="if ($active-pane and ixsl:contains($active-pane, 'dataset.propertyFeatures')) then tokenize(ixsl:get($active-pane, 'dataset.propertyFeatures'), ' ')[. != ''] ! xs:anyURI(.) else ()"/>
+    </xsl:function>
+
+    <!-- what the search box types, as a Lucene query over the index's one field: each word a prefix, every word
+         required, in any order. Lower-cased, because the query parser does not analyze a wildcard term and the index
+         is lower-cased; split where the analyzer splits, on anything that is not a letter or a digit, so "1:87" asks
+         for 1* AND 87*, and nothing is left that Lucene would read as syntax -->
+    <xsl:function name="ldh:lucene-prefix-query" as="xs:string?">
+        <xsl:param name="text" as="xs:string"/>
+        <xsl:variable name="words" select="tokenize(lower-case($text), '[^\p{L}\p{N}]+')[. != '']" as="xs:string*"/>
+        <xsl:sequence select="if (exists($words)) then string-join($words ! (. || '*'), ' AND ') else ()"/>
+    </xsl:function>
+
     <xsl:function name="lds:dataspace" as="xs:anyURI?">
         <xsl:sequence select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.application')) then xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.application')) else ()"/>
     </xsl:function>

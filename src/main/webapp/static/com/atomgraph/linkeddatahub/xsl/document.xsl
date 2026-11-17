@@ -447,6 +447,9 @@ exclude-result-prefixes="#all"
         <xsl:param name="mode" as="xs:anyURI"/>
         <xsl:param name="base" as="xs:anyURI?"/>
         <xsl:param name="endpoint" as="xs:anyURI?"/>
+        <!-- the property functions the endpoint supports, as the document's response declared them; the server
+             render passes none and the client stamps them from the headers it reads -->
+        <xsl:param name="property-features" as="xs:anyURI*"/>
         <xsl:param name="application" as="xs:anyURI?"/>
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:param name="about" as="xs:anyURI"/>
@@ -468,6 +471,9 @@ exclude-result-prefixes="#all"
             <xsl:attribute name="data-mode" select="$mode"/>
             <xsl:if test="$endpoint">
                 <xsl:attribute name="data-endpoint" select="$endpoint"/>
+            </xsl:if>
+            <xsl:if test="exists($property-features)">
+                <xsl:attribute name="data-property-features" select="string-join($property-features, ' ')"/>
             </xsl:if>
             <xsl:if test="$application">
                 <xsl:attribute name="data-application" select="$application"/>

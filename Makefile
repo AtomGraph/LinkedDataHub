@@ -191,6 +191,7 @@ load:
 	$(COMPOSE) stop fuseki
 	rm -f fuseki/*/DB2/tdb.lock
 	$(COMPOSE) run --rm -e BASE_URI="$(BASE_URI)" tdb-loader
+	$(MAKE) reindex
 	$(COMPOSE) up -d fuseki
 	$(COMPOSE) restart varnish-end-user varnish-frontend
 	$(MAKE) public
@@ -198,6 +199,24 @@ else
 load:
 	@echo "ERROR: this deployment has no bulk loader (set LOAD_STAGING in make/config.mk)" >&2; exit 1
 endif
+
+# Rebuild the search index of a dataset (end-user by default: DATASET=<name> for another) from its data. The index
+# follows every write through Fuseki, but tdb2.tdbloader writes past it, so a bulk load is followed by this. Run with
+# fuseki stopped, as `load` runs it. jena.textindexer takes an assembler description with exactly one text dataset,
+# so the dataset's is cut out of config.ttl first: DESCRIBE yields the whole of it, since the index and the entity map
+# nest under it as blank nodes. The index directory goes before the rebuild: indexing over an existing index adds
+# every entry again.
+DATASET ?= end-user
+reindex:
+	@grep -q "text:TextDataset" config/fuseki/config.ttl || \
+		{ echo "ERROR: config/fuseki/config.ttl declares no text index (see CHANGELOG, search over a text index)" >&2; exit 1; }
+	$(COMPOSE) run --rm --no-deps --entrypoint sh fuseki -c '\
+		J="$$JAVA_HOME/bin/java"; JAR="/fuseki/$$(ls /fuseki | grep -m1 "\.jar$$")"; \
+		$$J -cp "$$JAR" arq.arq --data /fuseki/config.ttl --results ttl \
+			--query "DESCRIBE <file:///fuseki/config.ttl#$(DATASET)-dataset>" > /tmp/text-dataset.ttl && \
+		grep -q "TextDataset" /tmp/text-dataset.ttl || { echo "ERROR: dataset $(DATASET) declares no text index" >&2; exit 1; }; \
+		rm -rf /fuseki/databases/$(DATASET)/lucene && \
+		$$J -cp "$$JAR" jena.textindexer --desc=/tmp/text-dataset.ttl'
 
 # --- housekeeping -------------------------------------------------------------
 
