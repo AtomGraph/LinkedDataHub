@@ -37,30 +37,38 @@ PREFIX schema2: <https://schema.org/>
 # builds in under a minute (325 MB for 2M labelled resources). The dataspace's service declares it with
 # sd:propertyFeature text:query (config/system.trig), which is how the page knows to ask. One field and no
 # text:graphField: a text:query inside an unbound GRAPH runs once per named graph, one per document, and never
-# finishes. The index, its entity map and the TDB2 dataset are nested as blank nodes so that one DESCRIBE of the
-# dataset yields the whole description, which `make reindex` hands jena.textindexer after a bulk load (the index
-# follows SPARQL Update and Graph Store writes on its own; tdb2.tdbloader writes past it).
+# finishes. The dataset's parts are named, <#NAME-tdb>, <#NAME-index> and <#NAME-entity-map>: jena-text's assemblers
+# read a part's URI, and a blank node stops Fuseki from starting ("Argument to NodeFactory.createURI is null").
+# `make reindex` describes the dataset and its parts for jena.textindexer after a bulk load (the index follows SPARQL
+# Update and Graph Store writes on its own; tdb2.tdbloader writes past it).
 <#end-user-dataset> a text:TextDataset ;
-    text:dataset [ a tdb2:DatasetTDB2 ; tdb2:location "/fuseki/databases/end-user/DB2" ] ;
-    text:index [ a text:TextIndexLucene ;
-        text:directory <file:/fuseki/databases/end-user/lucene> ;
-        text:storeValues false ;
-        text:entityMap [ a text:EntityMap ;
-            text:defaultField "label" ;
-            text:entityField "uri" ;
-            text:map (
-                [ text:field "label" ; text:predicate rdfs:label ]
-                [ text:field "label" ; text:predicate sh:name ]
-                [ text:field "label" ; text:predicate dc:title ]
-                [ text:field "label" ; text:predicate dct:title ]
-                [ text:field "label" ; text:predicate foaf:name ]
-                [ text:field "label" ; text:predicate foaf:givenName ]
-                [ text:field "label" ; text:predicate foaf:familyName ]
-                [ text:field "label" ; text:predicate sioc:name ]
-                [ text:field "label" ; text:predicate skos:prefLabel ]
-                [ text:field "label" ; text:predicate schema1:name ]
-                [ text:field "label" ; text:predicate schema2:name ]
-            ) ] ] .
+    text:dataset <#end-user-tdb> ;
+    text:index <#end-user-index> .
+
+<#end-user-tdb> a tdb2:DatasetTDB2 ;
+    tdb2:location "/fuseki/databases/end-user/DB2" .
+
+<#end-user-index> a text:TextIndexLucene ;
+    text:directory <file:/fuseki/databases/end-user/lucene> ;
+    text:storeValues false ;
+    text:entityMap <#end-user-entity-map> .
+
+<#end-user-entity-map> a text:EntityMap ;
+    text:defaultField "label" ;
+    text:entityField "uri" ;
+    text:map (
+        [ text:field "label" ; text:predicate rdfs:label ]
+        [ text:field "label" ; text:predicate sh:name ]
+        [ text:field "label" ; text:predicate dc:title ]
+        [ text:field "label" ; text:predicate dct:title ]
+        [ text:field "label" ; text:predicate foaf:name ]
+        [ text:field "label" ; text:predicate foaf:givenName ]
+        [ text:field "label" ; text:predicate foaf:familyName ]
+        [ text:field "label" ; text:predicate sioc:name ]
+        [ text:field "label" ; text:predicate skos:prefLabel ]
+        [ text:field "label" ; text:predicate schema1:name ]
+        [ text:field "label" ; text:predicate schema2:name ]
+    ) .
 
 <#admin> a fuseki:Service ;
     fuseki:name "admin" ;

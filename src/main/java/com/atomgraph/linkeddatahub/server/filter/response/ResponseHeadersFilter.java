@@ -122,7 +122,7 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
 
             // the property functions the endpoint supports, one Link each beside it, as the dataspace's service declares
             // them: the page asks a text index for a search where text:query is among them, and the regex where it is not
-            if (getDataspace().isPresent())
+            if (getDataspace().isPresent() && getDataspace().get().getService() != null)
                 getDataspace().get().getService().getPropertyFeatures().
                     forEach(feature -> response.getHeaders().add(HttpHeaders.LINK, Link.fromUri(URI.create(feature.getURI())).rel(com.atomgraph.linkeddatahub.vocabulary.SD.propertyFeature.getURI()).build()));
         }
