@@ -290,7 +290,6 @@ WHERE
         <xsl:variable name="doc-uri" select="$context('doc-uri')" as="xs:anyURI"/>
         <xsl:variable name="fragment" select="$context('fragment')" as="xs:string?"/>
         <xsl:variable name="query-params" select="if (map:contains($context, 'query-params')) then $context('query-params') else map{}" as="map(xs:string, xs:string*)"/>
-        <xsl:variable name="refresh-content" select="$context('refresh-content')" as="xs:boolean?"/>
         <xsl:variable name="server-rendered" select="$context('server-rendered')" as="xs:boolean?"/>
 
         <xsl:for-each select="$response">
@@ -493,7 +492,6 @@ WHERE
                             <xsl:with-param name="fragment" select="($fragment, $new-block[starts-with(., $doc-uri || '#')]!substring-after(., '#'))[1]"/>
                             <xsl:with-param name="mode" select="$mode"/>
                             <xsl:with-param name="response" select="$response"/>
-                            <xsl:with-param name="refresh-content" select="$refresh-content"/>
                         </xsl:call-template>
 
                         <!-- a ?diff= whose compared version could not be read renders this version alone, which would read as nothing having changed -->
@@ -643,7 +641,6 @@ WHERE
                         <xsl:with-param name="fragment" select="$fragment"/>
                         <xsl:with-param name="mode" select="$mode"/>
                         <xsl:with-param name="response" select="$response"/>
-                        <xsl:with-param name="refresh-content" select="$refresh-content"/>
                     </xsl:call-template>
                 </xsl:otherwise>
             </xsl:choose>
@@ -745,7 +742,6 @@ WHERE
         <xsl:param name="tab-list-item" select="id('tab-bar-list', ixsl:page())/li[ixsl:get(., 'dataset.uri') = $doc-uri]" as="element()?"/>
         <xsl:param name="mode" as="xs:anyURI"/>
         <xsl:param name="response" as="map(*)"/>
-        <xsl:param name="refresh-content" select="()" as="xs:boolean?"/>
 
         <!-- activate tab list item, or show pane directly for local docs (no tab bar item) -->
         <xsl:choose>
@@ -771,7 +767,7 @@ WHERE
         <!-- fire factories for top-level content blocks in the rendered pane; taken one by one rather than joined
              (ldh:hydrate), since the fragment scroll below counts each down -->
         <xsl:variable name="content-body" select="id($pane-id, ixsl:page())/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()?"/>
-        <xsl:variable name="factories" select="ldh:hydration-jobs($content-body/div, map{ 'refresh-content': $refresh-content })" as="(function(item()?) as item()*)*"/>
+        <xsl:variable name="factories" select="ldh:hydration-jobs($content-body/div)" as="(function(item()?) as item()*)*"/>
         <xsl:choose>
             <!-- a fragment scroll cannot run until the blocks hydrate (their async loads shift the layout under it): chain each factory so ldh:block-hydrated counts them down and scrolls on the last one -->
             <xsl:when test="$fragment and exists($factories)">
@@ -1035,7 +1031,6 @@ WHERE
         <xsl:param name="doc-uri" as="xs:anyURI"/>
         <xsl:param name="fragment" as="xs:string?"/>
         <xsl:param name="query-params" select="map{}" as="map(xs:string, xs:string*)"/>
-        <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:param name="server-rendered" select="false()" as="xs:boolean"/>
         <xsl:param name="controller" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'saxonController')"/>
         <!-- see ldh:DocumentNavigate -->
@@ -1059,7 +1054,6 @@ WHERE
               'doc-uri': $doc-uri,
               'fragment': $fragment,
               'query-params': map:merge(($representation-params, if (exists($diff-version)) then map{ 'diff': $diff-version } else map{})),
-              'refresh-content': $refresh-content,
               'server-rendered': $server-rendered,
               'endpoint': sd:endpoint()
             },

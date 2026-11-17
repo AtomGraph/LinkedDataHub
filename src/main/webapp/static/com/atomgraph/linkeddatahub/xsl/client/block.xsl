@@ -189,22 +189,13 @@ exclude-result-prefixes="#all"
     <!-- the jobs rendered elements bring once they are on the page, as factories: the ldh:Hydrate walk asks every element
          what its ldh:HydrationHook rules schedule, and an element may bring none, one or several (a typed resource's row
          brings its views and, where the dataspace has an executor, its actions). The only place the walk is applied, so
-         that no caller assumes how many jobs come back. $params is what the caller knows of the elements it hydrates and
-         their own defaults cannot read (the block and container of a view built outside the page): it reaches the hook
-         rules of those elements, not of what they contain -->
-    <xsl:function name="ldh:hydration-jobs" as="(function(item()?) as item()*)*">
-        <xsl:param name="elements" as="element()*"/>
-        <xsl:param name="params" as="map(*)"/>
-
-        <xsl:apply-templates select="$elements" mode="ldh:Hydrate">
-            <xsl:with-param name="ldh:hydration-params" select="$params" tunnel="yes"/>
-        </xsl:apply-templates>
-    </xsl:function>
-
+         that no caller assumes how many jobs come back. A rule reads what it needs off the element and the page, never
+         from the caller: what a caller knows and the page does not yet say, it renders first (the query block's view
+         tab writes the view's RDFa and its footer into the results container, then hydrates that) -->
     <xsl:function name="ldh:hydration-jobs" as="(function(item()?) as item()*)*">
         <xsl:param name="elements" as="element()*"/>
 
-        <xsl:sequence select="ldh:hydration-jobs($elements, map{})"/>
+        <xsl:apply-templates select="$elements" mode="ldh:Hydrate"/>
     </xsl:function>
 
     <!-- starts every job the elements bring, joined into one promise; called inside a promise chain or ixsl:promise, which
@@ -213,15 +204,8 @@ exclude-result-prefixes="#all"
          the other jobs run on regardless. No jobs resolves at once -->
     <xsl:function name="ldh:hydrate" as="item()" ixsl:updating="yes">
         <xsl:param name="elements" as="element()*"/>
-        <xsl:param name="params" as="map(*)"/>
 
-        <xsl:sequence select="ixsl:all(array { for $job in ldh:hydration-jobs($elements, $params) return $job(()) })"/>
-    </xsl:function>
-
-    <xsl:function name="ldh:hydrate" as="item()" ixsl:updating="yes">
-        <xsl:param name="elements" as="element()*"/>
-
-        <xsl:sequence select="ldh:hydrate($elements, map{})"/>
+        <xsl:sequence select="ixsl:all(array { for $job in ldh:hydration-jobs($elements) return $job(()) })"/>
     </xsl:function>
 
     <!-- TEMPLATES -->
@@ -231,8 +215,8 @@ exclude-result-prefixes="#all"
     <!-- work to schedule for one rendered element, as FACTORIES rather than work: the ldh:Hydrate walk
          below applies this mode to every element it visits, and ldh:hydrate (above) invokes the factories
          it collects inside the caller's promise, which is also what gives ixsl:http-request the active
-         promise it requires. A rule declares what its caller may pass as entries of the tunnel parameter
-         ldh:hydration-params, falling back to what it reads off the element itself.
+         promise it requires. A rule takes no parameters from its caller: it reads what it needs off the
+         element and the page, and a caller renders what a rule needs before it hydrates.
 
          The walk only ever descends; this mode is what it asks at each node. So a rule here can add
          work for a node and can never take the node's subtree out of the walk, which is exactly the
@@ -247,14 +231,11 @@ exclude-result-prefixes="#all"
          schedule for each one, contributing nothing itself - the platform's own view injection is a
          hook rule like the others. Splitting the two is what makes a hook safe: a rule that wins in
          ldh:HydrationHook adds work for its node and cannot take the node's subtree out of the walk, which
-         a rule winning HERE would. What a caller passes is for the elements it hydrates, so the walk
-         hands it to their hook rules and not to their descendants' -->
+         a rule winning HERE would -->
     <xsl:template match="*" mode="ldh:Hydrate" as="(function(item()?) as map(*))*">
         <xsl:apply-templates select="." mode="ldh:HydrationHook"/>
 
-        <xsl:apply-templates mode="#current">
-            <xsl:with-param name="ldh:hydration-params" select="map{}" tunnel="yes"/>
-        </xsl:apply-templates>
+        <xsl:apply-templates mode="#current"/>
     </xsl:template>
 
     <xsl:template match="text()" mode="ldh:Hydrate" as="(function(item()?) as map(*))*"/>

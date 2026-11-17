@@ -598,60 +598,40 @@ exclude-result-prefixes="#all"
     <xsl:template match="div[contains-token(@class, 'query-results-tabs')]/button[contains-token(@class, 'view-mode')][not(contains-token(@class, 'is-on'))]" mode="ixsl:onclick" priority="1">
         <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
-        <xsl:variable name="form" select="$container//form[contains-token(@class, 'sparql-query-form')]" as="element()"/>
-        <xsl:variable name="textarea-id" select="$form//textarea[@name = 'query']/@id" as="xs:string"/>
-        <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
-        <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
-        <xsl:variable name="query-id" select="'id' || ac:uuid()" as="xs:string"/>
-        <xsl:variable name="query-uri" select="xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $query-id)" as="xs:anyURI"/>
-        <xsl:variable name="query-form" select="ldh:query-type($query-string)" as="xs:string?"/>
-        <xsl:variable name="query-type" select="xs:anyURI('&sp;' || upper-case(substring($query-form, 1, 1)) || lower-case(substring($query-form, 2)))" as="xs:anyURI"/>
-        <xsl:variable name="view-block-id" select="'id' || ac:uuid()" as="xs:string"/>
-        <xsl:variable name="view-block-uri" select="xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $view-block-id)" as="xs:anyURI"/>
-        <xsl:variable name="view-html" as="document-node()"> <!-- make sure the structure will match the view hook's pattern in view.xsl -->
-            <xsl:document>
-                <div about="{$view-block-uri}" typeof="&ldh;View">
-                    <div property="&spin;query" resource="{$block/@about}"/>
-                </div>
-            </xsl:document>
-        </xsl:variable>
-        <xsl:variable name="this" select="ancestor::div[@about][1]/@about" as="xs:anyURI"/> <!-- not the same as $block/@about! -->
-
-        <xsl:apply-templates select="." mode="ldh:SelectTab"/>
-
-        <xsl:sequence select="ldh:busy-cursor()"/>
-                
         <xsl:variable name="view-container" select="$container//div[contains-token(@class, 'sparql-query-results')]" as="element()"/>
-        <!-- ensure the HTML structure is compatible with what view expects -->
-        <xsl:for-each select="$view-container">
-            <ixsl:set-attribute name="typeof" select="'&ldh;View'" object="$view-container"/>
-            
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <div class="main ldh-block-body"></div>
-            </xsl:result-document>
-        </xsl:for-each>
-        
         <!-- the view counterpart of the chart tab's Create button, stamped here rather than derived inside
              the view: only this flow renders a view that is not yet a block of its own. Creating POSTs a new
              view into the current document, so it only appears to an agent who may append to it - and only
              in the layout that renders the document's resources, for the reason given at the chart button -->
         <xsl:variable name="document-mode" select="(ancestor::div[contains-token(@class, 'ldh-pane')], ldh:active-pane())[1]/@data-mode" as="xs:anyURI?"/>
         <xsl:variable name="acl-modes" select="for $mode in tokenize((ancestor::div[contains-token(@class, 'ldh-pane')], ldh:active-pane())[1]/@data-acl-modes, ' ') return xs:anyURI($mode)" as="xs:anyURI*"/>
-        <xsl:variable name="form-actions" as="element()?">
-            <xsl:if test="$acl-modes = '&acl;Append' and $document-mode = '&ac;ReadMode'">
-                <div class="ldh-block-foot">
-                    <button class="ac-btn in-primary ap-solid sz-md btn-create-view" type="button">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'create', ldh:translations())" mode="ac:label"/>
-                        </xsl:value-of>
-                    </button>
-                </div>
-            </xsl:if>
-        </xsl:variable>
 
-        <!-- the view is built outside the page, so it is told the block, the results container and the document it belongs to,
-             which its own defaults would read off a node with no ancestors -->
-        <ixsl:promise select="ldh:hydrate($view-html/*, map{ 'block': $block, 'container': $view-container, 'this': $this, 'form-actions': $form-actions }) => ixsl:finally(ldh:reset-cursor#0)" on-failure="ldh:promise-failure($view-container, 'results-not-loaded', ?)"/>
+        <xsl:apply-templates select="." mode="ldh:SelectTab"/>
+
+        <xsl:sequence select="ldh:busy-cursor()"/>
+
+        <!-- the results container becomes the view: the RDFa its hook matches, the body the results render fills,
+             and the footer beside the body, which that render leaves alone. All in the page before the view is
+             started, so it reads the block and the document it belongs to off its ancestors like any other view -->
+        <xsl:for-each select="$view-container">
+            <ixsl:set-attribute name="typeof" select="'&ldh;View'" object="$view-container"/>
+
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <div property="&spin;query" resource="{$block/@about}"/>
+                <div class="main ldh-block-body"></div>
+                <xsl:if test="$acl-modes = '&acl;Append' and $document-mode = '&ac;ReadMode'">
+                    <div class="ldh-block-foot">
+                        <button class="ac-btn in-primary ap-solid sz-md btn-create-view" type="button">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'create', ldh:translations())" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                    </div>
+                </xsl:if>
+            </xsl:result-document>
+        </xsl:for-each>
+
+        <ixsl:promise select="ldh:hydrate($view-container) => ixsl:finally(ldh:reset-cursor#0)" on-failure="ldh:promise-failure($view-container, 'results-not-loaded', ?)"/>
     </xsl:template>
     
     <!-- save query onclick -->

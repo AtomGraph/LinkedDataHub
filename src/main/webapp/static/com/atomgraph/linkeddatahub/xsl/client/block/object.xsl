@@ -52,8 +52,6 @@ exclude-result-prefixes="#all"
     <!-- object block (RDF resource) -->
     
     <xsl:template match="*[@typeof = '&ldh;Object'][descendant::*[@property = '&rdf;value'][@resource]]" mode="ldh:HydrationHook" as="function(item()?) as map(*)">
-        <!-- what the hydrating caller passes: the page load says whether to bypass the HTTP caches -->
-        <xsl:param name="ldh:hydration-params" select="map{}" as="map(*)" tunnel="yes"/>
         <xsl:param name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
         <xsl:param name="block-uri" select="$about" as="xs:anyURI"/>
@@ -61,7 +59,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="resource-uri" select="descendant::*[@property = '&rdf;value']/@resource" as="xs:anyURI?"/>
         <xsl:param name="graph" select="descendant::*[@property = '&ldh;graph']/@resource" as="xs:anyURI?"/>
         <xsl:param name="mode" select="descendant::*[@property = '&ac;mode']/@resource" as="xs:anyURI?"/>
-        <xsl:param name="refresh-content" select="$ldh:hydration-params?refresh-content" as="xs:boolean?"/>
         <!-- empty by default: the loaded document's own acl:mode Link headers decide in ldh:block-object-value-response; a caller passes an explicit value only to force the button off (or on) -->
         <xsl:param name="show-edit-button" as="xs:boolean?"/>
         <!-- the pane's endpoint, carried in the context so the metadata fetch below does not read the window -->

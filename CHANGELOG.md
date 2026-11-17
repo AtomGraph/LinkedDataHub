@@ -13,7 +13,7 @@
 ### Changed
 - `ldh:TreeChildrenLoad` returns the predicates that link a node to its children; the platform builds and runs the query
 - The drawer's document tree descends and activates through the generic tree operations
-- The work a rendered element schedules is sealed and named for what it does: the walk is `ldh:Hydrate` (was `ldh:RenderRow`) and the mode it asks is `ldh:HydrationHook` (was `ldh:RowHook`), both in `client/block.xsl` with the view injection. Every caller starts an element's jobs through `ldh:hydrate`, or takes them from `ldh:hydration-jobs`, and passes what the element's own defaults cannot read as `ldh:hydration-params`
+- The work a rendered element schedules is sealed and named for what it does: the walk is `ldh:Hydrate` (was `ldh:RenderRow`) and the mode it asks is `ldh:HydrationHook` (was `ldh:RowHook`), both in `client/block.xsl` with the view injection. Every caller starts an element's jobs through `ldh:hydrate`, or takes them from `ldh:hydration-jobs`. A hook reads what it needs off the element and the page, so a caller renders what a hook needs before it hydrates: the query block's View tab writes its view and its Create footer into the results container
 - `ldh:plan` applies to an `ldh:Action` as well as a `ldh:ChatTurn`
 - An action's confirmation shows its plan as the assistant does, as the tree of its operations above the writes; the renderer moves to `client/webalgebra.xsl`
 - A plan's operation tree starts folded under its step count, in the action dialog and the assistant alike
