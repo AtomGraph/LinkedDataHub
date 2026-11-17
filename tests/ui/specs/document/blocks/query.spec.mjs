@@ -12,14 +12,13 @@
 // The editor unfolds from the card header, and Run re-queries with whatever it says - which is
 // the assertion that matters, since a Run that re-ran the STORED query would table the same rows.
 //
-// The View tab does not work, and the last test pins that as an expected failure. Its handler
-// (client/block/query.xsl, the view-mode tab) builds a detached `<div typeof="ldh:View">` and
-// applies ldh:RenderRow to it with the block passed as a parameter - but ldh:RenderRow
-// (client/block.xsl) declares no parameters and hands the element to ldh:RowHook bare, whose
-// `block` defaults to the nearest ancestor `.block` of a node that has no ancestors at all. The
-// page reports "Required cardinality of value in 'xsl:param name=\"block\"' expression is exactly
-// one; supplied value is empty" and the results container stays empty. Measured 2026-09-28 on
-// develop. The test passes the day the tab renders rows, and then reports the annotation as stale.
+// The View tab is the last test. Its handler (client/block/query.xsl, the view-mode tab) builds a
+// detached `<div typeof="ldh:View">` and starts it with the block and the results container it
+// belongs to, since a view's own defaults, read from a node with no ancestors, find neither. Those
+// parameters were dropped by the walk that starts the view until it learnt to pass them on: the
+// page reported "Required cardinality of value in 'xsl:param name=\"block\"' expression is exactly
+// one; supplied value is empty" and the results container stayed empty (measured 2026-09-28 on
+// develop, when the test was pinned as an expected failure).
 import { test, expect } from '../../../lib/console.mjs';
 import { goto } from '../../../lib/settle.mjs';
 import { fixtures, itemCount, itemTitle, itemUri, ldh } from '../../../lib/fixtures.mjs';
@@ -146,13 +145,9 @@ test.describe('the query block', { tag: '@owner' }, () => {
         await expect(page.locator('.ldh-failure')).toHaveCount(0);
     });
 
-    test('the View tab renders the same result set as rows', async ({ page, allowNoise }) => {
-        test.fail(true, 'the view-mode tab applies ldh:RenderRow to a detached element, and ldh:RowHook finds no block');
-        allowNoise.push({
-            pattern: /pageerror: Required cardinality of value in 'xsl:param name="Q\{\}block"'/,
-            reason: 'the defect this test is expected to fail on, so the failure is the assertion below and not the guard',
-        });
-
+    // The tab builds the view it shows as a document of its own, outside the page, and names the block and the results
+    // container it belongs to when it starts it: the view's own defaults, read from that detached copy, find neither
+    test('the View tab renders the same result set as rows', async ({ page }) => {
         await goto(page, fixtures.queryDocument);
         const block = queryBlock(page);
         await expect(resultsTable(block)).toBeVisible({ timeout: 30_000 });
