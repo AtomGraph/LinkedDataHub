@@ -2153,22 +2153,23 @@ WHERE
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
-        <!-- append FILTER($var IN ()) -->
+        <!-- append VALUES $Type { $forClass }, one row per class. Not FILTER($Type IN ()): the SELECT is a UNION of a
+             GRAPH ?graph branch and a default-graph one, and Jena does not push a filter after it into the GRAPH
+             branch, which then walks every typed resource in every graph (30 s on 15M quads, 0.1 s with VALUES) -->
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:document>
                 <xsl:choose>
-                    <!-- do not apply FILTER if $type-par-name is not provided -->
+                    <!-- do not bind the type if $type-var-name is not provided -->
                     <xsl:when test="not($type-var-name)">
                         <xsl:sequence select="$select-xml"/>
                     </xsl:when>
-                    <!-- do not FILTER by $forClass if the only type is rdfs:Resource -->
+                    <!-- do not bind $forClass if the only type is rdfs:Resource -->
                     <xsl:when test="empty($forClass[not(. = '&rdfs;Resource')])">
                         <xsl:sequence select="$select-xml"/>
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:apply-templates select="$select-xml" mode="ldh:add-filter-in">
-                            <xsl:with-param name="var-name" select="$type-var-name" tunnel="yes"/>
-                            <xsl:with-param name="values" select="$forClass" tunnel="yes"/>
+                        <xsl:apply-templates select="$select-xml" mode="ldh:append-values">
+                            <xsl:with-param name="values-map" select="$forClass ! map{ ('?' || $type-var-name): . }" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:otherwise>
                 </xsl:choose>
@@ -2177,7 +2178,9 @@ WHERE
         <!-- set LIMIT -->
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:document>
-                <xsl:apply-templates select="$select-xml" mode="ldh:replace-limit"/>
+                <xsl:apply-templates select="$select-xml" mode="ldh:replace-limit">
+                    <xsl:with-param name="limit" select="$limit" tunnel="yes"/>
+                </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
         <!-- wrap SELECT into a DESCRIBE -->
@@ -2189,8 +2192,6 @@ WHERE
         <xsl:variable name="query-string" select="ixsl:call($ldh:sparql-generator, 'stringify', [ $query-json ])" as="xs:string"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/> <!-- proxy the results -->
-        <!-- TO-DO: use <ixsl:schedule-action> instead of document() -->
-        <xsl:variable name="results" select="document($request-uri)" as="document-node()"/>
 
         <xsl:choose>
             <xsl:when test="$key-code = 'Escape'">

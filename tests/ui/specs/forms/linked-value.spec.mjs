@@ -20,16 +20,24 @@ const RDF_TYPE = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type';
 const SEE_ALSO = 'http://www.w3.org/2000/01/rdf-schema#seeAlso';
 const FOAF_NAME = 'http://xmlns.com/foaf/0.1/name';
 const DOCUMENT = 'http://xmlns.com/foaf/0.1/Document';
+const IMAGE = 'http://xmlns.com/foaf/0.1/Image';
 const ns = `${endUserBase}ns#`;
-// a class whose constructor makes See also a link to a document, and one with no model of its own
+// a class whose constructor makes See also a link to a document, one whose constructor makes it a link to
+// something both a document and an image, and one with no model of its own
 const linked = { uri: `${ns}UiLinkedThing`, label: 'UI linked thing' };
+const pictured = { uri: `${ns}UiPicturedThing`, label: 'UI pictured thing' };
 const plain = { uri: `${ns}UiPlainThing`, label: 'UI plain thing' };
 
-test.beforeAll(async () => {
+async function addConstructed(cls, constructor, objectTypes) {
     const file = join(mkdtempSync(join(tmpdir(), 'ui-linked-')), 'construct.rq');
-    writeFileSync(file, `CONSTRUCT {\n  $this <${SEE_ALSO}> [ a <${DOCUMENT}> ] .\n}\nWHERE {}`);
-    await ldh(['admin', 'add', 'constructor', '--uri', `${ns}UiLinkedThingConstructor`, '--label', 'UI linked thing constructor', '--query-file', file, namespaceDocument]);
-    await ldh(['admin', 'add', 'class', '--uri', linked.uri, '--label', linked.label, '--constructor', `${ns}UiLinkedThingConstructor`, namespaceDocument]);
+    writeFileSync(file, `CONSTRUCT {\n  $this <${SEE_ALSO}> [ a ${objectTypes.map(type => `<${type}>`).join(', ')} ] .\n}\nWHERE {}`);
+    await ldh(['admin', 'add', 'constructor', '--uri', constructor, '--label', `${cls.label} constructor`, '--query-file', file, namespaceDocument]);
+    await ldh(['admin', 'add', 'class', '--uri', cls.uri, '--label', cls.label, '--constructor', constructor, namespaceDocument]);
+}
+
+test.beforeAll(async () => {
+    await addConstructed(linked, `${ns}UiLinkedThingConstructor`, [DOCUMENT]);
+    await addConstructed(pictured, `${ns}UiPicturedThingConstructor`, [DOCUMENT, IMAGE]);
     await ldh(['admin', 'add', 'class', '--uri', plain.uri, '--label', plain.label, namespaceDocument]);
     await ldh(['admin', 'clear', 'ontology', adminBase]);
 });
@@ -37,7 +45,7 @@ test.beforeAll(async () => {
 test.afterAll(async () => {
     await ldh(['patch', namespaceDocument], {
         allowFailure: true,
-        stdin: `DELETE { ?s ?p ?o } WHERE { ?s ?p ?o . FILTER(?s IN (<${linked.uri}>, <${ns}UiLinkedThingConstructor>, <${plain.uri}>)) }`,
+        stdin: `DELETE { ?s ?p ?o } WHERE { ?s ?p ?o . FILTER(?s IN (<${linked.uri}>, <${ns}UiLinkedThingConstructor>, <${pictured.uri}>, <${ns}UiPicturedThingConstructor>, <${plain.uri}>)) }`,
     });
     await ldh(['admin', 'clear', 'ontology', adminBase], { allowFailure: true });
 });
@@ -135,6 +143,33 @@ test.describe('a value linking to a resource of a class', { tag: '@owner' }, () 
 
             await expect(fieldFor(form, SEE_ALSO), 'the linked class brings its See also').toHaveCount(1, { timeout: 15_000 });
             await expectLookupOfDocuments(fieldFor(form, SEE_ALSO).first());
+        } finally {
+            await ldh(['delete', doc], { allowFailure: true });
+        }
+    });
+
+    // A value may be meant to be of several classes at once, and the lookup asks for every one of them: one
+    // VALUES row each, which binds the class in every branch of the lookup's UNION, rather than an IN filter
+    // after it, which Jena does not push into the GRAPH branch (combobox.spec.mjs says what that costs)
+    test('is looked up among every class it is meant to be', async ({ page }) => {
+        const doc = await seedDocument('ui-linked-two-ranges', [pictured.uri]);
+        try {
+            const form = await openForm(page, doc);
+            const group = fieldFor(form, SEE_ALSO).first();
+            await expect(group.locator('div.ac-cb-box'), 'the lookup searches both classes')
+                .toHaveAttribute('data-for-class', new RegExp(`^(?=.*${DOCUMENT})(?=.*${IMAGE})`));
+
+            const input = group.locator('input.resource-combobox');
+            const lookup = page.waitForRequest(request => /\/sparql\?query=DESCRIBE/i.test(request.url()), { timeout: 25_000 });
+            await input.click();
+            await input.pressSequentially('Fixture', { delay: 110 });
+            const query = new URL((await lookup).url()).searchParams.get('query');
+
+            const block = query.match(/VALUES\s+\?Type\s*\{([^}]*)\}/i);
+            expect(block, 'the classes are bound with VALUES').not.toBeNull();
+            expect([...block[1].matchAll(/<([^>]+)>/g)].map(match => match[1]).sort(), 'one row per class')
+                .toEqual([DOCUMENT, IMAGE].sort());
+            expect(query, 'not filtered by IN after the UNION').not.toMatch(/\bIN\s*\(/i);
         } finally {
             await ldh(['delete', doc], { allowFailure: true });
         }
