@@ -3,6 +3,16 @@ PREFIX fuseki:  <http://jena.apache.org/fuseki#>
 PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX ja:      <http://jena.hpl.hp.com/2005/11/Assembler#>
 PREFIX tdb2:    <http://jena.apache.org/2016/tdb#>
+PREFIX text:    <http://jena.apache.org/text#>
+PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX sh:      <http://www.w3.org/ns/shacl#>
+PREFIX dc:      <http://purl.org/dc/elements/1.1/>
+PREFIX dct:     <http://purl.org/dc/terms/>
+PREFIX foaf:    <http://xmlns.com/foaf/0.1/>
+PREFIX sioc:    <http://rdfs.org/sioc/ns#>
+PREFIX skos:    <http://www.w3.org/2004/02/skos/core#>
+PREFIX schema1: <http://schema.org/>
+PREFIX schema2: <https://schema.org/>
 
 [] a fuseki:Server .
 
@@ -22,8 +32,32 @@ PREFIX tdb2:    <http://jena.apache.org/2016/tdb#>
     fuseki:endpoint [ fuseki:operation fuseki:gsp-rw ] ;
     fuseki:dataset <#end-user-dataset> .
 
-<#end-user-dataset> a tdb2:DatasetTDB2 ;
-    tdb2:location "/fuseki/databases/end-user/DB2" .
+# The end-user dataset carries a Lucene index over the labels the search box reads, so a search is a prefix lookup
+# rather than a regex over every label (30 s on 15M quads, hit or miss; 0.1-0.4 s with the index). One field, no
+# text:graphField: a text:query inside an unbound GRAPH runs once per named graph, one per document, and never
+# finishes. The index, its entity map and the TDB2 dataset are nested as blank nodes so that one DESCRIBE of the
+# dataset yields the whole description, which is what `make reindex` hands jena.textindexer after a bulk load.
+<#end-user-dataset> a text:TextDataset ;
+    text:dataset [ a tdb2:DatasetTDB2 ; tdb2:location "/fuseki/databases/end-user/DB2" ] ;
+    text:index [ a text:TextIndexLucene ;
+        text:directory <file:/fuseki/databases/end-user/lucene> ;
+        text:storeValues false ;
+        text:entityMap [ a text:EntityMap ;
+            text:defaultField "label" ;
+            text:entityField "uri" ;
+            text:map (
+                [ text:field "label" ; text:predicate rdfs:label ]
+                [ text:field "label" ; text:predicate sh:name ]
+                [ text:field "label" ; text:predicate dc:title ]
+                [ text:field "label" ; text:predicate dct:title ]
+                [ text:field "label" ; text:predicate foaf:name ]
+                [ text:field "label" ; text:predicate foaf:givenName ]
+                [ text:field "label" ; text:predicate foaf:familyName ]
+                [ text:field "label" ; text:predicate sioc:name ]
+                [ text:field "label" ; text:predicate skos:prefLabel ]
+                [ text:field "label" ; text:predicate schema1:name ]
+                [ text:field "label" ; text:predicate schema2:name ]
+            ) ] ] .
 
 <#admin> a fuseki:Service ;
     fuseki:name "admin" ;
