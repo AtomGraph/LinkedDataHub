@@ -1151,6 +1151,8 @@ extension-element-prefixes="ixsl"
         <xsl:param name="query" as="xs:string" tunnel="yes"/>
 
         <xsl:copy>
+            <xsl:apply-templates select="@*" mode="#current"/>
+
             <json:map>
                 <json:string key="type">bgp</json:string>
                 <json:array key="triples">
@@ -1162,7 +1164,7 @@ extension-element-prefixes="ixsl"
                 </json:array>
             </json:map>
 
-            <xsl:apply-templates select="@* | node()" mode="#current"/>
+            <xsl:apply-templates select="node()" mode="#current"/>
         </xsl:copy>
     </xsl:template>
 
