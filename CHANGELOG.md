@@ -18,6 +18,7 @@
 - A paged view's status counts its rows: a container's children were described with their topics, so a page of 20 read "1–40"
 - A dataspace described after the platform started (an extension making dataspaces on the fly, or a context reloaded from a shared store) is versioned when its description says so: the versioning repository is read from the descriptions as they are when a graph is written or a version asked for, not once at startup
 - An empty write through the Linked Data proxy keeps its `Content-Type`, so an empty append is answered `204` as it is directly instead of `400`
+- A `502` for an upstream failure (a SPARQL result the Varnish store cut short, a result that could not be read) carries a description with the failure's message, not Tomcat's HTML error page
 
 ## [6.5.2] - 2026-11-12
 ### Fixed
