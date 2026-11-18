@@ -355,6 +355,9 @@ exclude-result-prefixes="#all"
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="focus-var-name" as="xs:string"/>
         <xsl:param name="cache" as="item()"/>
+        <!-- where the "Total results" line is written: the context item, unless the caller has no such line and the
+             total only reaches its pager (a chart's) -->
+        <xsl:param name="count-slot" select="." as="element()?"/>
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:document>
                 <!-- unset ORDER BY/LIMIT/OFFSET - we want to COUNT all of the container's children; ordering is irrelevant -->
@@ -388,6 +391,7 @@ exclude-result-prefixes="#all"
           map {
             'request': $request,
             'container': .,
+            'count-slot': $count-slot,
             'container-id': $container-id,
             'count-var-name': $count-var-name,
             'cache': $cache
@@ -3467,7 +3471,6 @@ exclude-result-prefixes="#all"
     <xsl:function name="ldh:result-count-response" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
-        <xsl:variable name="container" select="$context('container')" as="element()"/>
         <xsl:variable name="count-var-name" select="$context('count-var-name')" as="xs:string"/>
 
         <xsl:message>ldh:result-count-response</xsl:message>
@@ -3480,7 +3483,7 @@ exclude-result-prefixes="#all"
                 <xsl:when test="?status = 200 and ?media-type = 'application/sparql-results+xml'">
                     <xsl:for-each select="?body">
                         <xsl:variable name="results" select="." as="document-node()"/>
-                        <xsl:for-each select="$container">
+                        <xsl:for-each select="$context('count-slot')">
                             <xsl:result-document href="?." method="ixsl:replace-content">
                                 <xsl:apply-templates select="$results" mode="ldh:ViewResultCount">
                                     <xsl:with-param name="count-var-name" select="$count-var-name" tunnel="yes"/>
@@ -3497,14 +3500,14 @@ exclude-result-prefixes="#all"
                             <!-- rows were counted, yet the first page described no resources: the query's first variable binds
                                  values - a literal, a computed (YEAR(NOW()) AS ?year) - and a view shows resources. Said in the
                                  results region, where the empty state would have claimed that nothing matched -->
-                            <xsl:variable name="described" select="if (ixsl:contains($context('cache'), 'results')) then ixsl:get($context('cache'), 'results')/rdf:RDF/rdf:Description else ()" as="element()*"/>
+                            <xsl:variable name="view-results" select="if (ixsl:contains($context('cache'), 'results')) then ixsl:get($context('cache'), 'results') else ()" as="document-node()?"/>
                             <xsl:variable name="offset" select="xs:integer((ixsl:get($context('cache'), 'select-xml')/json:map/json:number[@key = 'offset'], 0)[1])" as="xs:integer"/>
-                            <xsl:if test="$container-id and $total-count gt 0 and empty($described) and $offset = 0">
+                            <!-- a chart's rows are SPARQL results, which describe nothing and are not meant to -->
+                            <xsl:if test="$container-id and $total-count gt 0 and empty($view-results/rdf:RDF/rdf:Description) and empty($view-results/srx:sparql) and $offset = 0">
                                 <xsl:sequence select="ldh:render-block-error(id($container-id || '-container-results', ixsl:page()), 'view-no-resources', 'view-no-resources-explanation', (), ())"/>
                             </xsl:if>
 
                             <xsl:if test="$container-id">
-                                <xsl:variable name="view-results" select="if (ixsl:contains($context('cache'), 'results')) then ixsl:get($context('cache'), 'results') else ()" as="document-node()?"/>
                                 <!-- the pager has its own id: it is no longer reachable by descending into the results
                                      region, and no longer needs to be. [*] keeps the total a refresh of controls that
                                      are already showing rather than a reason to show them - whether this view pages at
@@ -3514,7 +3517,8 @@ exclude-result-prefixes="#all"
                                     <xsl:result-document href="?." method="ixsl:replace-content">
                                         <xsl:call-template name="ldh:PagerControls">
                                             <xsl:with-param name="container-id" select="$container-id"/>
-                                            <xsl:with-param name="result-count" select="count($view-results/rdf:RDF/rdf:Description)"/>
+                                            <!-- the page's rows: a view's described resources, a chart's results -->
+                                            <xsl:with-param name="result-count" select="count($view-results/rdf:RDF/rdf:Description | $view-results/srx:sparql/srx:results/srx:result)"/>
                                             <xsl:with-param name="select-xml" select="ixsl:get($context('cache'), 'select-xml')"/>
                                             <xsl:with-param name="total-count" select="$total-count"/>
                                         </xsl:call-template>
@@ -3525,7 +3529,7 @@ exclude-result-prefixes="#all"
                     </xsl:for-each>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:for-each select="$container">
+                    <xsl:for-each select="$context('count-slot')">
                         <xsl:result-document href="?." method="ixsl:replace-content">
                             <!-- the count sits inline in the view toolbar, where a full alert would outweigh the row it
                                  reports on - the design system's compact negative tag is the status marker at this size -->
