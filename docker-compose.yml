@@ -388,7 +388,10 @@ configs:
                   set $$web_algebra http://web-algebra:8080;
                   proxy_pass $$web_algebra;
                   limit_req zone=web_algebra burst=10 nodelay;
-                  proxy_read_timeout 120s; # writing a plan is a 10-30 s model call
+                  # writing a plan is one model call that the sidecar may follow with a repair pass when the model's SPARQL
+                  # does not parse: 40-130 s measured against a 15M-quad dataspace, so the bound sits well above that.
+                  # Executing is polled at /webalgebra/{id}/result and needs no long wait
+                  proxy_read_timeout 600s;
 
                   # repeats the server-level set, since it also clears On-Behalf-Of. Proxy-Secret is for the platform only and
                   # is not sent to the sidecar

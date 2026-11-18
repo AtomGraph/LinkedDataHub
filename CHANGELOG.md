@@ -24,6 +24,7 @@
 - A paged view's status counts its rows: a container's children were described with their topics, so a page of 20 read "1–40"
 - A dataspace described after the platform started (an extension making dataspaces on the fly, or a context reloaded from a shared store) is versioned when its description says so: the versioning repository is read from the descriptions as they are when a graph is written or a version asked for, not once at startup
 - A row saved in place keeps the labels its ontology gives its properties: the redraw asked for the labels of the values and not of the properties, so a property came back under its local name, or under the label another vocabulary gives it ("Date Issued" for a dataspace's "Released")
+- The assistant waits for a plan that takes longer than two minutes to write: nginx cut the plan service's answer at 120 s, measured as a 10-30 s model call when the limit was set, and the card then reported that the endpoint could not be reached. A plan against a large ontology takes 40-130 s, longer when the service repairs the model's SPARQL; the wait is bounded at 10 minutes
 - An empty write through the Linked Data proxy keeps its `Content-Type`, so an empty append is answered `204` as it is directly instead of `400`
 - A `502` for an upstream failure (a SPARQL result the Varnish store cut short, a result that could not be read) carries a description with the failure's message, not Tomcat's HTML error page
 
