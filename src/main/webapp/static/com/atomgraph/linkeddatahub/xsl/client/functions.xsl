@@ -799,15 +799,15 @@ exclude-result-prefixes="#all"
     </xsl:function>
 
     <!-- Async load/set pair for constructor instantiation — builds the constructor SELECT request from
-    context('forClass'); the set fn instantiates the fetched constructor texts onto a single instance and
-    stores the result at context('constructed-doc'). forClass is relaxed to xs:anyURI* so EDIT chains
-    (which derive forClass from the resource's rdf:types and may legitimately have zero) can include this
-    step unconditionally — an empty forClass sends an empty VALUES block, the SELECT returns no rows and
+    context('for-class'); the set fn instantiates the fetched constructor texts onto a single instance and
+    stores the result at context('constructed-doc'). for-class is relaxed to xs:anyURI* so EDIT chains
+    (which derive for-class from the resource's rdf:types and may legitimately have zero) can include this
+    step unconditionally — an empty for-class sends an empty VALUES block, the SELECT returns no rows and
     the instantiated document is empty, which downstream merge/instantiate handle as a no-op. -->
     <xsl:function name="ldh:load-constructed-doc" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-        <xsl:variable name="forClass" select="$context('forClass')" as="xs:anyURI*"/>
-        <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', lds:base()), map{ 'query': ldh:constructor-query($forClass), 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
+        <xsl:variable name="for-class" select="$context('for-class')" as="xs:anyURI*"/>
+        <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', lds:base()), map{ 'query': ldh:constructor-query($for-class), 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
         <xsl:sequence select="map:merge(($context, map{ 'constructed-doc-request': $request }))"/>
@@ -820,7 +820,7 @@ exclude-result-prefixes="#all"
             <xsl:choose>
                 <xsl:when test="?status = 200 and ?media-type = 'application/sparql-results+xml'">
                     <xsl:variable name="texts" select="distinct-values(?body//srx:binding[@name = 'text']/srx:literal)" as="xs:string*"/>
-                    <xsl:sequence select="map:merge(($context, map{ 'constructed-doc': ldh:construct-instance($texts, $context('forClass')) }))"/>
+                    <xsl:sequence select="map:merge(($context, map{ 'constructed-doc': ldh:construct-instance($texts, $context('for-class')) }))"/>
                 </xsl:when>
                 <!-- every step after this one reads the constructed document, so the chain fails here rather than a step later on its absence -->
                 <xsl:otherwise>

@@ -1906,11 +1906,11 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="div[contains-token(@class, 'block')][@about]//button[contains-token(@class, 'btn-create-view')]" mode="ixsl:onclick">
         <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][@about][1]" as="element()"/>
-        <xsl:variable name="forClass" select="xs:anyURI('&ldh;View')" as="xs:anyURI"/>
+        <xsl:variable name="for-class" select="xs:anyURI('&ldh;View')" as="xs:anyURI"/>
 
         <xsl:call-template name="ldh:CreateBlock">
             <xsl:with-param name="block" select="$block"/>
-            <xsl:with-param name="forClass" select="$forClass"/>
+            <xsl:with-param name="for-class" select="$for-class"/>
             <xsl:with-param name="properties" as="element()*">
                 <spin:query rdf:resource="{$block/@about}"/>
             </xsl:with-param>
@@ -3545,18 +3545,18 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:variable name="view-block" select="ancestor::div[contains-token(@class, 'block')][@data-property][1]" as="element()"/>
         <xsl:variable name="content-body" select="ancestor::div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
-        <xsl:variable name="forClass" select="xs:anyURI(@data-for-class)" as="xs:anyURI"/>
+        <xsl:variable name="for-class" select="xs:anyURI(@data-for-class)" as="xs:anyURI"/>
         <xsl:variable name="container-uri" select="xs:anyURI(@data-container)" as="xs:anyURI"/>
         <xsl:variable name="doc-uri" select="resolve-uri(ac:uuid() || '/', $container-uri)" as="xs:anyURI"/> <!-- build a relative URI for the container's child document -->
         <xsl:variable name="this" select="xs:anyURI($doc-uri || '#id' || ac:uuid())" as="xs:anyURI"/> <!-- the instance is a fragment resource within the new document, same minting as the type-combobox flow -->
 
         <xsl:sequence select="ldh:busy-cursor()"/>
 
-        <!-- 'types' is initially set to ($forClass) so the shape fetch targets the right class, same as the type-combobox flow; 'view-*' keys carry the linkage metadata through the chain -->
+        <!-- 'types' is initially set to ($for-class) so the shape fetch targets the right class, same as the type-combobox flow; 'view-*' keys carry the linkage metadata through the chain -->
         <xsl:variable name="context" as="map(*)" select="map{
             'content-body': $content-body,
-            'forClass': $forClass,
-            'types': ($forClass),
+            'for-class': $for-class,
+            'types': ($for-class),
             'doc-uri': $doc-uri,
             'this': $this,
             'view-property': xs:anyURI($view-block/@data-property),
@@ -3588,7 +3588,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="content-body" select="$context('content-body')" as="element()"/>
         <xsl:variable name="doc-uri" select="$context('doc-uri')" as="xs:anyURI"/>
         <xsl:variable name="this" select="$context('this')" as="xs:anyURI"/>
-        <xsl:variable name="forClass" select="$context('forClass')" as="xs:anyURI"/>
+        <xsl:variable name="for-class" select="$context('for-class')" as="xs:anyURI"/>
         <xsl:variable name="instance-doc" select="$context('instance-doc')" as="document-node()"/>
         <xsl:variable name="constructed-doc" select="$context('constructed-doc')" as="document-node()"/>
         <xsl:variable name="type-metadata" select="$context('type-metadata')" as="document-node()?"/>
@@ -3623,7 +3623,7 @@ exclude-result-prefixes="#all"
             <!-- a modal takes over from the chrome that opened it: a drop-down the pick came from is dismissed here, once its own handler has run -->
             <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ac-menu-anchor')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseMenu"/>
             <xsl:result-document href="?." method="ixsl:append-content">
-                <div class="ac-backdrop pos-top modal modal-constructor" about="{$doc-uri}" typeof="{$forClass}"> <!-- @about identifies the new document URL (uniform with the other modals so submit handlers can read $block/@about); the instance URI travels on @data-instance -->
+                <div class="ac-backdrop pos-top modal modal-constructor" about="{$doc-uri}" typeof="{$for-class}"> <!-- @about identifies the new document URL (uniform with the other modals so submit handlers can read $block/@about); the instance URI travels on @data-instance -->
                     <xsl:apply-templates select="." mode="ldh:Modal">
                         <xsl:with-param name="body" as="item()*">
 

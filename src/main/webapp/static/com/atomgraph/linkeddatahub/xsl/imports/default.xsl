@@ -325,7 +325,7 @@ exclude-result-prefixes="#all"
     <!-- the label of a class given as a bare URI: rdfs:Resource takes the app catalog's localized label,
          everything else delegates to the ac:object-label machinery over a synthesized object node, so the
          load-guarded document lookup (with its SAXON catalog / SaxonJS documentPool duals) lives in one
-         place - the ac:object-label mode. The atomic-URI signature exists because $forClass travels as
+         place - the ac:object-label mode. The atomic-URI signature exists because $for-class travels as
          xs:anyURI*, never as nodes the mode could dispatch on -->
     <xsl:function name="ldh:class-label" as="xs:string?">
         <xsl:param name="class" as="xs:anyURI"/>
@@ -351,7 +351,7 @@ exclude-result-prefixes="#all"
     <!-- the classes a constructor declares for the objects of this property: the marker the subject's own class
          constructor puts under the same predicate, minus rdfs:Class, which every marker carries. The row asks
          once per property and hands the answer to the control (to scope its combobox) and to the value's
-         annotation (to name the chip) as $forClass -->
+         annotation (to name the chip) as $for-class -->
     <xsl:function name="ldh:constructor-range" as="xs:anyURI*">
         <xsl:param name="property" as="element()"/>
         <xsl:param name="constructor" as="document-node()?"/>
@@ -632,39 +632,39 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$doc"/>
     </xsl:function>
 
-    <!-- Pure derivation: produces an instance document from a class-keyed, bnode-prototyped constructor by re-keying the prototype Description (the one whose rdf:type matches $forClass) under the given identity. The input constructor is not modified. Pass $about to mint a URI-identified instance (the document-creation case and the fragment-instance case) or $nodeID to mint a bnode-identified instance with a deterministic label. Implementation reuses the existing mode="ldh:SetResourceID" pass — it's the same identity-rewrite, just exposed as a function so call sites can keep the constructor pure and derive the instance separately. -->
+    <!-- Pure derivation: produces an instance document from a class-keyed, bnode-prototyped constructor by re-keying the prototype Description (the one whose rdf:type matches $for-class) under the given identity. The input constructor is not modified. Pass $about to mint a URI-identified instance (the document-creation case and the fragment-instance case) or $nodeID to mint a bnode-identified instance with a deterministic label. Implementation reuses the existing mode="ldh:SetResourceID" pass — it's the same identity-rewrite, just exposed as a function so call sites can keep the constructor pure and derive the instance separately. -->
     <xsl:function name="ldh:instantiate-constructor" as="document-node()">
         <xsl:param name="constructor" as="document-node()"/>
-        <xsl:param name="forClass" as="xs:anyURI"/>
+        <xsl:param name="for-class" as="xs:anyURI"/>
         <xsl:param name="about" as="xs:anyURI?"/>
         <xsl:param name="nodeID" as="xs:string?"/>
 
         <xsl:document>
             <xsl:apply-templates select="$constructor" mode="ldh:SetResourceID">
-                <xsl:with-param name="forClass" select="$forClass" tunnel="yes"/>
+                <xsl:with-param name="for-class" select="$for-class" tunnel="yes"/>
                 <xsl:with-param name="about" select="$about" tunnel="yes"/>
                 <xsl:with-param name="nodeID" select="$nodeID" tunnel="yes"/>
             </xsl:apply-templates>
         </xsl:document>
     </xsl:function>
 
-    <!-- Pure derivation: folds a SHACL-derived constructor and a SPIN-derived constructor into one bnode-prototyped constructor for $forClass. Aligns the SPIN side's prototype bnode label to the SHACL side's (via mode="ldh:RenameBnode"), then groups Descriptions by identity so the two prototypes collapse into one with combined children. Value-range siblings on each side keep their own bnode labels and stay as distinct Descriptions in the merged doc. When the SHACL side has no prototype Description for $forClass (e.g. no NodeShape targets that class), returns the SPIN side unchanged. -->
+    <!-- Pure derivation: folds a SHACL-derived constructor and a SPIN-derived constructor into one bnode-prototyped constructor for $for-class. Aligns the SPIN side's prototype bnode label to the SHACL side's (via mode="ldh:RenameBnode"), then groups Descriptions by identity so the two prototypes collapse into one with combined children. Value-range siblings on each side keep their own bnode labels and stay as distinct Descriptions in the merged doc. When the SHACL side has no prototype Description for $for-class (e.g. no NodeShape targets that class), returns the SPIN side unchanged. -->
     <xsl:function name="ldh:merge-constructors" as="document-node()">
         <xsl:param name="shape-constructor" as="document-node()?"/>
         <xsl:param name="spin-constructor" as="document-node()"/>
-        <xsl:param name="forClass" as="xs:anyURI"/>
+        <xsl:param name="for-class" as="xs:anyURI"/>
 
-        <!-- Prototype = the Description that (a) carries $forClass as a type and (b) has property assertions beyond rdf:type. The [* except rdf:type] guard excludes pure-typing Descriptions (e.g. <rdf:Description rdf:nodeID="A1"><rdf:type rdf:resource="…/Class"/></rdf:Description> emitted as a range marker on a property). The [1] tiebreaker handles constructors that legitimately ship multiple instances of $forClass (content-block co-shipping, nested templates); the merge keys off whichever prototype we name here, others stay as distinct siblings. -->
-        <xsl:variable name="shape-proto-id" select="($shape-constructor/rdf:RDF/*[rdf:type/@rdf:resource = $forClass][* except rdf:type]/@rdf:nodeID/string())[1]" as="xs:string?"/>
+        <!-- Prototype = the Description that (a) carries $for-class as a type and (b) has property assertions beyond rdf:type. The [* except rdf:type] guard excludes pure-typing Descriptions (e.g. <rdf:Description rdf:nodeID="A1"><rdf:type rdf:resource="…/Class"/></rdf:Description> emitted as a range marker on a property). The [1] tiebreaker handles constructors that legitimately ship multiple instances of $for-class (content-block co-shipping, nested templates); the merge keys off whichever prototype we name here, others stay as distinct siblings. -->
+        <xsl:variable name="shape-proto-id" select="($shape-constructor/rdf:RDF/*[rdf:type/@rdf:resource = $for-class][* except rdf:type]/@rdf:nodeID/string())[1]" as="xs:string?"/>
         <!-- A class with a shape but no constructor still has a SPIN side: ldh:construct-instance types the
-             _:instance bnode with $forClass even when no constructor text came back, so the SPIN doc holds a
+             _:instance bnode with $for-class even when no constructor text came back, so the SPIN doc holds a
              pure-typing instance and nothing else. The guard above cannot tell it from a range marker, so
              it was never aligned to the shape's prototype and survived beside it - and every flow that then
-             looked for THE $forClass resource found two (the type combobox: "Required cardinality ... is
+             looked for THE $for-class resource found two (the type combobox: "Required cardinality ... is
              exactly one; supplied value contains 2 items"). What tells the instance from a marker is that
              nothing points at it: a marker is the object of a property template, the instance of nothing.
              Fall back to that unreferenced typing-only Description so it collapses into the shape prototype. -->
-        <xsl:variable name="spin-proto-id" select="($spin-constructor/rdf:RDF/*[rdf:type/@rdf:resource = $forClass][* except rdf:type]/@rdf:nodeID/string(), $spin-constructor/rdf:RDF/*[@rdf:nodeID][rdf:type/@rdf:resource = $forClass][not(* except rdf:type)][not(key('predicates-by-object', @rdf:nodeID, $spin-constructor))]/@rdf:nodeID/string())[1]" as="xs:string?"/>
+        <xsl:variable name="spin-proto-id" select="($spin-constructor/rdf:RDF/*[rdf:type/@rdf:resource = $for-class][* except rdf:type]/@rdf:nodeID/string(), $spin-constructor/rdf:RDF/*[@rdf:nodeID][rdf:type/@rdf:resource = $for-class][not(* except rdf:type)][not(key('predicates-by-object', @rdf:nodeID, $spin-constructor))]/@rdf:nodeID/string())[1]" as="xs:string?"/>
 
         <xsl:choose>
             <xsl:when test="empty($shape-proto-id)">
@@ -728,7 +728,7 @@ exclude-result-prefixes="#all"
     <xsl:function name="ldh:build-merged-constructor" as="document-node()?">
         <xsl:param name="shapes" as="document-node()?"/>
         <xsl:param name="constructed-doc" as="document-node()?"/>
-        <xsl:param name="forClass" as="xs:anyURI?"/>
+        <xsl:param name="for-class" as="xs:anyURI?"/>
 
         <xsl:variable name="shape-instance-doc" as="document-node()?">
             <xsl:if test="exists($shapes)">
@@ -740,8 +740,8 @@ exclude-result-prefixes="#all"
         </xsl:variable>
 
         <xsl:choose>
-            <xsl:when test="exists($constructed-doc) and exists($forClass)">
-                <xsl:sequence select="ldh:merge-constructors($shape-instance-doc, $constructed-doc, $forClass)"/>
+            <xsl:when test="exists($constructed-doc) and exists($for-class)">
+                <xsl:sequence select="ldh:merge-constructors($shape-instance-doc, $constructed-doc, $for-class)"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:sequence select="$constructed-doc"/>
@@ -879,13 +879,13 @@ exclude-result-prefixes="#all"
     
     <!-- resource has to have properties other than rdf:type -->
     <xsl:template match="rdf:Description[@rdf:nodeID][* except rdf:type]" mode="ldh:SetResourceID" priority="1">
-        <xsl:param name="forClass" as="xs:anyURI" tunnel="yes"/>
+        <xsl:param name="for-class" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="about" as="xs:anyURI?" tunnel="yes"/>
         <xsl:param name="nodeID" as="xs:string?" tunnel="yes"/>
         
         <xsl:copy>
             <xsl:choose>
-                <xsl:when test="rdf:type/@rdf:resource = $forClass">
+                <xsl:when test="rdf:type/@rdf:resource = $for-class">
                     <xsl:choose>
                         <xsl:when test="$about">
                             <xsl:attribute name="rdf:about" select="$about"/> <!-- suppress @rdf:nodeID -->
@@ -1005,13 +1005,13 @@ exclude-result-prefixes="#all"
         <xsl:param name="value" as="xs:string?"/>
         <xsl:param name="list-class" select="'resource-combobox combobox'" as="xs:string"/>
         <xsl:param name="list-id" select="concat('ul-', $id)" as="xs:string"/>
-        <xsl:param name="forClass" as="xs:anyURI*"/>
+        <xsl:param name="for-class" as="xs:anyURI*"/>
 
         <div class="ac-combobox sz-sm is-iri">
             <!-- data-for-class sits on the box, the input's parent, where the lookup handlers read it -->
             <div class="ac-cb-box">
-                <xsl:if test="exists($forClass)">
-                    <xsl:attribute name="data-for-class" select="string-join($forClass, ' ')"/>
+                <xsl:if test="exists($for-class)">
+                    <xsl:attribute name="data-for-class" select="string-join($for-class, ' ')"/>
                 </xsl:if>
 
                 <span class="msi outline sm" aria-hidden="true">search</span>

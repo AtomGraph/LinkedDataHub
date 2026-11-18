@@ -435,7 +435,7 @@ exclude-result-prefixes="#all"
         <!-- the class the constructor declares for this property's objects is a fact about the PROPERTY, so the row
              derives it once and hands it to every value control (to scope its combobox) and value annotation (to
              name its chip); nothing below the row sees the constructor -->
-        <xsl:param name="forClass" select="ldh:constructor-range(., $constructor)" as="xs:anyURI*"/>
+        <xsl:param name="for-class" select="ldh:constructor-range(., $constructor)" as="xs:anyURI*"/>
         <xsl:param name="template" as="element()*"/>
         <xsl:param name="cloneable" select="false()" as="xs:boolean"/>
         <xsl:param name="type-constraints" as="element()*"/>
@@ -479,7 +479,7 @@ exclude-result-prefixes="#all"
                         <xsl:apply-templates select="node() | @rdf:resource | @rdf:nodeID" mode="#current"> <!-- not @rdf:* because that would apply to @rdf:parseType -->
                             <xsl:with-param name="id" select="$for"/>
                             <xsl:with-param name="required" select="$required"/>
-                            <xsl:with-param name="forClass" select="$forClass"/>
+                            <xsl:with-param name="for-class" select="$for-class"/>
                             <xsl:with-param name="type-label" select="false()"/>
                         </xsl:apply-templates>
                         <!-- the datatype rides the form encoding as a hidden input; its visible face is the chip in the strip -->
@@ -487,7 +487,7 @@ exclude-result-prefixes="#all"
 
                         <xsl:variable name="annotations" as="item()*">
                             <xsl:apply-templates select="node() | @rdf:resource | @rdf:nodeID" mode="ac:ValueAnnotations">
-                                <xsl:with-param name="forClass" select="$forClass"/>
+                                <xsl:with-param name="for-class" select="$for-class"/>
                             </xsl:apply-templates>
                         </xsl:variable>
                         <xsl:if test="exists($annotations)">
@@ -564,7 +564,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="inline" select="false()" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
         <xsl:param name="object-metadata" as="document-node()?" tunnel="yes"/>
-        <xsl:param name="forClass" as="xs:anyURI*"/>
+        <xsl:param name="for-class" as="xs:anyURI*"/>
 
         <xsl:choose>
             <xsl:when test="$type = 'hidden'">
@@ -578,13 +578,13 @@ exclude-result-prefixes="#all"
             <!-- object resource exists in the current document -->
             <xsl:when test="key('resources', .)">
                 <xsl:apply-templates select="key('resources', .)" mode="ldh:ComboboxChip">
-                    <xsl:with-param name="forClass" select="$forClass"/>
+                    <xsl:with-param name="for-class" select="$for-class"/>
                 </xsl:apply-templates>
 
                 <xsl:if test="$type-label">
                     <xsl:apply-templates select="." mode="ac:ValueAnnotations">
                         <xsl:with-param name="type" select="$type"/>
-                        <xsl:with-param name="forClass" select="$forClass"/>
+                        <xsl:with-param name="for-class" select="$for-class"/>
                     </xsl:apply-templates>
                 </xsl:if>
             </xsl:when>
@@ -592,20 +592,20 @@ exclude-result-prefixes="#all"
                 <xsl:choose>
                     <xsl:when test="key('resources', ., $object-metadata)">
                         <xsl:apply-templates select="key('resources', ., $object-metadata)" mode="ldh:ComboboxChip">
-                            <xsl:with-param name="forClass" select="$forClass"/>
+                            <xsl:with-param name="for-class" select="$for-class"/>
                         </xsl:apply-templates>
 
                         <xsl:if test="$type-label">
                             <xsl:apply-templates select="." mode="ac:ValueAnnotations">
                                 <xsl:with-param name="type" select="$type"/>
-                                <xsl:with-param name="forClass" select="$forClass"/>
+                                <xsl:with-param name="for-class" select="$for-class"/>
                             </xsl:apply-templates>
                         </xsl:if>
                     </xsl:when>
                     <xsl:otherwise>
                         <xsl:call-template name="ldh:Combobox">
                             <xsl:with-param name="value" select="."/>
-                            <xsl:with-param name="forClass" select="$forClass"/>
+                            <xsl:with-param name="for-class" select="$for-class"/>
                         </xsl:call-template>
 
                         <xsl:if test="$type-label">
@@ -619,7 +619,7 @@ exclude-result-prefixes="#all"
             <xsl:otherwise>
                 <xsl:call-template name="ldh:Combobox">
                     <xsl:with-param name="value" select="."/>
-                    <xsl:with-param name="forClass" select="$forClass"/>
+                    <xsl:with-param name="for-class" select="$for-class"/>
                 </xsl:call-template>
 
                 <xsl:if test="$type-label">
@@ -634,13 +634,13 @@ exclude-result-prefixes="#all"
     <!-- one tag per class the value is looked up among: a marker typed with two classes read as one word -->
     <xsl:template match="@rdf:resource" mode="ac:ValueAnnotations">
         <xsl:param name="type" as="xs:string?"/>
-        <xsl:param name="forClass" as="xs:anyURI*"/>
+        <xsl:param name="for-class" as="xs:anyURI*"/>
         <xsl:variable name="value" select="." as="attribute()"/>
 
         <xsl:if test="not($type = 'hidden')">
             <xsl:choose>
-                <xsl:when test="exists($forClass)">
-                    <xsl:for-each select="$forClass">
+                <xsl:when test="exists($for-class)">
+                    <xsl:for-each select="$for-class">
                         <xsl:apply-templates select="$value" mode="ac:AnnotationTag">
                             <xsl:with-param name="class" select="'ac-tag sz-sm em-quiet an-term is-resource'"/>
                             <xsl:with-param name="title" select="string(.)"/>
@@ -669,7 +669,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="traversed-ids" as="xs:string*" tunnel="yes"/>
         <xsl:param name="inline" select="false()" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
-        <xsl:param name="forClass" as="xs:anyURI*"/>
+        <xsl:param name="for-class" as="xs:anyURI*"/>
         <xsl:variable name="resource" select="key('resources', .)"/>
 
         <xsl:choose>
@@ -697,13 +697,13 @@ exclude-result-prefixes="#all"
             </xsl:when>
             <xsl:when test="$resource">
                 <xsl:apply-templates select="$resource" mode="ldh:ComboboxChip">
-                    <xsl:with-param name="forClass" select="$forClass"/>
+                    <xsl:with-param name="for-class" select="$for-class"/>
                 </xsl:apply-templates>
 
                 <xsl:if test="$type-label">
                     <xsl:apply-templates select="." mode="ac:ValueAnnotations">
                         <xsl:with-param name="type" select="$type"/>
-                        <xsl:with-param name="forClass" select="$forClass"/>
+                        <xsl:with-param name="for-class" select="$for-class"/>
                     </xsl:apply-templates>
                 </xsl:if>
             </xsl:when>
@@ -861,16 +861,16 @@ exclude-result-prefixes="#all"
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
         <xsl:param name="required" select="false()" as="xs:boolean"/>
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
-        <xsl:variable name="forClass" select="key('resources', .)/rdf:type/@rdf:resource" as="xs:anyURI"/>
+        <xsl:variable name="for-class" select="key('resources', .)/rdf:type/@rdf:resource" as="xs:anyURI"/>
 
         <xsl:apply-templates select="key('resources', .)" mode="ldh:ComboboxChip">
-            <xsl:with-param name="forClass" select="$forClass"/>
+            <xsl:with-param name="for-class" select="$for-class"/>
         </xsl:apply-templates>
 
         <xsl:if test="$type-label">
             <xsl:apply-templates select="." mode="ac:ValueAnnotations">
                 <xsl:with-param name="type" select="$type"/>
-                <xsl:with-param name="forClass" select="$forClass"/>
+                <xsl:with-param name="for-class" select="$for-class"/>
             </xsl:apply-templates>
         </xsl:if>
     </xsl:template>
@@ -889,19 +889,19 @@ exclude-result-prefixes="#all"
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
         <xsl:param name="required" select="false()" as="xs:boolean"/>
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
-        <xsl:param name="forClass" select="key('resources', .)/rdf:type/@rdf:resource" as="xs:anyURI*"/>
+        <xsl:param name="for-class" select="key('resources', .)/rdf:type/@rdf:resource" as="xs:anyURI*"/>
 
         <xsl:call-template name="ldh:Combobox">
             <xsl:with-param name="type" select="$type"/>
             <xsl:with-param name="id" select="$id"/>
             <xsl:with-param name="class" select="$class"/>
-            <xsl:with-param name="forClass" select="$forClass"/>
+            <xsl:with-param name="for-class" select="$for-class"/>
         </xsl:call-template>
 
         <xsl:if test="$type-label">
             <xsl:apply-templates select="." mode="ac:ValueAnnotations">
                 <xsl:with-param name="type" select="$type"/>
-                <xsl:with-param name="forClass" select="$forClass"/>
+                <xsl:with-param name="for-class" select="$for-class"/>
             </xsl:apply-templates>
         </xsl:if>
     </xsl:template>
@@ -937,13 +937,13 @@ exclude-result-prefixes="#all"
     <!-- as for a URI value: one tag per class the lookup is restricted to -->
     <xsl:template match="*[@rdf:about or @rdf:nodeID]/*/@rdf:nodeID" mode="ac:ValueAnnotations">
         <xsl:param name="type" as="xs:string?"/>
-        <xsl:param name="forClass" as="xs:anyURI*"/>
+        <xsl:param name="for-class" as="xs:anyURI*"/>
         <xsl:variable name="value" select="." as="attribute()"/>
 
         <xsl:if test="not($type = 'hidden')">
             <xsl:choose>
-                <xsl:when test="exists($forClass)">
-                    <xsl:for-each select="$forClass">
+                <xsl:when test="exists($for-class)">
+                    <xsl:for-each select="$for-class">
                         <xsl:apply-templates select="$value" mode="ac:AnnotationTag">
                             <xsl:with-param name="class" select="'ac-tag sz-sm em-quiet an-term is-blank'"/>
                             <xsl:with-param name="title" select="string(.)"/>

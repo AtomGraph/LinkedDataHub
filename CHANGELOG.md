@@ -6,6 +6,7 @@
 ### Changed
 - A resource a document describes may be left without a type: `PATCH` refuses only to leave the document itself untyped, which it already did, as the document must keep a document hierarchy class. Imported data often describes entities without a type, and a resource that had one could not be given the same shape (#308 held every resource to keeping one)
 - The `ldh` plugin's skills show how to check which property views a type gets without a browser, with the page's own lookup query against the installed ontology: `ldh get --accept text/html` returns the page before the browser renders its blocks and property views
+- The stylesheets' `forClass` parameter, variable and context key are `for-class`, as every other name in them is spelled. A package stylesheet that passed `forClass` to a platform template passes `for-class`; `data-for-class` and the lookup query's `?forClass` are unchanged
 - A container's children view lists its documents, not the things they are about: `ldh:SelectChildren` no longer selects each child's `foaf:primaryTopic`, and the list, grid and table modes render each result as itself instead of standing a document's topic in for it. A document's row carries no type tag, as its header carries no type chip. A page that lists things (a catalogue, a table of people) is a view over the things
 
 ### Fixed

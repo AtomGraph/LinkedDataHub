@@ -64,10 +64,10 @@ exclude-result-prefixes="#all">
 
     <!-- Renders the signup form synchronously on both products: ldh:parse-query behind ldh:construct-instance is dual-declared (SPARQL.js in the browser, the ParseQuery Jena extension server-side), so the same template serves the server-rendered page and client-side re-renders -->
     <xsl:template match="rdf:RDF[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), lds:base())]" mode="ldh:BlockRow" priority="2">
-        <xsl:variable name="forClass" select="xs:anyURI('&foaf;Person')" as="xs:anyURI"/>
-        <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', lds:base()), map{ 'query': ldh:constructor-query($forClass), 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
+        <xsl:variable name="for-class" select="xs:anyURI('&foaf;Person')" as="xs:anyURI"/>
+        <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', lds:base()), map{ 'query': ldh:constructor-query($for-class), 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
         <xsl:variable name="results" select="document(ldh:href($results-uri, map{}))" as="document-node()"/>
-        <xsl:variable name="constructed-doc" select="ldh:construct-instance(distinct-values($results//srx:binding[@name = 'text']/srx:literal), $forClass)" as="document-node()"/>
+        <xsl:variable name="constructed-doc" select="ldh:construct-instance(distinct-values($results//srx:binding[@name = 'text']/srx:literal), $for-class)" as="document-node()"/>
 
         <!-- select element children of rdf:RDF only — the constructed document is not strip-space'd, so unguarded apply-templates would copy whitespace text nodes -->
         <xsl:apply-templates select="$constructed-doc/rdf:RDF/*" mode="ldh:RowForm">
