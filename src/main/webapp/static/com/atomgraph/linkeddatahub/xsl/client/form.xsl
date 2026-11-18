@@ -1883,17 +1883,17 @@ WHERE
                 <xsl:when test="empty($resources/rdf:RDF/*)">
                     <xsl:sequence select="ixsl:call(($block/ancestor::div[contains-token(@class, 'ldh-block-row')][1], $block)[1], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:when>
-                <!-- the row is drawn from the submitted triples alone, so the labels of their objects are queried first,
-                     as every other block render does; if the query fails, the row is drawn without them -->
+                <!-- the row is drawn from the submitted triples alone, so the labels of their objects and of their
+                     properties are queried first, as every other block render does; if a query fails, the row is drawn
+                     without them -->
                 <xsl:otherwise>
-                    <xsl:variable name="metadata-context" select="map:merge(($context, map{ 'endpoint': sd:endpoint(), 'object-uris': distinct-values($resources//@rdf:resource) }), map{ 'duplicates': 'use-last' })" as="map(*)"/>
+                    <xsl:variable name="metadata-context" select="map:merge(($context, map{ 'endpoint': sd:endpoint(), 'object-uris': distinct-values($resources//@rdf:resource), 'property-uris': distinct-values($resources/rdf:RDF/*/*/concat(namespace-uri(), local-name())) }), map{ 'duplicates': 'use-last' })" as="map(*)"/>
                     <ixsl:promise select="
-                      ldh:http-request-threaded(ldh:load-object-metadata($metadata-context), 'metadata-request', 'metadata-response')
-                        => ixsl:then(ldh:handle-response(?, 'metadata-response'))
-                        => ixsl:then(ldh:set-object-metadata#1)
-                        => ixsl:then(ldh:http-request-threaded(?, 'ns-metadata-request', 'ns-metadata-response'))
-                        => ixsl:then(ldh:handle-response(?, 'ns-metadata-response'))
-                        => ixsl:then(ldh:set-object-metadata-ns#1)
+                      ldh:fire-load-set-parallel($metadata-context, [
+                        [ ldh:load-object-metadata#1,   'metadata-request',          'metadata-response',          ldh:set-object-metadata#1 ],
+                        [ ldh:load-object-metadata#1,   'ns-metadata-request',       'ns-metadata-response',       ldh:set-object-metadata-ns#1 ],
+                        [ ldh:load-property-metadata#1, 'property-metadata-request', 'property-metadata-response', ldh:set-property-metadata#1 ]
+                      ])
                         => ixsl:then(ldh:merge-object-metadata#1)
                         => ixsl:then(ldh:form-horizontal-render#1)
                     " on-failure="ldh:form-horizontal-render($metadata-context, ?)"/>
@@ -1911,7 +1911,8 @@ WHERE
         </xsl:for-each>
     </xsl:function>
 
-    <!-- draws the saved row again from the submitted triples, with the labels of their objects when the query for them succeeded -->
+    <!-- draws the saved row again from the submitted triples, with the labels of their objects and properties when the
+         queries for them succeeded -->
     <xsl:function name="ldh:form-horizontal-render" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
 
@@ -1924,6 +1925,7 @@ WHERE
         <xsl:variable name="block" select="$context('block')" as="element()"/>
         <xsl:variable name="resources" select="$context('resources')" as="document-node()"/>
         <xsl:variable name="object-metadata" select="if (map:contains($context, 'object-metadata')) then $context('object-metadata') else ()" as="document-node()?"/>
+        <xsl:variable name="property-metadata" select="if (map:contains($context, 'property-metadata')) then $context('property-metadata') else ()" as="document-node()?"/>
 
         <xsl:message>ldh:form-horizontal-render</xsl:message>
 
@@ -1934,6 +1936,7 @@ WHERE
                 <xsl:with-param name="style" select="()"/> <!-- TO-DO: remove? -->
                 <xsl:with-param name="type-content" select="false()"/>
                 <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
+                <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
                 <xsl:sort select="ac:label(.)"/>
             </xsl:apply-templates>
         </xsl:variable>
