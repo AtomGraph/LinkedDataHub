@@ -29,3 +29,4 @@
 /tests/ui/test-results
 /rdf/target/
 /src/main/js/graph3d/node_modules
+/src/main/js/sparql/node_modules

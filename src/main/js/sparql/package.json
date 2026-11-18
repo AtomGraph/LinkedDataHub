@@ -8,8 +8,8 @@
     "test": "node --test"
   },
   "dependencies": {
-    "@traqula/generator-sparql-1-1": "1.5.0-alpha.7",
-    "@traqula/parser-sparql-1-1": "1.5.0-alpha.7"
+    "@traqula/generator-sparql-1-1": "1.4.0",
+    "@traqula/parser-sparql-1-1": "1.4.0"
   },
   "devDependencies": {
     "esbuild": "0.25.10"
