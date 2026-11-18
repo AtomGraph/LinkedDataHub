@@ -626,7 +626,6 @@ exclude-result-prefixes="#all"
                                         <json:map key="subject"><xsl:copy-of select="ldh:instance-term(json:map[@key = 'subject'], $pos)/node()"/></json:map>
                                         <json:map key="predicate"><xsl:copy-of select="$predicate/node()"/></json:map>
                                         <json:map key="object"><xsl:copy-of select="ldh:instance-term(json:map[@key = 'object'], $pos)/node()"/></json:map>
-                                        <json:map key="loc"><json:string key="sourceLocationType">autoGenerate</json:string></json:map>
                                     </json:map>
                                 </xsl:otherwise>
                             </xsl:choose>
@@ -652,7 +651,6 @@ exclude-result-prefixes="#all"
                     <json:map key="subject"><xsl:copy-of select="ldh:typed-term-node('blankNode', 'instance', ())/node()"/></json:map>
                     <json:map key="predicate"><xsl:copy-of select="ldh:typed-term-node('namedNode', '&rdf;type', ())/node()"/></json:map>
                     <json:map key="object"><xsl:copy-of select="ldh:typed-term-node('namedNode', string(.), ())/node()"/></json:map>
-                    <json:map key="loc"><json:string key="sourceLocationType">autoGenerate</json:string></json:map>
                 </json:map>
             </xsl:for-each>
         </xsl:variable>

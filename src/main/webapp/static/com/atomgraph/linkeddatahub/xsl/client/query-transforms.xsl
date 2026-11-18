@@ -153,15 +153,15 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="suffix" select="if ($language) then '@' || $language else if ($datatype) then '^^' || (if (contains($token, $quote || '^^&lt;')) then '&lt;' || $datatype || '&gt;' else $datatype) else ''" as="xs:string"/>
         <xsl:variable name="lexical" select="if (starts-with($token, $quote)) then substring($token, 2, string-length($token) - 2 - string-length($suffix)) else ''" as="xs:string"/>
         <xsl:variable name="node" as="map(*)" select="
-            if (matches($token, '^[?$]')) then map { 'type': 'term', 'subType': 'variable', 'value': substring($token, 2), 'loc': map { 'sourceLocationType': 'autoGenerate' } }
-            else if (starts-with($token, '_:')) then map { 'type': 'term', 'subType': 'blankNode', 'label': substring-after($token, '_:'), 'loc': map { 'sourceLocationType': 'autoGenerate' } }
+            if (matches($token, '^[?$]')) then map { 'type': 'term', 'subType': 'variable', 'value': substring($token, 2) }
+            else if (starts-with($token, '_:')) then map { 'type': 'term', 'subType': 'blankNode', 'label': substring-after($token, '_:') }
             else if (starts-with($token, $quote)) then map:merge((
-                map { 'type': 'term', 'subType': 'literal', 'value': $lexical, 'loc': map { 'sourceLocationType': 'autoGenerate' } },
+                map { 'type': 'term', 'subType': 'literal', 'value': $lexical },
                 if ($language) then map { 'langOrIri': $language }
-                else if ($datatype) then map { 'langOrIri': map { 'type': 'term', 'subType': 'namedNode', 'value': $datatype, 'loc': map { 'sourceLocationType': 'autoGenerate' } } }
+                else if ($datatype) then map { 'langOrIri': map { 'type': 'term', 'subType': 'namedNode', 'value': $datatype } }
                 else map {}
             ))
-            else map { 'type': 'term', 'subType': 'namedNode', 'value': if (starts-with($token, '&lt;') and ends-with($token, '&gt;')) then substring($token, 2, string-length($token) - 2) else $token, 'loc': map { 'sourceLocationType': 'autoGenerate' } }"/>
+            else map { 'type': 'term', 'subType': 'namedNode', 'value': if (starts-with($token, '&lt;') and ends-with($token, '&gt;')) then substring($token, 2, string-length($token) - 2) else $token }"/>
         <xsl:sequence select="json-to-xml(serialize($node, map { 'method': 'json' }))/json:map"/>
     </xsl:function>
 
@@ -292,7 +292,6 @@ extension-element-prefixes="ixsl"
                         <json:string key="type">term</json:string>
                         <json:string key="subType">variable</json:string>
                         <json:string key="value"><xsl:value-of select="substring-after($graph-var, '?')"/></json:string>
-                        <json:map key="loc"><json:string key="sourceLocationType">autoGenerate</json:string></json:map>
                     </json:map>
                 </json:map>
             </json:array>
@@ -375,7 +374,6 @@ extension-element-prefixes="ixsl"
                     <json:string key="type">solutionModifier</json:string>
                     <json:string key="subType">limitOffset</json:string>
                     <json:number key="limit"><xsl:value-of select="$limit"/></json:number>
-                    <json:map key="loc"><json:string key="sourceLocationType">autoGenerate</json:string></json:map>
                 </json:map>
             </json:map>
         </json:map>
@@ -406,17 +404,13 @@ extension-element-prefixes="ixsl"
                             <json:string key="type">term</json:string>
                             <json:string key="subType">namedNode</json:string>
                             <json:string key="value">&xsd;boolean</json:string>
-                            <json:map key="loc"><json:string key="sourceLocationType">autoGenerate</json:string></json:map>
                         </json:map>
-                        <json:map key="loc"><json:string key="sourceLocationType">autoGenerate</json:string></json:map>
                     </json:map>
                     <json:map key="variable">
                         <json:string key="type">term</json:string>
                         <json:string key="subType">variable</json:string>
                         <json:string key="value">inverse<xsl:value-of select="$suffix"/></json:string>
-                        <json:map key="loc"><json:string key="sourceLocationType">autoGenerate</json:string></json:map>
                     </json:map>
-                    <json:map key="loc"><json:string key="sourceLocationType">autoGenerate</json:string></json:map>
                 </json:map>
             </json:array>
             <json:map key="where">
@@ -501,7 +495,6 @@ extension-element-prefixes="ixsl"
                     <json:string key="type">solutionModifier</json:string>
                     <json:string key="subType">group</json:string>
                     <json:array key="groupings"><xsl:sequence select="ldh:term-node($predicate-var)"/></json:array>
-                    <json:map key="loc"><json:string key="sourceLocationType">autoGenerate</json:string></json:map>
                 </json:map>
             </json:map>
         </json:map>
@@ -622,7 +615,6 @@ extension-element-prefixes="ixsl"
                             <json:string key="type">term</json:string>
                             <json:string key="subType">variable</json:string>
                             <json:string key="value"><xsl:value-of select="$graph-var-name"/></json:string>
-                            <json:map key="loc"><json:string key="sourceLocationType">autoGenerate</json:string></json:map>
                         </json:map>
                     </json:map>
                 </json:array>
@@ -655,7 +647,6 @@ extension-element-prefixes="ixsl"
                             <json:boolean key="descending">false</json:boolean>
                         </json:map>
                     </json:array>
-                    <json:map key="loc"><json:string key="sourceLocationType">autoGenerate</json:string></json:map>
                 </json:map>
             </xsl:if>
         </xsl:copy>
@@ -785,7 +776,6 @@ extension-element-prefixes="ixsl"
                     <json:string key="type">solutionModifier</json:string>
                     <json:string key="subType">group</json:string>
                     <json:array key="groupings"><xsl:sequence select="ldh:term-node('?' || $object-var-name)"/></json:array>
-                    <json:map key="loc"><json:string key="sourceLocationType">autoGenerate</json:string></json:map>
                 </json:map>
                 <xsl:if test="not(json:map[@key = 'solutionModifiers']/json:map[@key = 'order'])">
                     <json:map key="order">
@@ -797,7 +787,6 @@ extension-element-prefixes="ixsl"
                                 <json:boolean key="descending"><xsl:value-of select="$descending"/></json:boolean>
                             </json:map>
                         </json:array>
-                        <json:map key="loc"><json:string key="sourceLocationType">autoGenerate</json:string></json:map>
                     </json:map>
                 </xsl:if>
             </json:map>
@@ -843,7 +832,6 @@ extension-element-prefixes="ixsl"
                                             <json:string key="type">term</json:string>
                                             <json:string key="subType">namedNode</json:string>
                                             <json:string key="value"><xsl:value-of select="."/></json:string>
-                                            <json:map key="loc"><json:string key="sourceLocationType">autoGenerate</json:string></json:map>
                                         </json:map>
                                     </json:map>
                                 </xsl:for-each>
@@ -876,7 +864,6 @@ extension-element-prefixes="ixsl"
                                         <json:string key="type">term</json:string>
                                         <json:string key="subType">variable</json:string>
                                         <json:string key="value"><xsl:value-of select="$label-graph-var-name"/></json:string>
-                                        <json:map key="loc"><json:string key="sourceLocationType">autoGenerate</json:string></json:map>
                                     </json:map>
                                 </json:map>
                             </json:array>
@@ -1155,7 +1142,6 @@ extension-element-prefixes="ixsl"
                     <json:string key="type">solutionModifier</json:string>
                     <json:string key="subType">limitOffset</json:string>
                     <json:number key="limit">2</json:number>
-                    <json:map key="loc"><json:string key="sourceLocationType">autoGenerate</json:string></json:map>
                 </json:map>
             </json:map>
         </xsl:copy>
@@ -1344,7 +1330,6 @@ extension-element-prefixes="ixsl"
                         </json:map>
                     </xsl:for-each>
                 </json:array>
-                <json:map key="loc"><json:string key="sourceLocationType">autoGenerate</json:string></json:map>
             </json:map>
         </xsl:copy>
     </xsl:template>

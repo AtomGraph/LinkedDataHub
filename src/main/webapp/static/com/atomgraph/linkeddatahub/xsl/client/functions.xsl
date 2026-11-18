@@ -469,7 +469,7 @@ exclude-result-prefixes="#all"
                                     <!-- an rdf:XMLLiteral arrives rooted: ldh:canonical-content builds the div the stored literal keeps, so the namespace is declared on it once (the wrap here, inherited from the RDFPostCleanupInterceptor, declared it a second time on every child) -->
                                     <xsl:variable name="datatype" select="$next-input/ixsl:get(., 'value')" as="xs:anyURI"/>
                                     <xsl:variable name="value" select="ixsl:get(., 'value')" as="xs:string"/>
-                                    <xsl:variable name="datatype-term" select="map { 'type': 'term', 'subType': 'namedNode', 'value': string($datatype), 'loc': map { 'sourceLocationType': 'autoGenerate' } }" as="map(*)"/>
+                                    <xsl:variable name="datatype-term" select="map { 'type': 'term', 'subType': 'namedNode', 'value': string($datatype) }" as="map(*)"/>
                                     <json:map key="object"><xsl:copy-of select="ldh:typed-term-node('literal', $value, $datatype-term)/node()"/></json:map>
                                 </xsl:when>
                                 <!-- typed literal -->
@@ -477,7 +477,7 @@ exclude-result-prefixes="#all"
                                     <!-- an rdf:XMLLiteral arrives rooted, as above -->
                                     <xsl:variable name="datatype" select="ixsl:get(., 'value')" as="xs:anyURI"/>
                                     <xsl:variable name="value" select="$next-input/ixsl:get(., 'value')" as="xs:string"/>
-                                    <xsl:variable name="datatype-term" select="map { 'type': 'term', 'subType': 'namedNode', 'value': string($datatype), 'loc': map { 'sourceLocationType': 'autoGenerate' } }" as="map(*)"/>
+                                    <xsl:variable name="datatype-term" select="map { 'type': 'term', 'subType': 'namedNode', 'value': string($datatype) }" as="map(*)"/>
                                     <json:map key="object"><xsl:copy-of select="ldh:typed-term-node('literal', $value, $datatype-term)/node()"/></json:map>
                                 </xsl:when>
                                 <!-- language-tagged literal -->
@@ -493,7 +493,6 @@ exclude-result-prefixes="#all"
                                     <json:map key="object"><xsl:copy-of select="ldh:typed-term-node('literal', string(ixsl:get(., 'value')), ())/node()"/></json:map>
                                 </xsl:when>
                             </xsl:choose>
-                            <json:map key="loc"><json:string key="sourceLocationType">autoGenerate</json:string></json:map>
                         </json:map>
                     </xsl:if>
 
@@ -562,7 +561,7 @@ exclude-result-prefixes="#all"
                     </xsl:when>
                     <!-- typed literal -->
                     <xsl:when test="text() and @rdf:datatype">
-                        <xsl:variable name="datatype-term" select="map { 'type': 'term', 'subType': 'namedNode', 'value': string(@rdf:datatype), 'loc': map { 'sourceLocationType': 'autoGenerate' } }" as="map(*)"/>
+                        <xsl:variable name="datatype-term" select="map { 'type': 'term', 'subType': 'namedNode', 'value': string(@rdf:datatype) }" as="map(*)"/>
                         <json:map key="object"><xsl:copy-of select="ldh:typed-term-node('literal', string(text()), $datatype-term)/node()"/></json:map>
                     </xsl:when>
                     <!-- language-tagged literal -->
@@ -574,7 +573,6 @@ exclude-result-prefixes="#all"
                         <json:map key="object"><xsl:copy-of select="ldh:typed-term-node('literal', string(text()), ())/node()"/></json:map>
                     </xsl:when>
                 </xsl:choose>
-                <json:map key="loc"><json:string key="sourceLocationType">autoGenerate</json:string></json:map>
             </json:map>
         </xsl:for-each>
     </xsl:function>
@@ -589,7 +587,6 @@ exclude-result-prefixes="#all"
             <json:map key="subject"><xsl:copy-of select="ldh:typed-term-node('namedNode', string($about), ())/node()"/></json:map>
             <json:map key="predicate"><xsl:copy-of select="ldh:typed-term-node('variable', 'p', ())/node()"/></json:map>
             <json:map key="object"><xsl:copy-of select="ldh:typed-term-node('variable', 'o', ())/node()"/></json:map>
-            <json:map key="loc"><json:string key="sourceLocationType">autoGenerate</json:string></json:map>
         </json:map>
     </xsl:function>
     
@@ -604,7 +601,6 @@ exclude-result-prefixes="#all"
             <json:array key="triples">
                 <xsl:sequence select="$triples"/>
             </json:array>
-            <json:map key="loc"><json:string key="sourceLocationType">autoGenerate</json:string></json:map>
         </json:map>
     </xsl:function>
     
@@ -637,18 +633,14 @@ exclude-result-prefixes="#all"
                                 <json:string key="type">pattern</json:string>
                                 <json:string key="subType">group</json:string>
                                 <json:array key="patterns"><xsl:sequence select="$where-pattern"/></json:array>
-                                <json:map key="loc"><json:string key="sourceLocationType">autoGenerate</json:string></json:map>
                             </json:map>
                             <json:map key="from">
                                 <json:string key="type">datasetClauses</json:string>
                                 <json:array key="clauses"/>
-                                <json:map key="loc"><json:string key="sourceLocationType">autoGenerate</json:string></json:map>
                             </json:map>
-                            <json:map key="loc"><json:string key="sourceLocationType">autoGenerate</json:string></json:map>
                         </json:map>
                     </json:map>
                 </json:array>
-                <json:map key="loc"><json:string key="sourceLocationType">autoGenerate</json:string></json:map>
             </json:map>
         </xsl:variable>
         <xsl:variable name="update-json-string" select="xml-to-json($update-xml)" as="xs:string"/>
