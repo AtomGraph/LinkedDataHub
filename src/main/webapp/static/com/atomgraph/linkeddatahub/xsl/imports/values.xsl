@@ -985,20 +985,22 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <!-- the language tag is what makes the literal an rdf:langString, so it is the tag that carries both
-         annotations: the chip naming the datatype and the field editing the tag, the strip's last item -->
+         annotations: the field editing the tag, then the chip naming the datatype. The field first, because it is
+         the one annotation the row shows at rest and the strip clips what does not fit beside the control: in a
+         modal's narrower column the chip, which is only revealed on hover, is what gives way, not the language -->
     <xsl:template match="@xml:lang" mode="ac:ValueAnnotations">
         <xsl:param name="type" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
 
         <xsl:if test="not($type = 'hidden')">
+            <xsl:apply-templates select="." mode="ac:FormControl">
+                <xsl:with-param name="disabled" select="$disabled"/>
+            </xsl:apply-templates>
+
             <xsl:apply-templates select="." mode="ac:AnnotationTag">
                 <xsl:with-param name="class" select="'ac-tag sz-sm em-quiet co-neutral'"/>
                 <xsl:with-param name="title" select="'&rdf;langString'"/>
                 <xsl:with-param name="label" select="'rdf:langString'"/>
-            </xsl:apply-templates>
-
-            <xsl:apply-templates select="." mode="ac:FormControl">
-                <xsl:with-param name="disabled" select="$disabled"/>
             </xsl:apply-templates>
         </xsl:if>
     </xsl:template>
