@@ -1,4 +1,8 @@
 ## [Unreleased]
+### Added
+- A view's Create opens a form of both the resources it makes: the document's, on top, with the container it goes in, its title, description and primary topic, and the entity's below it. The container is the one the view's rows live in when they determine one, and a lookup when nothing does, as on a view with no rows yet; the document's address follows the container picked, and the title left empty is the entity's label. The button is offered whatever the rows say about the container
+- Create > Item names the container the item goes in, and Create > Container the parent, prefilled with the page the menu was opened on and the reader's to change: `dh:Item` and `dh:Container` gain the constructors for their one editable link (`ldh:ItemContainerConstructor`, `ldh:ContainerParentConstructor`), whose lookup offers containers and the dataspace root alike
+
 ### Security
 - `PATCH /settings` refuses to change a dataspace's wiring (`422`): `lds:origin` and `lds:service` are the deployment's, set when the dataspace is made. An owner of one dataspace could otherwise point it at another's SPARQL service, or take another's origin, through their own settings
 - `PATCH /settings` refuses to change `lds:versioningRepository` too: an owner could otherwise have their dataspace commit, with the deployment's credentials, over another dataspace's versions
@@ -6,18 +10,25 @@
 ### Changed
 - A resource a document describes may be left without a type: `PATCH` refuses only to leave the document itself untyped, which it already did, as the document must keep a document hierarchy class. Imported data often describes entities without a type, and a resource that had one could not be given the same shape (#308 held every resource to keeping one)
 - The `ldh` plugin's skills show how to check which property views a type gets without a browser, with the page's own lookup query against the installed ontology: `ldh get --accept text/html` returns the page before the browser renders its blocks and property views
+- The stylesheets' `forClass` parameter, variable and context key are `for-class`, as every other name in them is spelled. A package stylesheet that passed `forClass` to a platform template passes `for-class`; `data-for-class` and the lookup query's `?forClass` are unchanged
 - A container's children view lists its documents, not the things they are about: `ldh:SelectChildren` no longer selects each child's `foaf:primaryTopic`, and the list, grid and table modes render each result as itself instead of standing a document's topic in for it. A document's row carries no type tag, as its header carries no type chip. A page that lists things (a catalogue, a table of people) is a view over the things
 
 ### Fixed
 - The settings dialog keeps a package import its catalog does not list, a package from another registry, as a checked row of its own: the save wrote back the catalog's checked rows as the dataspace's imports and nothing else, so an unlisted import was dropped by the next save of the title, and every import when the catalog could not be loaded
+- An empty concept scheme gets its first concept: the taxonomy package's Concepts in scheme shows when empty, and its Create no longer waits for rows to tell it where the concept's document goes
+- A save a view's Create form is refused keeps the whole form, the document's half and what was typed into it included: the re-render read the violating resource off the response, which describes that resource alone
 - A lookup restricted to a class answers in a fraction of a second on a large dataspace, where it took 30 s on one of 15M quads: the classes are bound with `VALUES`, one row each, instead of a `FILTER(?Type IN (...))` after the query's `UNION`, which Jena did not push into its `GRAPH ?graph` branch, so that branch walked every typed resource in every graph first. A lookup also asks for at most 100 suggestions, a limit it declared and never applied
 - A value linking to another resource, added from the property picker or appended when a type is added, is looked up among the class its constructor declares, as the field the form opens with is: it searched every resource of the dataspace, and was named "Resource" instead of its class
 - A value can be added to a resource of more than one class: where the classes bring models of their own the form is built one prototype per class, and the property picker's Add failed with "The form could not be loaded" on finding more than one
+- The language field of a value in a modal's form is shown whole: it comes first in the row's annotation strip, ahead of the datatype chip, which is hidden at rest but was laid out at full width before it, so in the narrower column the strip cut the field's right end off. A chip the strip has no room for now ends in an ellipsis instead of a cut
+- A value looked up among two classes names each class in a tag of its own: the labels were joined into one word, "ContainerRoot" beside a document's container
 - A type can be added to a resource that has none: the property picker's Add did nothing in a block without types
 - A type added in a form starts as an empty lookup, not filled with a type the resource already has
 - A type picked in the form of a resource that exists is added to that resource: the form is fitted to the new type set, keeping the resource and its values, where it was rebuilt as a new, empty instance of the class under a fresh URI, so a save made after the rebuild created that instead
 - A paged view's status counts its rows: a container's children were described with their topics, so a page of 20 read "1–40"
 - A dataspace described after the platform started (an extension making dataspaces on the fly, or a context reloaded from a shared store) is versioned when its description says so: the versioning repository is read from the descriptions as they are when a graph is written or a version asked for, not once at startup
+- A row saved in place keeps the labels its ontology gives its properties: the redraw asked for the labels of the values and not of the properties, so a property came back under its local name, or under the label another vocabulary gives it ("Date Issued" for a dataspace's "Released")
+- The assistant waits for a plan that takes longer than two minutes to write: nginx cut the plan service's answer at 120 s, measured as a 10-30 s model call when the limit was set, and the card then reported that the endpoint could not be reached. A plan against a large ontology takes 40-130 s, longer when the service repairs the model's SPARQL; the wait is bounded at 10 minutes
 - An empty write through the Linked Data proxy keeps its `Content-Type`, so an empty append is answered `204` as it is directly instead of `400`
 - A `502` for an upstream failure (a SPARQL result the Varnish store cut short, a result that could not be read) carries a description with the failure's message, not Tomcat's HTML error page
 
