@@ -794,7 +794,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <!-- append OPTIONAL pattern looking up the values' ?label inside the BGP with object var name -->
-    <xsl:template match="json:map[json:string[@key = 'type'] = 'pattern'][json:string[@key = 'subType'] = 'bgp']/.." mode="ldh:bgp-value-counts" priority="1">
+    <xsl:template match="json:array[json:map[json:string[@key = 'type'] = 'pattern'][json:string[@key = 'subType'] = 'bgp']]" mode="ldh:bgp-value-counts" priority="1">
         <xsl:param name="bgp-triples-map" as="element()" tunnel="yes"/>
         <xsl:param name="object-var-name" as="xs:string" tunnel="yes"/>
         <xsl:param name="label-var-name" as="xs:string" tunnel="yes"/>
