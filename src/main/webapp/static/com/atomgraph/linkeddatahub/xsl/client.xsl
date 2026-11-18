@@ -318,6 +318,9 @@ WHERE
                     <xsl:if test="$endpoint">
                         <ixsl:set-property name="endpoint" select="$endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                     </xsl:if>
+                    <!-- the property functions that endpoint supports, one Link each beside it: the search asks a text index where
+                         they name one. Read here, with the endpoint, and stamped on the pane the same way -->
+                    <xsl:variable name="property-features" select="ldh:link-targets(?headers?link, '&sd;propertyFeature')" as="xs:anyURI*"/>
                     <!-- store application URI from Link header -->
                     <xsl:variable name="application" select="ldh:link-targets(?headers?link, '&lds;dataspace')[1]" as="xs:anyURI?"/>
                     <xsl:if test="$application">
@@ -411,6 +414,9 @@ WHERE
                                 <xsl:for-each select="$reuse-pane">
                                     <ixsl:set-attribute name="data-acl-modes" select="string-join($acl-modes, ' ')" object="."/>
                                     <ixsl:set-attribute name="data-mode" select="string($mode)" object="."/>
+                                    <!-- the server-rendered pane learns its endpoint's property functions here, from the response that
+                                         the client fetched for it: the server stamps the endpoint alone -->
+                                    <ixsl:set-attribute name="data-property-features" select="string-join($property-features, ' ')" object="."/>
                                 </xsl:for-each>
 
                                 <!-- sync the corresponding tab <li> to the new doc URI; data-uri keys downstream lookups -->
@@ -437,6 +443,7 @@ WHERE
                                         <xsl:with-param name="mode" select="$mode"/>
                                         <xsl:with-param name="base" select="$tab-base"/>
                                         <xsl:with-param name="endpoint" select="$endpoint"/>
+                                        <xsl:with-param name="property-features" select="$property-features"/>
                                         <xsl:with-param name="application" select="$application"/>
                                         <xsl:with-param name="acl-modes" select="$acl-modes"/>
                                         <xsl:with-param name="about" select="$doc-uri"/>

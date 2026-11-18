@@ -342,7 +342,10 @@ Load it with `tdb2.tdbloader` straight into the dataspace's end-user TDB2 datase
 - Stop `fuseki` first. One server holds every dataset, so the admin stores go down with it.
 - Remove the stale `fuseki/*/DB2/tdb.lock` files, because their PIDs are container-relative.
 - Resolve the TriG to N-Quads with `riot --base=…`, since `tdbloader` has no `--base`.
-- Load the N-Quads, start `fuseki`, and restart the Varnish caches.
+- Load the N-Quads, then `make reindex`: the dataset's search index follows writes through Fuseki,
+  but `tdbloader` writes past it, so it is rebuilt from the data (`jena.textindexer`, under a minute
+  for 15M quads). Without this the search box finds nothing of what was loaded.
+- Start `fuseki`, and restart the Varnish caches.
 
 The canonical Makefile's `make load` does all of this when `make/config.mk` sets `LOAD_STAGING`
 and `docker-compose.override.yml` defines a `tdb-loader` service. LTLOD's override has one to copy.
