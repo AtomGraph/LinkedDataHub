@@ -12,9 +12,13 @@
 import { test, expect } from '../../lib/console.mjs';
 import { goto } from '../../lib/settle.mjs';
 import { conceptBlock, conceptPage } from '../../lib/taxonomy.mjs';
-import { endUserBase } from '../../lib/stack.mjs';
+import { mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { adminBase, endUserBase } from '../../lib/stack.mjs';
 import { itemTitle, itemUri, ldh } from '../../lib/fixtures.mjs';
 import { fieldFor, fillText, save } from '../../lib/form.mjs';
+import { namespaceDocument, namespaceOntology } from '../../lib/model.mjs';
 
 const SEE_ALSO = 'http://www.w3.org/2000/01/rdf-schema#seeAlso';
 const TITLE = 'http://purl.org/dc/terms/title';
@@ -82,6 +86,38 @@ test('labels a resource value the save has just changed', { tag: '@owner' }, asy
         for (const text of await links.allTextContents()) expect(text.trim()).toBe(itemTitle(2));
     } finally {
         await ldh(['delete', doc], { allowFailure: true });
+    }
+});
+
+// The predicates are labelled the same way: the dataspace's ontology names a property, and the redraw has to ask for
+// that name as a page load does - or the row comes back under the property's local name, or under another vocabulary's
+// label for it. A property of the dataspace's own namespace, which nothing but the ontology labels.
+test('names a property as the ontology does, after the save as before it', { tag: '@owner' }, async ({ page }) => {
+    const hue = `${namespaceOntology}UiRowFormHue`;
+    const file = join(mkdtempSync(join(tmpdir(), 'ui-row-form-')), 'hue.ttl');
+    writeFileSync(file, `<${hue}> a <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property> ; <http://www.w3.org/2000/01/rdf-schema#label> "Fixture hue"@en .`);
+    await ldh(['post', '-t', 'text/turtle', namespaceDocument, file]);
+    await ldh(['admin', 'clear', 'ontology', adminBase]);
+    const doc = await seedDocument('ui-row-form-labelled', `<${TITLE}> "Fixture labelled" ; <${hue}> "Ochre"`);
+    try {
+        await goto(page, doc);
+        const block = page.locator(`div.block.ldh-block[about="${doc}#this"]`);
+        const label = () => block.locator(`div.ldh-prop-group:has([property="${hue}"]) .label`).first();
+        await expect(label()).toHaveText('Fixture hue', { timeout: 15_000 });
+
+        await block.locator('button.btn-edit').first().click();
+        const form = block.locator('form').first();
+        await expect(form).toBeVisible({ timeout: 30_000 });
+        await fillText(form, TITLE, 'Fixture labelled, renamed');
+        await save(form);
+        await expect(block.locator('form')).toHaveCount(0, { timeout: 30_000 });
+        await expect(block).toContainText('Fixture labelled, renamed');
+
+        await expect(label()).toHaveText('Fixture hue', { timeout: 15_000 });
+    } finally {
+        await ldh(['delete', doc], { allowFailure: true });
+        await ldh(['patch', namespaceDocument], { allowFailure: true, stdin: `DELETE WHERE { <${hue}> ?p ?o }` });
+        await ldh(['admin', 'clear', 'ontology', adminBase], { allowFailure: true });
     }
 });
 
