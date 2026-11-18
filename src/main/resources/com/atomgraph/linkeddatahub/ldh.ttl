@@ -654,7 +654,7 @@ ac:ChartMode a ac:Mode, ac:ContainerMode ;
 
 # https://w3id.org/atomgraph/linkeddatahub/document-hierarchy
 
-dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :BlockConstructor .
+dh:Item spin:constructor :ItemContainerConstructor, :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :BlockConstructor .
 
 :PrimaryTopicConstructor a :Constructor ;
     rdfs:label "Primary topic constructor" ;
@@ -694,6 +694,38 @@ dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTop
         WHERE {}""" ;
     rdfs:isDefinedBy : .
 
+# the document hierarchy's one editable link: an item names its container, a container its parent, and the client
+# mints the new document's URI under what is named. The marker takes both container classes because a dataspace's
+# root is a def:Root, not a dh:Container, and documents sit directly under it; a marker's types are what the lookup
+# binds, so a URI needs no import here. The server stamps the link itself from the URI on write
+:ItemContainerConstructor a :Constructor ;
+    rdfs:label "Item container constructor" ;
+    sp:text """
+        PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        PREFIX sioc:    <http://rdfs.org/sioc/ns#>
+        PREFIX dh:      <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#>
+        PREFIX def:     <https://w3id.org/atomgraph/linkeddatahub/default#>
+
+        CONSTRUCT {
+          $this sioc:has_container [ a dh:Container, def:Root ] .
+        }
+        WHERE {}""" ;
+    rdfs:isDefinedBy : .
+
+:ContainerParentConstructor a :Constructor ;
+    rdfs:label "Container parent constructor" ;
+    sp:text """
+        PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        PREFIX sioc:    <http://rdfs.org/sioc/ns#>
+        PREFIX dh:      <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#>
+        PREFIX def:     <https://w3id.org/atomgraph/linkeddatahub/default#>
+
+        CONSTRUCT {
+          $this sioc:has_parent [ a dh:Container, def:Root ] .
+        }
+        WHERE {}""" ;
+    rdfs:isDefinedBy : .
+
 :BlockConstructor a :Constructor ;
     rdfs:label "Content constructor" ;
     sp:text """
@@ -728,7 +760,7 @@ dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTop
     sp:arg1 sioc:has_container ;
     rdfs:isDefinedBy : .
 
-dh:Container spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :ChildrenViewContructor .
+dh:Container spin:constructor :ContainerParentConstructor, :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :ChildrenViewContructor .
 
 :MissingParent a :MissingPropertyValue ;
     rdfs:label "Missing parent" ;
