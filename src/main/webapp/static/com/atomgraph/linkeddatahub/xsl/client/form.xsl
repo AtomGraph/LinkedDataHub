@@ -1569,11 +1569,17 @@ WHERE
     </xsl:function>
 
     <!-- any block, typed or not: a resource without a type is given its first one from here. Its types are the nearest
-         block's own, so an untyped resource does not borrow the types of a block it is nested in -->
-    <xsl:template match="div[contains-token(@class, 'block')]//form//button[contains-token(@class, 'add-value')]" mode="ixsl:onclick">
+         block's own, so an untyped resource does not borrow the types of a block it is nested in. A constructor
+         dialog's form is one too: the picker did nothing there, as a dialog is no block. Its types are read off the
+         fieldset the picker belongs to, since the Create from a view holds two resources, the document's fieldset
+         over the entity's, and the dialog's own @typeof names the entity alone; a fieldset without a type yet
+         falls back to the host's @typeof, as before -->
+    <xsl:template match="div[contains-token(@class, 'block') or contains-token(@class, 'modal-constructor')]//form//button[contains-token(@class, 'add-value')]" mode="ixsl:onclick">
         <xsl:variable name="property-addrow" select="ancestor::div[contains-token(@class, 'ldh-prop-addrow')][1]" as="element()"/>
         <xsl:variable name="property-uri" select="preceding-sibling::span[contains-token(@class, 'ac-select')]/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
-        <xsl:variable name="for-class" select="for $type in tokenize(ancestor::div[contains-token(@class, 'block')][1]/@typeof) return xs:anyURI($type)" as="xs:anyURI*"/>
+        <xsl:variable name="fieldset-types" select="ancestor::fieldset[contains-token(@class, 'ldh-fieldset')][1]//div[contains-token(@class, 'ldh-prop-group')][input[@name = 'pu']/@value = '&rdf;type']//input[@name = 'ou']/ixsl:get(., 'value')[. != '']" as="xs:string*"/>
+        <xsl:variable name="host-types" select="tokenize(ancestor::div[contains-token(@class, 'block') or contains-token(@class, 'modal-constructor')][1]/@typeof)" as="xs:string*"/>
+        <xsl:variable name="for-class" select="for $type in (if (exists($fieldset-types)) then $fieldset-types else $host-types) return xs:anyURI($type)" as="xs:anyURI*"/>
 
         <xsl:sequence select="ldh:busy-cursor()"/>
 
