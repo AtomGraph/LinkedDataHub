@@ -3059,7 +3059,7 @@ exclude-result-prefixes="#all"
             <!-- map { object-var-name -> candidate predicate URIs } from BGP triples whose subject is the focus variable; deduped per var. SPARQL ORDER BY uses variables, but the wrapped DESCRIBE returns an unordered RDF graph, so the view sorts by predicates client-side - this map bridges the two. -->
             <xsl:variable name="var-predicates" as="map(xs:string, xs:anyURI*)">
                 <xsl:map>
-                    <xsl:for-each-group select="ldh:subject-var-triples($select-xml/json:map, $initial-var-name)[json:map[@key = 'object'][json:string[@key = 'subType'] = 'variable']]" group-by="json:map[@key = 'object']/json:string[@key = 'value']">
+                    <xsl:for-each-group select="ldh:subject-var-triples($select-xml/json:map, $initial-var-name)[json:map[@key = 'object'][json:string[@key = 'subType'] = 'variable']]" group-by="string(json:map[@key = 'object']/json:string[@key = 'value'])">
                         <xsl:variable name="predicates" as="xs:anyURI*">
                             <xsl:for-each select="current-group()">
                                 <xsl:sequence select="ldh:alt-path-uris(json:map[@key = 'predicate'])"/>
