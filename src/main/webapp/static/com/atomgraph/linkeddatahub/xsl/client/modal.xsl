@@ -1236,8 +1236,20 @@ LIMIT   10
                 <xsl:apply-templates mode="ldh:Exception"/>
                 <xsl:apply-templates mode="#current"/>
 
-                <!-- package checkboxes serialize as RDF/POST ldh:import inputs, submitted by the same form -->
-                <xsl:apply-templates select="$package-catalog/rdf:RDF" mode="ldh:PackageList">
+                <!-- package checkboxes serialize as RDF/POST ldh:import inputs, submitted by the same form. The list is
+                     rendered even when the catalog could not be loaded: the imports the catalog does not describe are rows
+                     of their own, and a save has to carry every import, as ldh:import is not round-tripped as hidden inputs -->
+                <xsl:variable name="catalog" as="element()">
+                    <xsl:choose>
+                        <xsl:when test="$package-catalog/rdf:RDF">
+                            <xsl:sequence select="$package-catalog/rdf:RDF"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <rdf:RDF/>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:variable>
+                <xsl:apply-templates select="$catalog" mode="ldh:PackageList">
                     <xsl:with-param name="installed" select="for $import in */ldh:import/@rdf:resource return xs:anyURI($import)"/>
                 </xsl:apply-templates>
                 <xsl:if test="$package-catalog-error">
