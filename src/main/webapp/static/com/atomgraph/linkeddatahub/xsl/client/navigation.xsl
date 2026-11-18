@@ -878,7 +878,7 @@ ORDER BY DESC(?created)
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:document>
                 <xsl:apply-templates select="json-to-xml($select-json-string)" mode="ldh:append-values">
-                    <xsl:with-param name="values-map" select="map { '$type': $class-uri }" tunnel="yes"/>
+                    <xsl:with-param name="values-map" select="map { 'type': $class-uri }" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>

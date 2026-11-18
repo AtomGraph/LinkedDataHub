@@ -1300,7 +1300,7 @@ extension-element-prefixes="ixsl"
         </xsl:copy>
     </xsl:template>
 
-    <!-- Append VALUES block to WHERE clause: one row per map, keyed by the variable ('$type') -->
+    <!-- Append VALUES block to WHERE clause: one row per map, keyed by the variable name without its sigil ('type'), as Traqula keys VALUES rows -->
 
     <xsl:template match="@* | node()" mode="ldh:append-values">
         <xsl:copy>
@@ -1319,7 +1319,7 @@ extension-element-prefixes="ixsl"
                 <json:string key="type">pattern</json:string>
                 <json:string key="subType">values</json:string>
                 <json:array key="variables">
-                    <xsl:for-each select="distinct-values($values-map ! map:keys(.) ! replace(., '^[?$]', ''))">
+                    <xsl:for-each select="distinct-values($values-map ! map:keys(.))">
                         <xsl:sequence select="ldh:term-node('?' || .)"/>
                     </xsl:for-each>
                 </json:array>
@@ -1329,7 +1329,7 @@ extension-element-prefixes="ixsl"
                         <json:map>
                             <xsl:for-each select="map:keys($row)">
                                 <xsl:variable name="value" select="map:get($row, .)" as="xs:anyAtomicType"/>
-                                <json:map key="{replace(., '^[?$]', '')}">
+                                <json:map key="{.}">
                                     <xsl:choose>
                                         <xsl:when test="$value instance of xs:anyURI"><xsl:copy-of select="ldh:term-node(string($value))/node()"/></xsl:when>
                                         <xsl:when test="$value instance of xs:integer"><xsl:copy-of select="ldh:term-node(codepoints-to-string(34) || $value || codepoints-to-string(34) || '^^&xsd;integer')/node()"/></xsl:when>

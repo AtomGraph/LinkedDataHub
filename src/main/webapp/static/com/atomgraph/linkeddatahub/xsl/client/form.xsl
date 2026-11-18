@@ -2169,7 +2169,7 @@ WHERE
                     </xsl:when>
                     <xsl:otherwise>
                         <xsl:apply-templates select="$select-xml" mode="ldh:append-values">
-                            <xsl:with-param name="values-map" select="$forClass ! map{ ('?' || $type-var-name): . }" tunnel="yes"/>
+                            <xsl:with-param name="values-map" select="$forClass ! map{ $type-var-name: . }" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:otherwise>
                 </xsl:choose>
