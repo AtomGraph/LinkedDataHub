@@ -389,6 +389,28 @@ test.describe('the resource combobox', { tag: '@owner' }, () => {
             expect(drop.y + drop.height, 'so it sits one gap above the field')
                 .toBeCloseTo(field.y - GAP, 0);
         });
+
+        // Under a CSS zoom on the page (a screen recording runs the whole page at 2), a rect is measured
+        // in zoomed pixels while a style is written in layout ones. Measured before: the translation that
+        // flips the panel above its field was read off the rects and written as it was, so a flip of 316
+        // moved the panel 632, and it sat 548px above the field it drops from, as wide as two of it.
+        test('keeps its place under a CSS zoom', async ({ page }) => {
+            await page.setViewportSize({ width: 1280, height: 720 });
+            const form = await conceptForm(page);
+            await page.evaluate(() => { document.documentElement.style.zoom = '2'; });
+            const parts = partsOf(groupFor(form, RELATED));
+            await parts.input.click();
+            await parts.input.pressSequentially('drinks', { delay: 110 });
+            await expect(parts.panel).toBeVisible({ timeout: 25_000 });
+            await page.waitForTimeout(400);
+            const { field, drop, viewport } = await geometry(page, parts.box, parts.panel);
+
+            expect(viewport - (field.y + field.height), 'the field is low: the panel has to flip')
+                .toBeLessThan(drop.height);
+            expect(drop.width, 'as wide as the field, not twice it').toBeCloseTo(field.width, 0);
+            expect(drop.x).toBeCloseTo(field.x, 0);
+            expect(drop.y + drop.height, 'one gap above the field').toBeCloseTo(field.y - GAP, 0);
+        });
     });
 
     test.describe('a lookup that fails', () => {
