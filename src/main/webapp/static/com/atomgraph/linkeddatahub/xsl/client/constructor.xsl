@@ -450,7 +450,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <xsl:template match="json:map/json:map[@key = 'object']" mode="ldh:ConstructorTripleFormControl" name="ldh:ConstructorObject">
-        <xsl:param name="object-bnode-id" select="ldh:term-key(.)" as="xs:string?"/>
+        <xsl:param name="object-bnode-id" select="ldh:term-key(self::json:map)" as="xs:string?"/>
         <xsl:param name="object-type" select="../../json:map[ldh:term-key(json:map[@key = 'subject']) = $object-bnode-id]/json:map[@key = 'object']/json:string[@key = 'value']" as="xs:anyURI?"/>
         <!-- rdf:langString is a LITERAL datatype that merely lives outside the XSD namespace, so the object
              kind cannot be read off the namespace alone - imports/values.xsl excludes it from its non-XSD
