@@ -51,7 +51,7 @@ exclude-result-prefixes="#all"
     
     <!-- object block (RDF resource) -->
     
-    <xsl:template match="*[@typeof = '&ldh;Object'][descendant::*[@property = '&rdf;value'][@resource]]" mode="ldh:RowHook" as="function(item()?) as map(*)">
+    <xsl:template match="*[@typeof = '&ldh;Object'][descendant::*[@property = '&rdf;value'][@resource]]" mode="ldh:HydrationHook" as="function(item()?) as map(*)">
         <xsl:param name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
         <xsl:param name="block-uri" select="$about" as="xs:anyURI"/>
@@ -59,7 +59,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="resource-uri" select="descendant::*[@property = '&rdf;value']/@resource" as="xs:anyURI?"/>
         <xsl:param name="graph" select="descendant::*[@property = '&ldh;graph']/@resource" as="xs:anyURI?"/>
         <xsl:param name="mode" select="descendant::*[@property = '&ac;mode']/@resource" as="xs:anyURI?"/>
-        <xsl:param name="refresh-content" as="xs:boolean?"/>
         <!-- empty by default: the loaded document's own acl:mode Link headers decide in ldh:block-object-value-response; a caller passes an explicit value only to force the button off (or on) -->
         <xsl:param name="show-edit-button" as="xs:boolean?"/>
         <!-- the pane's endpoint, carried in the context so the metadata fetch below does not read the window -->
@@ -148,8 +147,7 @@ exclude-result-prefixes="#all"
                         ixsl:then(ldh:http-request-threaded(?, 'ns-object-metadata-request', 'ns-object-metadata-response')) =>
                         ixsl:then(ldh:handle-response(?, 'ns-object-metadata-response')) =>
                         ixsl:then(ldh:block-object-metadata-response#1) =>
-                        ixsl:then(ldh:block-object-apply#1) =>
-                        ixsl:then(ldh:invoke-factory#1)
+                        ixsl:then(ldh:block-object-apply#1)
                 "/>
             </xsl:when>
             <xsl:otherwise>
@@ -210,12 +208,6 @@ exclude-result-prefixes="#all"
 
         <xsl:sequence select="ldh:end-block-loading($context, ())[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:sequence select="map:remove($context, 'embed-request')"/>
-    </xsl:function>
-
-    <xsl:function name="ldh:invoke-factory" as="item()*" ixsl:updating="yes">
-        <xsl:param name="factory" as="function(item()?) as item()*?"/>
-        <xsl:message>ldh:invoke-factory</xsl:message>
-        <xsl:sequence select="$factory(())"/>
     </xsl:function>
 
     <xsl:function name="ldh:block-object-value-response" as="item()" ixsl:updating="yes">
@@ -378,32 +370,14 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:function>
 
+    <!-- starts what the resource drawn inside the block brings, its row's views and actions -->
     <xsl:function name="ldh:block-object-apply" as="item()" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="obj-value-id" select="$context('obj-value-id')" as="xs:string?"/>
 
-        <xsl:choose>
-            <xsl:when test="$obj-value-id">
-                <xsl:message>ldh:block-object-apply</xsl:message>
+        <xsl:message>ldh:block-object-apply</xsl:message>
 
-                <!-- get the optional promise of the object value resource -->
-                <xsl:variable name="rendered" as="(function(item()?) as map(*))?">
-                    <xsl:apply-templates select="id($obj-value-id, ixsl:page())" mode="ldh:RenderRow"/>
-                </xsl:variable>
-
-                <xsl:sequence select="if (exists($rendered)) then $rendered else ldh:object-noop#2($context, ?)"/>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:sequence select="ldh:object-noop#2($context, ?)"/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:function>
-    
-    <xsl:function name="ldh:object-noop" as="map(*)" ixsl:updating="yes">
-        <xsl:param name="context" as="map(*)"/>
-        <xsl:param name="ignored" as="item()?" />
-        <!-- just return the context, doing nothing else -->
-        <xsl:sequence select="$context"/>
+        <xsl:sequence select="ldh:hydrate($obj-value-id ! id(., ixsl:page()))"/>
     </xsl:function>
 
 </xsl:stylesheet>

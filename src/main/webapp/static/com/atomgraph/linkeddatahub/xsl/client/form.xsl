@@ -1863,7 +1863,9 @@ WHERE
                     <xsl:sequence select="ixsl:call(($block/ancestor::div[contains-token(@class, 'ldh-block-row')][1], $block)[1], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:when>
                 <!-- the row is drawn from the submitted triples alone, so the labels of their objects are queried first,
-                     as every other block render does; if the query fails, the row is drawn without them -->
+                     as every other block render does; if the query fails, the row is drawn without them. The recovery
+                     covers the query alone: the drawing replaces the row, so a failure after it is reported, never drawn
+                     again into the row it replaced -->
                 <xsl:otherwise>
                     <xsl:variable name="metadata-context" select="map:merge(($context, map{ 'endpoint': sd:endpoint(), 'object-uris': distinct-values($resources//@rdf:resource) }), map{ 'duplicates': 'use-last' })" as="map(*)"/>
                     <ixsl:promise select="
@@ -1874,8 +1876,9 @@ WHERE
                         => ixsl:then(ldh:handle-response(?, 'ns-metadata-response'))
                         => ixsl:then(ldh:set-object-metadata-ns#1)
                         => ixsl:then(ldh:merge-object-metadata#1)
+                        => ixsl:catch(function($error as item()*) as map(*) { $metadata-context })
                         => ixsl:then(ldh:form-horizontal-render#1)
-                    " on-failure="ldh:form-horizontal-render($metadata-context, ?)"/>
+                    " on-failure="ldh:block-load-failure($block/ancestor::div[contains-token(@class, 'content-body')][1], ?)"/>
                 </xsl:otherwise>
             </xsl:choose>
 
@@ -1890,16 +1893,10 @@ WHERE
         </xsl:for-each>
     </xsl:function>
 
-    <!-- draws the saved row again from the submitted triples, with the labels of their objects when the query for them succeeded -->
+    <!-- draws the saved row again from the submitted triples, with the labels of their objects when the query for them
+         succeeded, and starts what the row brings -->
     <xsl:function name="ldh:form-horizontal-render" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-
-        <xsl:sequence select="ldh:form-horizontal-render($context, ())"/>
-    </xsl:function>
-
-    <xsl:function name="ldh:form-horizontal-render" ixsl:updating="yes">
-        <xsl:param name="context" as="map(*)"/>
-        <xsl:param name="error" as="item()*"/>
         <xsl:variable name="block" select="$context('block')" as="element()"/>
         <xsl:variable name="resources" select="$context('resources')" as="document-node()"/>
         <xsl:variable name="object-metadata" select="if (map:contains($context, 'object-metadata')) then $context('object-metadata') else ()" as="document-node()?"/>
@@ -1924,15 +1921,8 @@ WHERE
             </xsl:result-document>
         </xsl:for-each>
 
-        <!-- the replacement detaches $block — re-resolve the inserted block by the rendered element's id -->
-        <xsl:variable name="factory" as="function(item()?) as item()*?">
-            <xsl:apply-templates select="id($new-block/@id, ixsl:page())" mode="ldh:RenderRow"/>
-        </xsl:variable>
-
-        <xsl:if test="exists($factory)">
-            <!-- invoke the factory -->
-            <xsl:sequence select="$factory(())"/>
-        </xsl:if>
+        <!-- the replacement detaches $block — re-resolve the inserted row by the rendered element's id -->
+        <xsl:sequence select="ldh:hydrate(id($new-block/@id, ixsl:page()))"/>
     </xsl:function>
 
     <xsl:function name="ldh:form-submit-created" ixsl:updating="yes">

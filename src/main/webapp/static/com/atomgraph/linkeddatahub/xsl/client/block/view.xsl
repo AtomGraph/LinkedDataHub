@@ -60,18 +60,14 @@ exclude-result-prefixes="#all"
 
     <!-- render view -->
 
-    <xsl:template match="*[@typeof = '&ldh;View'][descendant::*[@property = '&spin;query'][@resource]]" mode="ldh:RowHook" as="function(item()?) as map(*)">
+    <xsl:template match="*[@typeof = '&ldh;View'][descendant::*[@property = '&spin;query'][@resource]]" mode="ldh:HydrationHook" as="function(item()?) as map(*)">
         <xsl:param name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][1]" as="element()"/>
         <!-- the hosting document's URL, derived page-level: ldh:base-uri() would resolve an embed's data-base-uri stamp, which names the content's source document (the edit target), while $this anchors the query to the document the view is embedded in -->
         <xsl:param name="this" select="if (ac:uri()) then ac:document-uri(ac:uri()) else ac:absolute-path(ldh:request-uri())" as="xs:anyURI"/>
         <xsl:param name="parent-about" select="$block/ancestor::*[@about][1]/@about" as="xs:anyURI"/> <!-- outer @about context -->
         <xsl:param name="container" select="." as="element()"/>
         <xsl:param name="mode" select="descendant::*[@property = '&ac;mode']/@resource" as="xs:anyURI?"/>
-        <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:param name="query-uri" select="descendant::*[@property = '&spin;query']/@resource" as="xs:anyURI"/>
-        <!-- footer emitted below the results by ldh:RenderViewResults, the same slot ldh:Chart offers charts.
-             Empty for a saved view block; the query block fills it with its Create button -->
-        <xsl:param name="form-actions" as="element()?"/>
 
         <!-- ldh:showWhenEmpty false: the view stays out of the flow until its results say it has anything to
              show. Its card is already in the DOM - client/block.xsl appended it and builds these factories in
@@ -105,9 +101,7 @@ exclude-result-prefixes="#all"
             'block': $block,
             'container': $container,
             'mode': $mode,
-            'refresh-content': $refresh-content,
             'query-uri': $query-uri,
-            'form-actions': $form-actions,
             'cache': ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block/@about || '`')
           }"/>
 
@@ -810,9 +804,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:param name="cache" as="item()"/>
-        <!-- carried into the returned context so it survives to ldh:RenderViewResults. Only the initial load
-             emits it, so the re-render call sites (paging, sort, facets) leave it empty and lose nothing -->
-        <xsl:param name="form-actions" as="element()?"/>
 
         <!-- a re-query leaves the rendered results standing and marks them busy until the response lands.
              A class and an attribute, so this is legal here: every RenderView call site evaluates inside
@@ -872,7 +863,6 @@ exclude-result-prefixes="#all"
             'initial-var-name': $initial-var-name,
             'focus-var-name': $focus-var-name,
             'endpoint': $endpoint,
-            'form-actions': $form-actions,
             'cache': $cache
           }"/>
     </xsl:template>
@@ -1188,7 +1178,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="object-metadata" as="document-node()?"/>
         <xsl:param name="property-metadata" as="document-node()?"/>
         <xsl:param name="cache" as="item()"/>
-        <xsl:param name="form-actions" as="element()?"/>
         <!-- if  the container is full-width row (.row-fluid), render results in the middle column (.main) -->
         <xsl:variable name="order-by-container-id" select="$container-id || '-container-order'" as="xs:string"/>
         <xsl:variable name="container-results-id" select="$container-id || '-container-results'" as="xs:string"/>
@@ -1346,8 +1335,6 @@ exclude-result-prefixes="#all"
                      block collapsed to the placeholder's height and back. It is the results region's sibling,
                      which is also the design system's anatomy for a paged view -->
                 <div id="{$container-id}-pager" class="ldh-pager" role="navigation" aria-label="{ac:label(key('resources', 'pagination', ldh:translations()))}"></div>
-
-                <xsl:sequence select="$form-actions"/>
             </xsl:result-document>
 
             <!-- the status line proper: the count element the toolbar gave up, and a sibling the applied
@@ -2855,7 +2842,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="block" select="$context('block')" as="element()"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
         <xsl:variable name="mode" select="$context('mode')" as="xs:anyURI?"/>
-        <xsl:variable name="refresh-content" select="$context('refresh-content')" as="xs:boolean?"/>
         <xsl:variable name="query-uri" select="$context('query-uri')" as="xs:anyURI"/>
         <xsl:variable name="block-uri" select="$block/@about" as="xs:anyURI"/>
         <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')" as="item()"/>
@@ -2927,9 +2913,7 @@ exclude-result-prefixes="#all"
                                         <xsl:with-param name="initial-var-name" select="$initial-var-name"/>
                                         <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
                                         <xsl:with-param name="active-mode" select="if ($mode) then $mode else xs:anyURI('&ac;ListMode')"/>
-                                        <xsl:with-param name="refresh-content" select="$refresh-content"/>
                                         <xsl:with-param name="cache" select="$cache"/>
-                                        <xsl:with-param name="form-actions" select="$context('form-actions')"/>
                                     </xsl:call-template>
                                 </xsl:variable>
                                 <!-- Mark query response as complete -->
@@ -3050,7 +3034,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="object-metadata" select="$context('object-metadata')" as="document-node()?"/>
         <xsl:variable name="property-metadata" select="$context('property-metadata')" as="document-node()?"/>
         <xsl:variable name="cache" select="$context('cache')" as="item()"/>
-        <xsl:variable name="form-actions" select="$context('form-actions')" as="element()?"/>
         <xsl:variable name="result-count-container-id" select="$container-id || '-result-count'" as="xs:string"/>
 
         <xsl:message>ldh:render-view</xsl:message>
@@ -3116,7 +3099,6 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="object-metadata" select="$object-metadata"/>
                     <xsl:with-param name="property-metadata" select="$property-metadata"/>
                     <xsl:with-param name="cache" select="$cache"/>
-                    <xsl:with-param name="form-actions" select="$form-actions"/>
                 </xsl:call-template>
             </xsl:for-each>
 
@@ -3803,7 +3785,7 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:function>
 
-    <!-- Re-query the view block's results with fresh data (Cache-Control: no-cache). Rebuilds the request context from the contents cache like the pager/order/mode listeners do: the view's RDFa (spin:query) is replaced by the toolbar on the initial render, so re-entering ldh:RenderRow would no longer match the view template -->
+    <!-- Re-query the view block's results with fresh data (Cache-Control: no-cache). Rebuilds the request context from the contents cache like the pager/order/mode listeners do: the view's RDFa (spin:query) is replaced by the toolbar on the initial render, so re-entering ldh:Hydrate would no longer match the view template -->
     <xsl:function name="ldh:refresh-view" as="item()*" ixsl:updating="yes">
         <xsl:param name="block-id" as="xs:string"/>
 

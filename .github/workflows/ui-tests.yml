@@ -16,6 +16,13 @@ jobs:
       # As tests/http/run.sh exports them, so both suites can be pointed at one instance
       END_USER_BASE_URL: https://localhost:4443/
       ADMIN_BASE_URL: https://admin.localhost:4443/
+      # The executor beside the instance, so the dataspace advertises lds:assistant and offers the actions its classes
+      # declare: without it the action specs skip, and a row brings one job fewer than a deployment with an assistant
+      # does. The image pulls without credentials, and running a plan needs no model key (only writing one does)
+      COMPOSE_PROFILES: assistant
+      # the executor this branch's plans need: the published latest predates the request operation the taxonomy
+      # package's actions use, and answers their evaluation with a 500
+      WEBALGEBRA_VERSION: 2.0.0-SNAPSHOT
     steps:
       - name: Set up Java 21
         uses: actions/setup-java@v5

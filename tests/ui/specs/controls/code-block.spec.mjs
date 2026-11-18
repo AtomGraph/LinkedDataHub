@@ -9,7 +9,7 @@
 // around. Prose is stable: what the stylesheet emits is what stays on the page. A stored query's
 // `sp:text` never reaches the reader as a `pre` at all - measured 2026-09-28 on the fixture query
 // document, which settles with no `pre`, no wrapper and no `sp:text` cell in the DOM, because
-// client/block/query.xsl's ldh:RowHook takes that row over and puts the folded editor and the
+// client/block/query.xsl's ldh:HydrationHook takes that row over and puts the folded editor and the
 // result table there instead. The `pre` exists only in the tree the hook inspects on its way past,
 // which is exactly why the hook's match predicate had to learn to read it through the wrapper -
 // and document/blocks/query's three live tests go red the moment it stops matching.

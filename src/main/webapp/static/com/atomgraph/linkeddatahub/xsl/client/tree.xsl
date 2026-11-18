@@ -185,9 +185,9 @@ exclude-result-prefixes="#all"
 
     <!-- the reveal: a tree that carries data-tree-reveal asks for the path down to that node to be
          opened once the tree is in the DOM - on a direct load and on a client-side navigation alike,
-         since the ldh:RenderRow walk (client/block.xsl) visits every element of the rendered pane on
+         since the ldh:Hydrate walk (client/block.xsl) visits every element of the rendered pane on
          both. The attribute is the domain's whole part in it: the climb and the descent are below. -->
-    <xsl:template match="ul[contains-token(@class, 'ldh-tree')][@data-tree-reveal]" mode="ldh:RowHook" as="(function(item()?) as map(*))*">
+    <xsl:template match="ul[contains-token(@class, 'ldh-tree')][@data-tree-reveal]" mode="ldh:HydrationHook" as="(function(item()?) as map(*))*">
         <xsl:sequence select="ldh:tree-reveal#2(map{ 'tree': ., 'target': xs:anyURI(@data-tree-reveal) }, ?)"/>
     </xsl:template>
 
@@ -389,7 +389,7 @@ exclude-result-prefixes="#all"
          parents not already seen enter it - the cycle guard: A broader B with B broader A runs out of
          new nodes and terminates where a depth bound would walk the two as deep as the bound allowed. -->
 
-    <!-- the factory a tree's reveal contributes to the ldh:RenderRow walk (ldh:RowHook above). It
+    <!-- the factory a tree's reveal contributes to the ldh:Hydrate walk (ldh:HydrationHook above). It
          resolves to a promise: everything below returns a plain map and fires each continuation as an
          ixsl:promise INSTRUCTION rather than returning it, which is what lets one level fan out into
          several branches. -->

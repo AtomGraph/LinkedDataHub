@@ -46,7 +46,7 @@ exclude-result-prefixes="#all"
          question writes the chat, the object block that places it and the document's rdf:_N for that block; a click
          that asks nothing leaves nothing behind. Every turn is written to the chat's own document when it ends (the
          answer has landed, or could not), with its plan, what the execution reported - the result capped - and how
-         it went, so a block rendered again draws every turn from the store (the ldh:Chat RowHook below).
+         it went, so a block rendered again draws every turn from the store (the ldh:Chat hydration hook below).
 
          Within a block, a conversation is a sequence of cards, one per question, each holding its plan under its own
          id in LinkedDataHub.chat so that a card's Execute runs that card's plan and no other. -->
@@ -146,7 +146,7 @@ exclude-result-prefixes="#all"
          the conversation, read from the chat's own document - its turns are resources there, not properties of the chat,
          so the row the object block drew does not hold them. The document's acl:mode links say whether the reader may
          continue it -->
-    <xsl:template match="*[@typeof = '&ldh;Chat'][@about]" mode="ldh:RowHook" as="function(item()?) as map(*)">
+    <xsl:template match="*[@typeof = '&ldh;Chat'][@about]" mode="ldh:HydrationHook" as="function(item()?) as map(*)">
         <xsl:param name="container" select="." as="element()"/>
         <xsl:variable name="chat-uri" select="xs:anyURI(@about)" as="xs:anyURI"/>
         <xsl:variable name="doc-uri" select="ac:document-uri($chat-uri)" as="xs:anyURI"/>

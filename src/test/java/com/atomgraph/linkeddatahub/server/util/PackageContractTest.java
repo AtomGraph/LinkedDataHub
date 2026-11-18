@@ -78,7 +78,7 @@ public class PackageContractTest
         // sealed: the platform's own code acts on the page and reads, which is its business
         write("sealed.xsl",
             "<xsl:mode name=\"ldh:Sealed\"/>" +
-            "<xsl:mode name=\"ldh:RowHook\" on-no-match=\"deep-skip\"/>" +
+            "<xsl:mode name=\"ldh:HydrationHook\" on-no-match=\"deep-skip\"/>" +
             "<xsl:function name=\"ldh:href\"><xsl:param name=\"x\"/><xsl:sequence select=\"ixsl:call(ixsl:window(), 'decodeURIComponent', [ $x ])\"/></xsl:function>" +
             "<xsl:function name=\"ldh:render\" ixsl:updating=\"yes\"><xsl:param name=\"e\"/><xsl:for-each select=\"$e\"><ixsl:set-attribute name=\"class\" select=\"'x'\"/></xsl:for-each></xsl:function>" +
             "<xsl:function name=\"ldh:labels\"><xsl:sequence select=\"document('https://localhost/sparql')\"/></xsl:function>" +
@@ -100,7 +100,7 @@ public class PackageContractTest
         assertTrue(contract.getOpenModes().contains(UNNAMED_MODE), "the value tier's mode-less rules open the unnamed mode");
         assertFalse(contract.getOpenModes().contains(clark(AC_NS, "label")), "the Web-Client layer is not open");
         assertFalse(contract.getOpenModes().contains(clark(LDH_NS, "Sealed")));
-        assertFalse(contract.getOpenModes().contains(clark(LDH_NS, "RowHook")), "declared above the marker");
+        assertFalse(contract.getOpenModes().contains(clark(LDH_NS, "HydrationHook")), "declared above the marker");
         assertFalse(contract.getOpenModes().contains(clark(LDH_NS, "Included")));
     }
 
@@ -131,7 +131,7 @@ public class PackageContractTest
     {
         assertRules(List.of("modes"), "<xsl:template match=\"*\" mode=\"ac:label\"/>");
         assertRules(List.of("modes"), "<xsl:template match=\"*\" mode=\"ldh:Sealed\"/>");
-        assertRules(List.of("modes"), "<xsl:template match=\"*\" mode=\"ldh:RowHook\"><xsl:next-match/></xsl:template>");
+        assertRules(List.of("modes"), "<xsl:template match=\"*\" mode=\"ldh:HydrationHook\"><xsl:next-match/></xsl:template>");
         assertRules(List.of("modes"), "<xsl:template match=\"*\" mode=\"#all\"/>");
         assertRules(List.of("modes", "ixsl"), "<xsl:template match=\"button\" mode=\"ixsl:onclick\"><ixsl:set-attribute name=\"x\" select=\"1\"/></xsl:template>");
         assertRules(List.of(), "<xsl:template match=\"*\"/>");
