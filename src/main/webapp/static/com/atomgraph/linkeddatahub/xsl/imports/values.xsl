@@ -631,24 +631,32 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
 
+    <!-- one tag per class the value is looked up among: a marker typed with two classes read as one word -->
     <xsl:template match="@rdf:resource" mode="ac:ValueAnnotations">
         <xsl:param name="type" as="xs:string?"/>
         <xsl:param name="forClass" as="xs:anyURI*"/>
+        <xsl:variable name="value" select="." as="attribute()"/>
 
         <xsl:if test="not($type = 'hidden')">
-            <xsl:apply-templates select="." mode="ac:AnnotationTag">
-                <xsl:with-param name="class" select="'ac-tag sz-sm em-quiet an-term is-resource'"/>
-                <xsl:with-param name="label" as="item()*">
-                    <xsl:choose>
-                        <xsl:when test="exists($forClass)">
-                            <xsl:value-of select="$forClass ! ldh:class-label(xs:anyURI(.))" separator=""/>
-                        </xsl:when>
-                        <xsl:otherwise>
+            <xsl:choose>
+                <xsl:when test="exists($forClass)">
+                    <xsl:for-each select="$forClass">
+                        <xsl:apply-templates select="$value" mode="ac:AnnotationTag">
+                            <xsl:with-param name="class" select="'ac-tag sz-sm em-quiet an-term is-resource'"/>
+                            <xsl:with-param name="title" select="string(.)"/>
+                            <xsl:with-param name="label" select="ldh:class-label(xs:anyURI(.))"/>
+                        </xsl:apply-templates>
+                    </xsl:for-each>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:apply-templates select="$value" mode="ac:AnnotationTag">
+                        <xsl:with-param name="class" select="'ac-tag sz-sm em-quiet an-term is-resource'"/>
+                        <xsl:with-param name="label" as="item()*">
                             <xsl:apply-templates select="key('resources', 'resource', ldh:translations())" mode="ac:label"/>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </xsl:with-param>
-            </xsl:apply-templates>
+                        </xsl:with-param>
+                    </xsl:apply-templates>
+                </xsl:otherwise>
+            </xsl:choose>
         </xsl:if>
     </xsl:template>
 
@@ -926,24 +934,32 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
 
+    <!-- as for a URI value: one tag per class the lookup is restricted to -->
     <xsl:template match="*[@rdf:about or @rdf:nodeID]/*/@rdf:nodeID" mode="ac:ValueAnnotations">
         <xsl:param name="type" as="xs:string?"/>
         <xsl:param name="forClass" as="xs:anyURI*"/>
+        <xsl:variable name="value" select="." as="attribute()"/>
 
         <xsl:if test="not($type = 'hidden')">
-            <xsl:apply-templates select="." mode="ac:AnnotationTag">
-                <xsl:with-param name="class" select="'ac-tag sz-sm em-quiet an-term is-blank'"/>
-                <xsl:with-param name="label" as="item()*">
-                    <xsl:choose>
-                        <xsl:when test="exists($forClass)">
-                            <xsl:value-of select="$forClass ! ldh:class-label(xs:anyURI(.))" separator=""/>
-                        </xsl:when>
-                        <xsl:otherwise>
+            <xsl:choose>
+                <xsl:when test="exists($forClass)">
+                    <xsl:for-each select="$forClass">
+                        <xsl:apply-templates select="$value" mode="ac:AnnotationTag">
+                            <xsl:with-param name="class" select="'ac-tag sz-sm em-quiet an-term is-blank'"/>
+                            <xsl:with-param name="title" select="string(.)"/>
+                            <xsl:with-param name="label" select="ldh:class-label(xs:anyURI(.))"/>
+                        </xsl:apply-templates>
+                    </xsl:for-each>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:apply-templates select="$value" mode="ac:AnnotationTag">
+                        <xsl:with-param name="class" select="'ac-tag sz-sm em-quiet an-term is-blank'"/>
+                        <xsl:with-param name="label" as="item()*">
                             <xsl:apply-templates select="key('resources', 'resource', ldh:translations())" mode="ac:label"/>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </xsl:with-param>
-            </xsl:apply-templates>
+                        </xsl:with-param>
+                    </xsl:apply-templates>
+                </xsl:otherwise>
+            </xsl:choose>
         </xsl:if>
     </xsl:template>
 

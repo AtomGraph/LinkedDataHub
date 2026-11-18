@@ -13,6 +13,7 @@
 - A value linking to another resource, added from the property picker or appended when a type is added, is looked up among the class its constructor declares, as the field the form opens with is: it searched every resource of the dataspace, and was named "Resource" instead of its class
 - A value can be added to a resource of more than one class: where the classes bring models of their own the form is built one prototype per class, and the property picker's Add failed with "The form could not be loaded" on finding more than one
 - The language field of a value in a modal's form is shown whole: it comes first in the row's annotation strip, ahead of the datatype chip, which is hidden at rest but was laid out at full width before it, so in the narrower column the strip cut the field's right end off. A chip the strip has no room for now ends in an ellipsis instead of a cut
+- A value looked up among two classes names each class in a tag of its own: the labels were joined into one word, "ContainerRoot" beside a document's container
 - A type can be added to a resource that has none: the property picker's Add did nothing in a block without types
 - A type added in a form starts as an empty lookup, not filled with a type the resource already has
 - A type picked in the form of a resource that exists is added to that resource: the form is fitted to the new type set, keeping the resource and its values, where it was rebuilt as a new, empty instance of the class under a fresh URI, so a save made after the rebuild created that instead
