@@ -3883,7 +3883,15 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="instance" select="$modal/@data-instance" as="xs:string"/>
                 <xsl:variable name="block-id" select="$modal/@data-block-id" as="xs:string"/>
                 <xsl:variable name="doc-uri" select="$context('doc-uri')" as="xs:anyURI"/>
+                <!-- the container the new document went in: the view's next Create prefills it, where the rows had not
+                     determined one when the button was rendered (the first concept of an empty scheme). The container
+                     chain runs on the initial load alone and a refresh re-queries the rows only, so without this the
+                     second form opened on an empty lookup again -->
+                <xsl:variable name="created-container" select="xs:anyURI(replace($modal/@about, '[^/]+/$', ''))" as="xs:anyURI"/>
                 <xsl:sequence select="ixsl:call($modal, 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:for-each select="id($block-id, ixsl:page())//button[contains-token(@class, 'add-instance')][not(@data-container)]">
+                    <ixsl:set-attribute name="data-container" select="$created-container"/>
+                </xsl:for-each>
 
                 <xsl:choose>
                     <!-- inverse linking triple already shipped inside the PUT body: refresh straight away. The cursor stays 'progress' (set on form submit) until ldh:render-view restores it -->
