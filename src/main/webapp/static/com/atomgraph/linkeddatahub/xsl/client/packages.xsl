@@ -65,8 +65,13 @@ version="3.0"
     <xsl:template match="rdf:RDF" mode="ldh:PackageList">
         <xsl:param name="installed" as="xs:anyURI*"/>
         <xsl:variable name="packages" select="key('resources', distinct-values(*/rdfs:member/@rdf:resource))" as="element()*"/>
+        <!-- what the application imports that the catalog does not describe: a package from another registry, or
+             every import when the catalog could not be loaded. Rows of their own, checked, because the settings
+             form's save writes back the checked rows as the application's imports and nothing else: unlisted, an
+             import was dropped by the next save of the title -->
+        <xsl:variable name="unlisted" select="$installed[not(. = $packages/@rdf:about)]" as="xs:anyURI*"/>
 
-        <xsl:if test="$packages">
+        <xsl:if test="$packages or exists($unlisted)">
             <fieldset id="packages">
                 <legend>
                     <xsl:value-of>
@@ -100,6 +105,26 @@ version="3.0"
                             <xsl:sort select="lower-case(dct:title[1])"/>
                             <xsl:with-param name="installed" select="$installed"/>
                         </xsl:apply-templates>
+                        <!-- an unlisted import is known by its URI alone: the catalog has no title or description for it -->
+                        <xsl:for-each select="$unlisted">
+                            <xsl:sort select="."/>
+                            <tr>
+                                <td>
+                                    <a href="{ldh:href(., map{})}">
+                                        <xsl:value-of select="."/>
+                                    </a>
+                                </td>
+                                <td>
+                                    <xsl:value-of>
+                                        <xsl:apply-templates select="key('resources', 'not-in-catalog', ldh:translations())" mode="ac:label"/>
+                                    </xsl:value-of>
+                                </td>
+                                <td>
+                                    <input type="hidden" name="pu" value="&ldh;import"/>
+                                    <input type="checkbox" name="ou" value="{.}" checked="checked"/>
+                                </td>
+                            </tr>
+                        </xsl:for-each>
                     </xsl:with-param>
                 </xsl:apply-templates>
             </fieldset>
