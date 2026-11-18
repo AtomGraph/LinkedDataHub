@@ -9,6 +9,7 @@
 
 ### Added
 - A SELECT chart drawn as a Table pages its rows with the view's pager, within the query's own LIMIT and from its OFFSET; any other chart type draws every row (#219)
+- A view's facet on a property whose range is a string is a text input: it keeps the results whose value contains the text, in any case, and clears as the other facets do (#99)
 
 ### Changed
 - A resource a document describes may be left without a type: `PATCH` refuses only to leave the document itself untyped, which it already did, as the document must keep a document hierarchy class. Imported data often describes entities without a type, and a resource that had one could not be given the same shape (#308 held every resource to keeping one)

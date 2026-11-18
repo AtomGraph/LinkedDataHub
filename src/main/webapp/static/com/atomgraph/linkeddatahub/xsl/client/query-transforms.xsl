@@ -863,7 +863,82 @@ extension-element-prefixes="ixsl"
             </xsl:choose>
         </xsl:copy>
     </xsl:template>
-    
+
+    <!-- text FILTER: FILTER(isLiteral(?varName) && CONTAINS(LCASE(STR(?varName)), LCASE("text"))) - a case-insensitive
+         substring match over a facet's literal values. The text goes between the quotes as typed: the generator escapes
+         quotes, backslashes and line breaks when it writes the literal -->
+
+    <!-- identity transform -->
+    <xsl:template match="@* | node()" mode="ldh:filter-contains">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+
+    <!-- append the variable's text FILTER to the query's WHERE, unless there is no text -->
+    <xsl:template match="/json:map/json:array[@key = 'where']" mode="ldh:filter-contains" priority="1">
+        <xsl:param name="var-name" as="xs:string" tunnel="yes"/>
+        <xsl:param name="text" as="xs:string?" tunnel="yes"/>
+
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+
+            <xsl:if test="$text">
+                <json:map>
+                    <json:string key="type">filter</json:string>
+                    <json:map key="expression">
+                        <json:string key="type">operation</json:string>
+                        <json:string key="operator">&amp;&amp;</json:string>
+                        <json:array key="args">
+                            <json:map>
+                                <json:string key="type">operation</json:string>
+                                <json:string key="operator">isliteral</json:string>
+                                <json:array key="args">
+                                    <json:string><xsl:text>?</xsl:text><xsl:value-of select="$var-name"/></json:string>
+                                </json:array>
+                            </json:map>
+                            <json:map>
+                                <json:string key="type">operation</json:string>
+                                <json:string key="operator">contains</json:string>
+                                <json:array key="args">
+                                    <json:map>
+                                        <json:string key="type">operation</json:string>
+                                        <json:string key="operator">lcase</json:string>
+                                        <json:array key="args">
+                                            <json:map>
+                                                <json:string key="type">operation</json:string>
+                                                <json:string key="operator">str</json:string>
+                                                <json:array key="args">
+                                                    <json:string><xsl:text>?</xsl:text><xsl:value-of select="$var-name"/></json:string>
+                                                </json:array>
+                                            </json:map>
+                                        </json:array>
+                                    </json:map>
+                                    <json:map>
+                                        <json:string key="type">operation</json:string>
+                                        <json:string key="operator">lcase</json:string>
+                                        <json:array key="args">
+                                            <json:string><xsl:text>&quot;</xsl:text><xsl:value-of select="$text"/><xsl:text>&quot;</xsl:text></json:string>
+                                        </json:array>
+                                    </json:map>
+                                </json:array>
+                            </json:map>
+                        </json:array>
+                    </json:map>
+                </json:map>
+            </xsl:if>
+        </xsl:copy>
+    </xsl:template>
+
+    <!-- the variable's previous text FILTER goes: replaced by the one appended above, or removed with the text -->
+    <xsl:template match="/json:map/json:array[@key = 'where']/json:map[json:string[@key = 'type'] = 'filter'][json:map[@key = 'expression'][json:string[@key = 'operator'] = '&amp;&amp;']/json:array[@key = 'args']/json:map[json:string[@key = 'operator'] = 'isliteral']]" mode="ldh:filter-contains" priority="1">
+        <xsl:param name="var-name" as="xs:string" tunnel="yes"/>
+
+        <xsl:if test="not(json:map[@key = 'expression']/json:array[@key = 'args']/json:map[json:string[@key = 'operator'] = 'isliteral']/json:array[@key = 'args']/json:string = '?' || $var-name)">
+            <xsl:next-match/>
+        </xsl:if>
+    </xsl:template>
+
     <!-- A SELECT whose first projection is an expression - (?s AS ?resource), (YEAR(NOW()) AS ?year) - binds that
          variable in its projection alone, so a rewrite that projects something else or appends patterns to its WHERE
          sees the variable unbound there: a COUNT counts nothing, and a pattern joined on it matches every triple in the
