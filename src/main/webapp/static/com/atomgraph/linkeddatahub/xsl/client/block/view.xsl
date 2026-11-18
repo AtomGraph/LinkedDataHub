@@ -1918,11 +1918,11 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="div[contains-token(@class, 'block')][@about]//button[contains-token(@class, 'btn-create-view')]" mode="ixsl:onclick">
         <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][@about][1]" as="element()"/>
-        <xsl:variable name="forClass" select="xs:anyURI('&ldh;View')" as="xs:anyURI"/>
+        <xsl:variable name="for-class" select="xs:anyURI('&ldh;View')" as="xs:anyURI"/>
 
         <xsl:call-template name="ldh:CreateBlock">
             <xsl:with-param name="block" select="$block"/>
-            <xsl:with-param name="forClass" select="$forClass"/>
+            <xsl:with-param name="for-class" select="$for-class"/>
             <xsl:with-param name="properties" as="element()*">
                 <spin:query rdf:resource="{$block/@about}"/>
             </xsl:with-param>
@@ -3553,7 +3553,7 @@ exclude-result-prefixes="#all"
 
     <!-- The two constructors a creation from a view instantiates, as one pair list the first render and the violation
          re-render load alike: the entity's, of the class the view constructs, and the document's, a dh:Item's, with
-         the entity's shapes. The loaders are the shared ones called under another key: the context's own forClass and
+         the entity's shapes. The loaders are the shared ones called under another key: the context's own for-class and
          types are the entity's on the first path and both resources' on the second, so each wrapper names what it
          loads for and keeps the rest of the context as it was -->
     <xsl:variable name="ldh:view-instance-constructor-pairs" as="array(*)" select="[
@@ -3564,17 +3564,17 @@ exclude-result-prefixes="#all"
 
     <xsl:function name="ldh:load-view-entity-constructed-doc" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-        <xsl:sequence select="map:put($context, 'entity-constructed-doc-request', ldh:load-constructed-doc(map:put($context, 'forClass', $context('entity-class')))('constructed-doc-request'))"/>
+        <xsl:sequence select="map:put($context, 'entity-constructed-doc-request', ldh:load-constructed-doc(map:put($context, 'for-class', $context('entity-class')))('constructed-doc-request'))"/>
     </xsl:function>
 
     <xsl:function name="ldh:set-view-entity-constructed-doc" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-        <xsl:sequence select="map:put($context, 'constructed-doc', ldh:set-constructed-doc(map:merge(($context, map{ 'forClass': $context('entity-class'), 'constructed-doc-response': $context('entity-constructed-doc-response') }), map{ 'duplicates': 'use-last' }))('constructed-doc'))"/>
+        <xsl:sequence select="map:put($context, 'constructed-doc', ldh:set-constructed-doc(map:merge(($context, map{ 'for-class': $context('entity-class'), 'constructed-doc-response': $context('entity-constructed-doc-response') }), map{ 'duplicates': 'use-last' }))('constructed-doc'))"/>
     </xsl:function>
 
     <xsl:function name="ldh:load-view-document-constructed-doc" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-        <xsl:sequence select="map:put($context, 'document-constructed-doc-request', ldh:load-constructed-doc(map:put($context, 'forClass', xs:anyURI('&dh;Item')))('constructed-doc-request'))"/>
+        <xsl:sequence select="map:put($context, 'document-constructed-doc-request', ldh:load-constructed-doc(map:put($context, 'for-class', xs:anyURI('&dh;Item')))('constructed-doc-request'))"/>
     </xsl:function>
 
     <!-- the constructors' markers are labelled by position within each constructed document, so the document's are
@@ -3582,7 +3582,7 @@ exclude-result-prefixes="#all"
          form, and the form resolves a value's class by looking a constructor's marker up under the same label -->
     <xsl:function name="ldh:set-view-document-constructed-doc" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-        <xsl:variable name="constructed-doc" select="ldh:set-constructed-doc(map:merge(($context, map{ 'forClass': xs:anyURI('&dh;Item'), 'constructed-doc-response': $context('document-constructed-doc-response') }), map{ 'duplicates': 'use-last' }))('constructed-doc')" as="document-node()"/>
+        <xsl:variable name="constructed-doc" select="ldh:set-constructed-doc(map:merge(($context, map{ 'for-class': xs:anyURI('&dh;Item'), 'constructed-doc-response': $context('document-constructed-doc-response') }), map{ 'duplicates': 'use-last' }))('constructed-doc')" as="document-node()"/>
         <xsl:variable name="prefixed" as="document-node()">
             <xsl:document>
                 <xsl:apply-templates select="$constructed-doc" mode="ldh:PrefixBnodes">
@@ -3637,7 +3637,7 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:variable name="view-block" select="ancestor::div[contains-token(@class, 'block')][@data-property][1]" as="element()"/>
         <xsl:variable name="content-body" select="ancestor::div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
-        <xsl:variable name="forClass" select="xs:anyURI(@data-for-class)" as="xs:anyURI"/>
+        <xsl:variable name="for-class" select="xs:anyURI(@data-for-class)" as="xs:anyURI"/>
         <xsl:variable name="container-uri" select="@data-container/xs:anyURI(.)" as="xs:anyURI?"/>
         <!-- the container's child document; under the page, as a placeholder the container field replaces, when no container is known -->
         <xsl:variable name="doc-uri" select="resolve-uri(ac:uuid() || '/', ($container-uri, ac:absolute-path(ldh:base-uri(.)))[1])" as="xs:anyURI"/>
@@ -3645,12 +3645,12 @@ exclude-result-prefixes="#all"
 
         <xsl:sequence select="ldh:busy-cursor()"/>
 
-        <!-- 'types' is initially set to ($forClass) so the shape fetch targets the right class, same as the type-combobox flow; 'view-*' keys carry the linkage metadata through the chain -->
+        <!-- 'types' is initially set to ($for-class) so the shape fetch targets the right class, same as the type-combobox flow; 'view-*' keys carry the linkage metadata through the chain -->
         <xsl:variable name="context" as="map(*)" select="map:merge((map{
             'content-body': $content-body,
-            'forClass': $forClass,
-            'entity-class': $forClass,
-            'types': ($forClass),
+            'for-class': $for-class,
+            'entity-class': $for-class,
+            'types': ($for-class),
             'endpoint': sd:endpoint(),
             'doc-uri': $doc-uri,
             'this': $this,
@@ -3732,7 +3732,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="content-body" select="$context('content-body')" as="element()"/>
         <xsl:variable name="doc-uri" select="$context('doc-uri')" as="xs:anyURI"/>
         <xsl:variable name="this" select="$context('this')" as="xs:anyURI"/>
-        <xsl:variable name="forClass" select="$context('forClass')" as="xs:anyURI"/>
+        <xsl:variable name="for-class" select="$context('for-class')" as="xs:anyURI"/>
         <xsl:variable name="instance-doc" select="$context('instance-doc')" as="document-node()"/>
         <xsl:variable name="document-doc" select="$context('document-doc')" as="document-node()"/>
 
@@ -3754,7 +3754,7 @@ exclude-result-prefixes="#all"
             <!-- a modal takes over from the chrome that opened it: a drop-down the pick came from is dismissed here, once its own handler has run -->
             <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ac-menu-anchor')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseMenu"/>
             <xsl:result-document href="?." method="ixsl:append-content">
-                <div class="ac-backdrop pos-top modal modal-constructor" about="{$doc-uri}" typeof="{$forClass}"> <!-- @about identifies the new document URL (uniform with the other modals so submit handlers can read $block/@about); the instance URI travels on @data-instance -->
+                <div class="ac-backdrop pos-top modal modal-constructor" about="{$doc-uri}" typeof="{$for-class}"> <!-- @about identifies the new document URL (uniform with the other modals so submit handlers can read $block/@about); the instance URI travels on @data-instance -->
                     <xsl:apply-templates select="." mode="ldh:Modal">
                         <xsl:with-param name="body" as="item()*">
 
@@ -3944,7 +3944,7 @@ exclude-result-prefixes="#all"
                 'doc-uri': $doc-uri,
                 'this': $this,
                 'entity-class': $entity-class,
-                'forClass': $entity-class,
+                'for-class': $entity-class,
                 'body': $body,
                 'types': distinct-values($submitted/rdf:type/@rdf:resource),
                 'endpoint': sd:endpoint(),

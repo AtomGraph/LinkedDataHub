@@ -21,6 +21,8 @@ import { test, expect } from '../../lib/console.mjs';
 import { goto } from '../../lib/settle.mjs';
 import { fieldFor } from '../../lib/form.mjs';
 import { conceptBlock, conceptPage } from '../../lib/taxonomy.mjs';
+import { NARROWER, createButton, viewBlock } from '../../lib/view.mjs';
+import { constructorModal } from '../../lib/modal.mjs';
 
 const PREF_LABEL = 'http://www.w3.org/2004/02/skos/core#prefLabel';
 
@@ -90,4 +92,43 @@ test('wears a tag at rest and a field once the row is live', { tag: '@owner' }, 
 
     await row.hover();
     await expect.poll(() => fill(box)).not.toBe(atRest);
+});
+
+// The strip beside a control clips what does not fit on its line (overflow hidden, by design: a strip that
+// wrapped made every form row twice as tall), and a modal's column is narrower than a page's. In the Create
+// dialog a row left the strip less room than its two chips need, and the language field, the one annotation the
+// row shows at rest, was the one cut: it sat after the datatype chip, which is laid out at full width even while
+// hidden, and lost its last 29px past the strip's edge in every engine. So this is asserted where the strip is
+// short, and the precondition is asserted too - a strip wide enough for both would pass against the very layout
+// this guards against.
+test('stays whole in a modal, where the strip is short', { tag: '@owner' }, async ({ page }) => {
+    await goto(page, conceptPage('cold-drinks'));
+    const create = createButton(viewBlock(page, NARROWER));
+    await expect(create).toBeVisible({ timeout: 60_000 });
+    await create.click();
+    const modal = constructorModal(page);
+    await expect(modal).toBeVisible();
+
+    const row = fieldFor(modal, PREF_LABEL).locator('.ldh-prop-row').first();
+    const strip = row.locator('.ldh-annot').first();
+    const pill = row.locator('.ldh-lang').first();
+    await expect(pill).toBeVisible();
+
+    const edges = locator => locator.evaluate(el => {
+        const { left, right, width } = el.getBoundingClientRect();
+        return { left, right, width };
+    });
+    // the chip's own width, however much of it the strip lets it keep: its label plus the tag's padding and border
+    const chipNaturalWidth = await row.locator('.ldh-annot > .ac-tag').first().evaluate(el => {
+        const style = getComputedStyle(el);
+        return el.querySelector('.ac-tag-lbl').scrollWidth
+            + parseFloat(style.paddingLeft) + parseFloat(style.paddingRight)
+            + parseFloat(style.borderLeftWidth) + parseFloat(style.borderRightWidth);
+    });
+    const [stripBox, pillBox] = await Promise.all([edges(strip), edges(pill)]);
+
+    expect(stripBox.width, 'the strip is too short for both chips, else this row proves nothing')
+        .toBeLessThan(pillBox.width + chipNaturalWidth);
+    expect(pillBox.width, 'the language field keeps its width').toBeGreaterThan(0);
+    expect(pillBox.right, 'and all of it is inside the strip').toBeLessThanOrEqual(stripBox.right + 0.5);
 });

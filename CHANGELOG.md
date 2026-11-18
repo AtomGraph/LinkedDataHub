@@ -10,6 +10,7 @@
 ### Changed
 - A resource a document describes may be left without a type: `PATCH` refuses only to leave the document itself untyped, which it already did, as the document must keep a document hierarchy class. Imported data often describes entities without a type, and a resource that had one could not be given the same shape (#308 held every resource to keeping one)
 - The `ldh` plugin's skills show how to check which property views a type gets without a browser, with the page's own lookup query against the installed ontology: `ldh get --accept text/html` returns the page before the browser renders its blocks and property views
+- The stylesheets' `forClass` parameter, variable and context key are `for-class`, as every other name in them is spelled. A package stylesheet that passed `forClass` to a platform template passes `for-class`; `data-for-class` and the lookup query's `?forClass` are unchanged
 - A container's children view lists its documents, not the things they are about: `ldh:SelectChildren` no longer selects each child's `foaf:primaryTopic`, and the list, grid and table modes render each result as itself instead of standing a document's topic in for it. A document's row carries no type tag, as its header carries no type chip. A page that lists things (a catalogue, a table of people) is a view over the things
 
 ### Fixed
@@ -18,6 +19,8 @@
 - A lookup restricted to a class answers in a fraction of a second on a large dataspace, where it took 30 s on one of 15M quads: the classes are bound with `VALUES`, one row each, instead of a `FILTER(?Type IN (...))` after the query's `UNION`, which Jena did not push into its `GRAPH ?graph` branch, so that branch walked every typed resource in every graph first. A lookup also asks for at most 100 suggestions, a limit it declared and never applied
 - A value linking to another resource, added from the property picker or appended when a type is added, is looked up among the class its constructor declares, as the field the form opens with is: it searched every resource of the dataspace, and was named "Resource" instead of its class
 - A value can be added to a resource of more than one class: where the classes bring models of their own the form is built one prototype per class, and the property picker's Add failed with "The form could not be loaded" on finding more than one
+- The language field of a value in a modal's form is shown whole: it comes first in the row's annotation strip, ahead of the datatype chip, which is hidden at rest but was laid out at full width before it, so in the narrower column the strip cut the field's right end off. A chip the strip has no room for now ends in an ellipsis instead of a cut
+- A value looked up among two classes names each class in a tag of its own: the labels were joined into one word, "ContainerRoot" beside a document's container
 - A type can be added to a resource that has none: the property picker's Add did nothing in a block without types
 - A type added in a form starts as an empty lookup, not filled with a type the resource already has
 - A type picked in the form of a resource that exists is added to that resource: the form is fitted to the new type set, keeping the resource and its values, where it was rebuilt as a new, empty instance of the class under a fresh URI, so a save made after the rebuild created that instead
