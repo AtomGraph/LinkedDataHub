@@ -482,6 +482,20 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="json-to-xml(serialize($node, map { 'method': 'json' }))/json:map"/>
     </xsl:function>
 
+    <!-- A Traqula triple of three term maps -->
+    <xsl:function name="ldh:triple-node" as="element(json:map)">
+        <xsl:param name="subject" as="element(json:map)"/>
+        <xsl:param name="predicate" as="element(json:map)"/>
+        <xsl:param name="object" as="element(json:map)"/>
+
+        <json:map>
+            <json:string key="type">triple</json:string>
+            <json:map key="subject"><xsl:copy-of select="$subject/node()"/></json:map>
+            <json:map key="predicate"><xsl:copy-of select="$predicate/node()"/></json:map>
+            <json:map key="object"><xsl:copy-of select="$object/node()"/></json:map>
+        </json:map>
+    </xsl:function>
+
     <!-- A term as one string, the form triples are grouped and compared by: an IRI as itself, a blank node as
          _:label, a variable as ?name, a literal as its lexical form -->
     <xsl:function name="ldh:term-key" as="xs:string?">

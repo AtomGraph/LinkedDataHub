@@ -3671,11 +3671,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
         <xsl:variable name="link-triple" as="element()?">
             <xsl:if test="$modal/@data-inverse">
-                <json:map>
-                    <json:string key="subject"><xsl:sequence select="string($instance)"/></json:string>
-                    <json:string key="predicate"><xsl:sequence select="string($modal/@data-property)"/></json:string>
-                    <json:string key="object"><xsl:sequence select="string($modal/@data-about)"/></json:string>
-                </json:map>
+                <xsl:sequence select="ldh:triple-node(ldh:typed-term-node('namedNode', string($instance), ()), ldh:typed-term-node('namedNode', string($modal/@data-property), ()), ldh:typed-term-node('namedNode', string($modal/@data-about), ()))"/>
             </xsl:if>
         </xsl:variable>
 
@@ -3699,17 +3695,9 @@ exclude-result-prefixes="#all"
         </xsl:variable>
 
         <xsl:variable name="doc-triples" as="element()*">
-            <json:map>
-                <json:string key="subject"><xsl:sequence select="string($doc-uri)"/></json:string>
-                <json:string key="predicate">&foaf;primaryTopic</json:string>
-                <json:string key="object"><xsl:sequence select="string($instance)"/></json:string>
-            </json:map>
+            <xsl:sequence select="ldh:triple-node(ldh:typed-term-node('namedNode', string($doc-uri), ()), ldh:typed-term-node('namedNode', '&foaf;primaryTopic', ()), ldh:typed-term-node('namedNode', string($instance), ()))"/>
             <xsl:if test="exists($title)">
-                <json:map>
-                    <json:string key="subject"><xsl:sequence select="string($doc-uri)"/></json:string>
-                    <json:string key="predicate">&dct;title</json:string>
-                    <json:string key="object">"<xsl:value-of select="$title[1]"/>"</json:string>
-                </json:map>
+                <xsl:sequence select="ldh:triple-node(ldh:typed-term-node('namedNode', string($doc-uri), ()), ldh:typed-term-node('namedNode', '&dct;title', ()), ldh:typed-term-node('literal', string($title[1]), ()))"/>
             </xsl:if>
         </xsl:variable>
 

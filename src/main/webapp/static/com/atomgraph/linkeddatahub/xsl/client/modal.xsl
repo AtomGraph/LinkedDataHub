@@ -986,63 +986,57 @@ LIMIT   10
         <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
         <!-- need a customer DELETE/WHERE pattern because the default $about ?p ?o would delete system properties such as dct:created or sioc:has_parent -->
         <xsl:variable name="where-pattern" as="element()*">
+            <xsl:sequence select="ldh:triples-to-bgp(ldh:uri-po-pattern($about))"/>
+            <!-- FILTER (?p NOT IN (...system properties...)) -->
             <json:map>
-                <json:string key="type">bgp</json:string>
-                <json:array key="triples">
-                    <json:map>
-                        <json:string key="subject"><xsl:value-of select="$about"/></json:string>
-                        <json:string key="predicate">?p</json:string>
-                        <json:string key="object">?o</json:string>
-                    </json:map>
-                </json:array>
-            </json:map>
-            <json:map>
-                <json:string key="type">filter</json:string>
+                <json:string key="type">pattern</json:string>
+                <json:string key="subType">filter</json:string>
                 <json:map key="expression">
-                    <json:string key="type">operation</json:string>
+                    <json:string key="type">expression</json:string>
+                    <json:string key="subType">operation</json:string>
                     <json:string key="operator">notin</json:string>
                     <json:array key="args">
-                        <json:string>?p</json:string>
-                        <json:array>
-                            <json:string>&dct;created</json:string>
-                            <json:string>&dct;modified</json:string>
-                            <json:string>&sioc;has_parent</json:string>
-                            <json:string>&sioc;has_container</json:string>
-                            <json:string>&dct;creator</json:string>
-                            <json:string>&acl;owner</json:string>
-                        </json:array>
+                        <xsl:sequence select="ldh:typed-term-node('variable', 'p', ())"/>
+                        <xsl:sequence select="('&dct;created', '&dct;modified', '&sioc;has_parent', '&sioc;has_container', '&dct;creator', '&acl;owner') ! ldh:typed-term-node('namedNode', ., ())"/>
                     </json:array>
                 </json:map>
             </json:map>
+            <!-- FILTER (!STRSTARTS(STR(?p), CONCAT(STR(rdf:), "_"))): container membership properties -->
             <json:map>
-                <json:string key="type">filter</json:string>
+                <json:string key="type">pattern</json:string>
+                <json:string key="subType">filter</json:string>
                 <json:map key="expression">
-                    <json:string key="type">operation</json:string>
+                    <json:string key="type">expression</json:string>
+                    <json:string key="subType">operation</json:string>
                     <json:string key="operator">!</json:string>
                     <json:array key="args">
                         <json:map>
-                            <json:string key="type">operation</json:string>
+                            <json:string key="type">expression</json:string>
+                            <json:string key="subType">operation</json:string>
                             <json:string key="operator">strstarts</json:string>
                             <json:array key="args">
                                 <json:map>
-                                    <json:string key="type">operation</json:string>
+                                    <json:string key="type">expression</json:string>
+                                    <json:string key="subType">operation</json:string>
                                     <json:string key="operator">str</json:string>
                                     <json:array key="args">
-                                        <json:string>?p</json:string>
+                                        <xsl:sequence select="ldh:typed-term-node('variable', 'p', ())"/>
                                     </json:array>
                                 </json:map>
                                 <json:map>
-                                    <json:string key="type">operation</json:string>
+                                    <json:string key="type">expression</json:string>
+                                    <json:string key="subType">operation</json:string>
                                     <json:string key="operator">concat</json:string>
                                     <json:array key="args">
                                         <json:map>
-                                            <json:string key="type">operation</json:string>
+                                            <json:string key="type">expression</json:string>
+                                            <json:string key="subType">operation</json:string>
                                             <json:string key="operator">str</json:string>
                                             <json:array key="args">
-                                                <json:string>http://www.w3.org/1999/02/22-rdf-syntax-ns#</json:string>
+                                                <xsl:sequence select="ldh:typed-term-node('namedNode', '&rdf;', ())"/>
                                             </json:array>
                                         </json:map>
-                                        <json:string>"_"</json:string>
+                                        <xsl:sequence select="ldh:typed-term-node('literal', '_', ())"/>
                                     </json:array>
                                 </json:map>
                             </json:array>
