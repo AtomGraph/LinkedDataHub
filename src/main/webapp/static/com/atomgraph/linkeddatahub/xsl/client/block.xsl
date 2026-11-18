@@ -992,7 +992,7 @@ exclude-result-prefixes="#all"
                         <xsl:if test="srx:binding[@name = 'inverse']/srx:literal = 'true'">
                             <xsl:sequence select="map{ 'view-inverse': true() }"/>
                         </xsl:if>
-                        <xsl:for-each select="srx:binding[@name = 'for-class']/srx:uri">
+                        <xsl:for-each select="srx:binding[@name = 'forClass']/srx:uri">
                             <xsl:sequence select="map{ 'view-for-class': xs:anyURI(.) }"/>
                         </xsl:for-each>
                         <xsl:for-each select="srx:binding[@name = 'showWhenEmpty']/srx:literal">
