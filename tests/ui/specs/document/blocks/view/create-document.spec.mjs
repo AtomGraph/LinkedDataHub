@@ -17,7 +17,8 @@ const DCT = 'http://purl.org/dc/terms/';
 const FOAF = 'http://xmlns.com/foaf/0.1/';
 const HAS_CONTAINER = 'http://rdfs.org/sioc/ns#has_container';
 
-const turtle = uri => ldh(['get', '--accept', 'text/turtle', uri]).then(({ stdout }) => stdout);
+// N-Triples, one triple per line: a subject-predicate-object substring then matches regardless of how the store lays a graph out
+const triples = uri => ldh(['get', '--accept', 'application/n-triples', uri]).then(({ stdout }) => stdout);
 const escape = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const under = container => new RegExp(`^${escape(container)}[^/]+/$`);
 const conceptsInScheme = page => page.locator(`div.block.ldh-block[data-property="${IN_SCHEME}"]`).filter({ hasText: 'Concepts in scheme' });
@@ -70,7 +71,7 @@ test.describe('creating from a view', { tag: '@owner' }, () => {
             await save(modal);
             await expect(modal).toHaveCount(0);
             await expect(rowLabel(rowFor(view, newConcept))).toHaveText('Mocha');
-            const stored = await turtle(newDocument);
+            const stored = await triples(newDocument);
             expect(stored).toContain('"Mocha"');
             expect(stored).toContain(`<${FOAF}primaryTopic> <${newConcept}>`);
         } finally {
@@ -96,7 +97,7 @@ test.describe('creating from a view', { tag: '@owner' }, () => {
             await expect(modal).toHaveCount(0);
             // listed by the scheme though written elsewhere: the inverse view's link goes into the new document
             await expect(rowLabel(rowFor(view, newConcept))).toHaveText('Cortado');
-            expect(await turtle(newDocument)).toContain(`<${concept(scheme)}>`);
+            expect(await triples(newDocument)).toContain(`<${concept(scheme)}>`);
         } finally {
             await ldh(['delete', newDocument], { allowFailure: true });
         }
