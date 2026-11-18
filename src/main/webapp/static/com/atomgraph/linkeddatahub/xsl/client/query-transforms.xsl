@@ -106,6 +106,43 @@ extension-element-prefixes="ixsl"
         <xsl:sequence select="string(($first/json:string[@key = 'value'], $first/json:map[@key = 'variable']/json:string[@key = 'value'])[1])"/>
     </xsl:function>
 
+    <!-- the query's LIMIT and OFFSET, if it has them -->
+    <xsl:function name="ldh:query-limit" as="xs:integer?">
+        <xsl:param name="query" as="element(json:map)?"/>
+
+        <xsl:sequence select="$query/json:map[@key = 'solutionModifiers']/json:map[@key = 'limitOffset']/json:number[@key = 'limit'] ! xs:integer(.)"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:query-offset" as="xs:integer?">
+        <xsl:param name="query" as="element(json:map)?"/>
+
+        <xsl:sequence select="$query/json:map[@key = 'solutionModifiers']/json:map[@key = 'limitOffset']/json:number[@key = 'offset'] ! xs:integer(.)"/>
+    </xsl:function>
+
+    <!-- the variable name of the query's $pos-th sort key, when that key is a plain variable -->
+    <xsl:function name="ldh:order-var-name" as="xs:string?">
+        <xsl:param name="query" as="element(json:map)?"/>
+        <xsl:param name="pos" as="xs:integer"/>
+
+        <xsl:sequence select="$query/json:map[@key = 'solutionModifiers']/json:map[@key = 'order']/json:array[@key = 'orderDefs']/json:map[$pos]/json:map[@key = 'expression'][json:string[@key = 'subType'] = 'variable']/json:string[@key = 'value']/string()"/>
+    </xsl:function>
+
+    <!-- whether the query's $pos-th sort key is descending -->
+    <xsl:function name="ldh:order-desc" as="xs:boolean?">
+        <xsl:param name="query" as="element(json:map)?"/>
+        <xsl:param name="pos" as="xs:integer"/>
+
+        <xsl:sequence select="$query/json:map[@key = 'solutionModifiers']/json:map[@key = 'order']/json:array[@key = 'orderDefs']/json:map[$pos]/json:boolean[@key = 'descending'] ! xs:boolean(.)"/>
+    </xsl:function>
+
+    <!-- the triples of the query's basic graph patterns, subqueries' included, whose subject is the variable $var-name -->
+    <xsl:function name="ldh:subject-var-triples" as="element(json:map)*">
+        <xsl:param name="query" as="element(json:map)?"/>
+        <xsl:param name="var-name" as="xs:string"/>
+
+        <xsl:sequence select="$query//json:map[json:string[@key = 'type'] = 'pattern'][json:string[@key = 'subType'] = 'bgp']/json:array[@key = 'triples']/json:map[json:map[@key = 'subject'][json:string[@key = 'subType'] = 'variable'][json:string[@key = 'value'] = $var-name]]"/>
+    </xsl:function>
+
     <!-- Construct parser-independent RDF terms in the Traqula AST shape from a SPARQL token used by
          the query rewrites. Parsed terms are already typed objects and are copied unchanged. -->
     <xsl:function name="ldh:term-node" as="element(json:map)">
@@ -439,22 +476,20 @@ extension-element-prefixes="ixsl"
                                 <json:string key="subType">filter</json:string>
                             <json:map key="expression">
                                     <json:string key="type">expression</json:string>
-                                    <json:string key="subType">operation</json:string>
+                                    <json:string key="subType">patternOperation</json:string>
                                 <json:string key="operator">exists</json:string>
-                                <json:array key="args">
-                                    <json:map>
-                                            <json:string key="type">pattern</json:string>
-                                            <json:string key="subType">group</json:string>
-                                        <json:array key="patterns">
-                                            <xsl:call-template name="ldh:GraphUnionPattern">
-                                                <xsl:with-param name="subject" select="$object-var"/>
-                                                <xsl:with-param name="predicate" select="'?objectPredicate' || $suffix"/>
-                                                <xsl:with-param name="object" select="'?objectObject' || $suffix"/>
-                                                <xsl:with-param name="graph-var" select="'?objectGraph' || $suffix"/>
-                                            </xsl:call-template>
-                                        </json:array>
-                                    </json:map>
-                                </json:array>
+                                <json:map key="args">
+                                    <json:string key="type">pattern</json:string>
+                                    <json:string key="subType">group</json:string>
+                                    <json:array key="patterns">
+                                        <xsl:call-template name="ldh:GraphUnionPattern">
+                                            <xsl:with-param name="subject" select="$object-var"/>
+                                            <xsl:with-param name="predicate" select="'?objectPredicate' || $suffix"/>
+                                            <xsl:with-param name="object" select="'?objectObject' || $suffix"/>
+                                            <xsl:with-param name="graph-var" select="'?objectGraph' || $suffix"/>
+                                        </xsl:call-template>
+                                    </json:array>
+                                </json:map>
                             </json:map>
                         </json:map>
                     </xsl:otherwise>
@@ -482,7 +517,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <!-- an expression's alias is unbound in the WHERE the step is appended to (ldh:wrap-subquery) -->
-    <xsl:template match="/json:map[json:array[@key = 'variables']/*[1][self::json:map]]" mode="ldh:add-parallax-step" priority="2">
+    <xsl:template match="/json:map[json:array[@key = 'variables']/*[1][json:string[@key = 'subType'] = 'bind']]" mode="ldh:add-parallax-step" priority="2">
         <xsl:variable name="wrapped" as="document-node()">
             <xsl:document>
                 <xsl:apply-templates select="." mode="ldh:wrap-subquery"/>
@@ -674,26 +709,15 @@ extension-element-prefixes="ixsl"
         </xsl:copy>
     </xsl:template>
     
+    <!-- an ordering parsed by Traqula always carries 'descending', so it is set rather than added: a second key of the same name makes xml-to-json() fail -->
     <xsl:template match="json:array[@key = 'orderDefs']/json:map[1]" mode="ldh:toggle-desc" priority="1">
         <xsl:param name="desc" as="xs:boolean?" tunnel="yes"/>
 
         <xsl:copy>
-            <xsl:apply-templates select="@* | node()" mode="#current"/>
+            <xsl:apply-templates select="@* | node()[not(self::json:boolean[@key = 'descending'])]" mode="#current"/>
 
-            <xsl:if test="$desc and not(json:boolean[@key = 'descending'][. = 'true'])">
-                <json:boolean key="descending">true</json:boolean>
-            </xsl:if>
+            <json:boolean key="descending"><xsl:value-of select="boolean($desc)"/></json:boolean>
         </xsl:copy>
-    </xsl:template>
-
-    <xsl:template match="json:array[@key = 'orderDefs']/json:map[1]/json:boolean[@key = 'descending'][. = 'true']" mode="ldh:toggle-desc" priority="1">
-        <xsl:param name="desc" as="xs:boolean?" tunnel="yes"/>
-
-        <xsl:if test="$desc">
-            <xsl:copy>
-                <xsl:apply-templates select="@* | node()" mode="#current"/>
-            </xsl:copy>
-        </xsl:if>
     </xsl:template>
     
     <!--  facet values and COUNTs -->
@@ -755,7 +779,7 @@ extension-element-prefixes="ixsl"
         <xsl:copy>
             <xsl:apply-templates select="@* | node()[not(self::json:map[@key = 'solutionModifiers'])]" mode="#current"/>
             <json:map key="solutionModifiers">
-                <xsl:apply-templates select="json:map[@key = 'solutionModifiers']/@* | json:map[@key = 'solutionModifiers']/node()[not(self::json:map[@key = ('group', 'order')])]" mode="#current"/>
+                <xsl:apply-templates select="json:map[@key = 'solutionModifiers']/@* | json:map[@key = 'solutionModifiers']/node()[not(self::json:map[@key = 'group'])]" mode="#current"/>
                 <!-- TO-DO: will fail on queries with existing GROUP BY -->
                 <json:map key="group">
                     <json:string key="type">solutionModifier</json:string>
@@ -803,7 +827,7 @@ extension-element-prefixes="ixsl"
         <xsl:copy>
             <xsl:apply-templates select="@* | node()" mode="#current"/>
 
-            <xsl:if test="json:map[json:string[@key = 'type'] = 'pattern'][json:string[@key = 'subType'] = 'bgp']/json:array[@key = 'triples']/json:map/json:map[@key = 'object']/json:string[@key = 'subType'] = 'variable' and json:map[json:string[@key = 'type'] = 'pattern'][json:string[@key = 'subType'] = 'bgp']/json:array[@key = 'triples']/json:map/json:map[@key = 'object']/json:string[@key = 'value'] = $object-var-name">
+            <xsl:if test="json:map[json:string[@key = 'type'] = 'pattern'][json:string[@key = 'subType'] = 'bgp']/json:array[@key = 'triples']/json:map/json:map[@key = 'object'][json:string[@key = 'subType'] = 'variable'][json:string[@key = 'value'] = $object-var-name]">
                 <json:map>
                     <json:string key="type">pattern</json:string>
                     <json:string key="subType">optional</json:string>
@@ -863,15 +887,16 @@ extension-element-prefixes="ixsl"
         </xsl:copy>
     </xsl:template>
     
-    <xsl:template match="json:map/json:array[@key = 'order']" mode="ldh:bgp-value-counts" priority="1">
+    <!-- an existing ORDER BY keeps its keys and sorts by the count after them -->
+    <xsl:template match="json:map[@key = 'solutionModifiers']/json:map[@key = 'order']/json:array[@key = 'orderDefs']" mode="ldh:bgp-value-counts" priority="1">
         <xsl:param name="count-var-name" as="xs:string" tunnel="yes"/>
         <xsl:param name="descending" select="true()" as="xs:boolean" tunnel="yes"/>
 
         <xsl:copy>
-            <xsl:apply-templates select="@*" mode="#current"/>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
 
             <json:map>
-                <json:string key="expression"><xsl:text>?</xsl:text><xsl:value-of select="$count-var-name"/></json:string>
+                <json:map key="expression"><xsl:copy-of select="ldh:term-node('?' || $count-var-name)/node()"/></json:map>
                 <json:boolean key="descending"><xsl:value-of select="$descending"/></json:boolean>
             </json:map>
         </xsl:copy>
@@ -886,11 +911,12 @@ extension-element-prefixes="ixsl"
         </xsl:copy>
     </xsl:template>
 
-    <!-- append FILTER (?varName IN ()) to WHERE, if it's not present yet, and replace IN() values -->
+    <!-- append FILTER (?varName IN ()) to WHERE, if it's not present yet, and replace IN() values. Traqula gives IN its
+         operands flat: the variable first, then the values -->
     <xsl:template match="json:map[@key = 'where']/json:array[@key = 'patterns']" mode="ldh:filter-in" priority="1">
         <xsl:param name="var-name" as="xs:string" tunnel="yes"/>
         <xsl:param name="values" as="array(map(xs:string, xs:string))" tunnel="yes"/>
-        <xsl:variable name="var-filter" select="json:map[json:string[@key = 'type'] = 'pattern'][json:string[@key = 'subType'] = 'filter'][json:map[@key = 'expression']/json:array[@key = 'args']/json:map[json:string[@key = 'type'] = 'term'][json:string[@key = 'subType'] = 'variable'][json:string[@key = 'value'] = $var-name]][json:map[@key = 'expression']/json:array[@key = 'args']/json:array]" as="element()?"/>
+        <xsl:variable name="var-filter" select="json:map[ldh:is-filter-in(., $var-name)]" as="element()?"/>
         <xsl:variable name="where" as="element()">
             <xsl:choose>
                 <xsl:when test="$var-filter">
@@ -910,9 +936,6 @@ extension-element-prefixes="ixsl"
                                 <json:string key="operator">in</json:string>
                                 <json:array key="args">
                                     <xsl:sequence select="ldh:term-node('?' || $var-name)"/>
-                                    <json:array>
-                                        <!-- values -->
-                                    </json:array>
                                 </json:array>
                             </json:map>
                         </json:map>
@@ -921,12 +944,20 @@ extension-element-prefixes="ixsl"
             </xsl:choose>
         </xsl:variable>
         
-        <!-- append value to IN() -->
+        <!-- set the IN() values -->
         <xsl:apply-templates select="$where" mode="ldh:set-filter-in-values">
             <xsl:with-param name="var-name" select="$var-name" tunnel="yes"/>
             <xsl:with-param name="values" select="$values" tunnel="yes"/>
         </xsl:apply-templates>
     </xsl:template>
+
+    <!-- whether $pattern is FILTER (?varName IN (...)) -->
+    <xsl:function name="ldh:is-filter-in" as="xs:boolean">
+        <xsl:param name="pattern" as="element(json:map)"/>
+        <xsl:param name="var-name" as="xs:string"/>
+
+        <xsl:sequence select="exists($pattern[json:string[@key = 'type'] = 'pattern'][json:string[@key = 'subType'] = 'filter']/json:map[@key = 'expression'][json:string[@key = 'operator'] = 'in']/json:array[@key = 'args']/*[1][json:string[@key = 'subType'] = 'variable'][json:string[@key = 'value'] = $var-name])"/>
+    </xsl:function>
 
     <!-- identity transform -->
     <xsl:template match="@* | node()" mode="ldh:set-filter-in-values">
@@ -935,35 +966,33 @@ extension-element-prefixes="ixsl"
         </xsl:copy>
     </xsl:template>
 
+    <!-- remove the FILTER (?varName IN ()) if there are no values -->
     <xsl:template match="json:map[json:string[@key = 'type'] = 'pattern'][json:string[@key = 'subType'] = 'filter']" mode="ldh:set-filter-in-values" priority="1">
         <xsl:param name="var-name" as="xs:string" tunnel="yes"/>
         <xsl:param name="values" as="array(map(xs:string, xs:string))" tunnel="yes"/>
         
-        <!-- remove the FILTER ($varName) if there are no values -->
-        <xsl:if test="not(json:map[@key = 'expression']/json:array[@key = 'args']/json:map[json:string[@key = 'type'] = 'term'][json:string[@key = 'subType'] = 'variable'][json:string[@key = 'value'] = $var-name] and array:size($values) = 0)">
+        <xsl:if test="not(ldh:is-filter-in(., $var-name) and array:size($values) = 0)">
             <xsl:copy>
                 <xsl:apply-templates select="@* | node()" mode="#current"/>
             </xsl:copy>
         </xsl:if>
     </xsl:template>
     
-    <!-- replace IN () values for the FILTER with matching variable name -->
-    <xsl:template match="json:map[json:string[@key = 'type'] = 'pattern'][json:string[@key = 'subType'] = 'filter']/json:map[@key = 'expression']/json:array[@key = 'args']/json:array" mode="ldh:set-filter-in-values" priority="1">
+    <!-- replace the IN () values of the FILTER with the matching variable name, keeping the variable -->
+    <xsl:template match="json:map[json:string[@key = 'type'] = 'pattern'][json:string[@key = 'subType'] = 'filter']/json:map[@key = 'expression']/json:array[@key = 'args']" mode="ldh:set-filter-in-values" priority="1">
         <xsl:param name="var-name" as="xs:string" tunnel="yes"/>
         <xsl:param name="values" as="array(map(xs:string, xs:string))" tunnel="yes"/>
         
         <xsl:copy>
             <xsl:choose>
-                <!-- replace IN() values if $varName matches -->
-                <xsl:when test="../json:map[json:string[@key = 'type'] = 'term'][json:string[@key = 'subType'] = 'variable'][json:string[@key = 'value'] = $var-name]">
+                <xsl:when test="ldh:is-filter-in(../.., $var-name)">
+                    <xsl:apply-templates select="@* | *[1]" mode="#current"/>
+
                     <xsl:for-each select="1 to array:size($values)">
-                        <xsl:variable name="pos" select="position()"/>
-                        <xsl:variable name="value" select="array:get($values, $pos)" as="map(xs:string, xs:string)"/>
-                        <xsl:sequence select="ldh:term-node(
-                            if ($value?type = 'literal')
-                            then codepoints-to-string(34) || $value?value || codepoints-to-string(34) || (if ($value?lang) then '@' || $value?lang else if ($value?datatype) then '^^' || $value?datatype else '')
-                            else $value?value
-                        )"/>
+                        <xsl:variable name="value" select="array:get($values, .)" as="map(xs:string, xs:string)"/>
+                        <xsl:sequence select="if ($value?type = 'literal')
+                            then ldh:typed-term-node('literal', $value?value, if ($value?lang) then $value?lang else if ($value?datatype) then map { 'type': 'term', 'subType': 'namedNode', 'value': $value?datatype } else ())
+                            else ldh:typed-term-node('namedNode', $value?value, ())"/>
                     </xsl:for-each>
                 </xsl:when>
                 <!-- otherwise, retain existing values -->
@@ -1019,7 +1048,7 @@ extension-element-prefixes="ixsl"
     <!-- a SELECT whose first projection is an expression binds its alias only in the projection, which the count
          replaces - COUNT(?alias) over the bare WHERE would count nothing. So the count is taken over the
          subquery's rows (ldh:wrap-subquery) -->
-    <xsl:template match="/json:map[json:array[@key = 'variables']/*[1][self::json:map[json:string[@key = 'type'] = 'pattern'][json:string[@key = 'subType'] = 'bind']]]" mode="ldh:result-count" priority="2">
+    <xsl:template match="/json:map[json:array[@key = 'variables']/*[1][json:string[@key = 'subType'] = 'bind']]" mode="ldh:result-count" priority="2">
         <xsl:variable name="wrapped" as="document-node()">
             <xsl:document>
                 <xsl:apply-templates select="." mode="ldh:wrap-subquery"/>
@@ -1089,7 +1118,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <!-- an expression's alias is unbound in the WHERE the joins are appended to (ldh:wrap-subquery) -->
-    <xsl:template match="/json:map[json:array[@key = 'variables']/*[1][self::json:map[json:string[@key = 'type'] = 'pattern'][json:string[@key = 'subType'] = 'bind']]]" mode="ldh:container-select" priority="2">
+    <xsl:template match="/json:map[json:array[@key = 'variables']/*[1][json:string[@key = 'subType'] = 'bind']]" mode="ldh:container-select" priority="2">
         <xsl:variable name="wrapped" as="document-node()">
             <xsl:document>
                 <xsl:apply-templates select="." mode="ldh:wrap-subquery"/>
