@@ -648,6 +648,72 @@ exclude-result-prefixes="#all"
         </xsl:document>
     </xsl:function>
 
+    <!-- Pure derivation: the instance document with one property of one resource given a value. A constructor's marker
+         (the typed bnode a value is to be picked for) is replaced by $object, and the marker's own Description goes with
+         it, as a typing-only bnode nobody names any more would otherwise be rendered as a resource of its own; a
+         property the resource lacks is added. What a creating flow already knows is written into the instance this
+         way (the container a view's rows live in, the page a Create menu was opened on, the topic a document is made
+         for), so the form shows it as a value rather than a lookup, and a value it remains the reader's to change. -->
+    <xsl:function name="ldh:set-object" as="document-node()">
+        <xsl:param name="doc" as="document-node()"/>
+        <xsl:param name="subject" as="xs:string"/>
+        <xsl:param name="property" as="xs:anyURI"/>
+        <xsl:param name="object" as="xs:anyURI"/>
+
+        <xsl:document>
+            <xsl:apply-templates select="$doc" mode="ldh:SetObject">
+                <xsl:with-param name="subject" select="$subject" tunnel="yes"/>
+                <xsl:with-param name="property" select="$property" tunnel="yes"/>
+                <xsl:with-param name="object" select="$object" tunnel="yes"/>
+            </xsl:apply-templates>
+        </xsl:document>
+    </xsl:function>
+
+    <xsl:mode name="ldh:SetObject" on-no-match="shallow-copy"/>
+
+    <!-- a pattern cannot read a template parameter, so one rule looks at every description and decides: the subject
+         gets the object; the marker the subject's property pointed at, which nothing else names, goes; the rest is copied -->
+    <xsl:template match="rdf:RDF/*[@rdf:about or @rdf:nodeID]" mode="ldh:SetObject">
+        <xsl:param name="subject" as="xs:string" tunnel="yes"/>
+        <xsl:param name="property" as="xs:anyURI" tunnel="yes"/>
+        <xsl:param name="object" as="xs:anyURI" tunnel="yes"/>
+        <xsl:variable name="id" select="(@rdf:about, @rdf:nodeID)[1]" as="xs:string"/>
+        <xsl:variable name="referrers" select="if (@rdf:nodeID) then key('predicates-by-object', @rdf:nodeID) else ()" as="element()*"/>
+        <xsl:variable name="marker" select="exists(@rdf:nodeID) and not(* except rdf:type) and exists($referrers) and (every $r in $referrers satisfies (concat(namespace-uri($r), local-name($r)) = $property and ($r/../@rdf:about, $r/../@rdf:nodeID) = $subject))" as="xs:boolean"/>
+
+        <xsl:choose>
+            <xsl:when test="$marker"/>
+            <xsl:when test="$id = $subject">
+                <xsl:copy>
+                    <xsl:copy-of select="@*"/>
+                    <xsl:for-each select="*">
+                        <xsl:choose>
+                            <xsl:when test="concat(namespace-uri(), local-name()) = $property">
+                                <xsl:copy>
+                                    <xsl:copy-of select="@* except (@rdf:resource, @rdf:nodeID)"/>
+                                    <xsl:attribute name="rdf:resource" select="$object"/>
+                                </xsl:copy>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:copy-of select="."/>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </xsl:for-each>
+                    <xsl:if test="not(*[concat(namespace-uri(), local-name()) = $property])">
+                        <!-- the predicate URI split as ldh:triples-to-descriptions splits it -->
+                        <xsl:variable name="namespace" select="if (contains($property, '#')) then substring-before($property, '#') || '#' else replace($property, '[^/]+$', '')" as="xs:string"/>
+                        <xsl:element namespace="{$namespace}" name="ns:{substring-after($property, $namespace)}">
+                            <xsl:attribute name="rdf:resource" select="$object"/>
+                        </xsl:element>
+                    </xsl:if>
+                </xsl:copy>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:copy-of select="."/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+
     <!-- Pure derivation: folds a SHACL-derived constructor and a SPIN-derived constructor into one bnode-prototyped constructor for $for-class. Aligns the SPIN side's prototype bnode label to the SHACL side's (via mode="ldh:RenameBnode"), then groups Descriptions by identity so the two prototypes collapse into one with combined children. Value-range siblings on each side keep their own bnode labels and stay as distinct Descriptions in the merged doc. When the SHACL side has no prototype Description for $for-class (e.g. no NodeShape targets that class), returns the SPIN side unchanged. -->
     <xsl:function name="ldh:merge-constructors" as="document-node()">
         <xsl:param name="shape-constructor" as="document-node()?"/>
@@ -1038,8 +1104,10 @@ exclude-result-prefixes="#all"
         <xsl:param name="class" select="'slug subject-slug'" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
         <xsl:param name="action" tunnel="yes"/>
-        <!-- cut slug segment from form action URL -->
-        <xsl:param name="slug" select="substring-before(substring-after($action, ac:absolute-path(ldh:base-uri(.))), '/')" as="xs:string"/>
+        <!-- the parent and the slug are the form action's last two segments: the action is where the document goes, and it
+             follows the container the form names (client/modal.xsl, ldh:remint-document), which the page's own URI does not -->
+        <xsl:param name="parent" select="replace($action, '[^/]+/$', '')" as="xs:string"/>
+        <xsl:param name="slug" select="replace($action, '^.*/([^/]+)/$', '$1')" as="xs:string"/>
         <xsl:param name="tools" as="element()*"/>
 
         <div class="ldh-subject">
@@ -1060,7 +1128,7 @@ exclude-result-prefixes="#all"
                 <input type="hidden" name="su" value="{$action}"/>
                 <span class="msi outline sm" aria-hidden="true">folder</span>
                 <span class="parent">
-                    <xsl:value-of select="ac:absolute-path(ldh:base-uri(.))"/>
+                    <xsl:value-of select="$parent"/>
                 </span>
                 <xsl:call-template name="xhtml:Input">
                     <xsl:with-param name="type" select="'text'"/>
