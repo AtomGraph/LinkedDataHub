@@ -405,11 +405,15 @@ test.describe('the resource combobox', { tag: '@owner' }, () => {
             await page.waitForTimeout(400);
             const { field, drop, viewport } = await geometry(page, parts.box, parts.panel);
 
-            expect(viewport - (field.y + field.height), 'the field is low: the panel has to flip')
-                .toBeLessThan(drop.height);
+            // Either placement, whichever the room below the field decides: the doubling threw both off,
+            // a drop below landing a field's height too low, a flip above landing a panel's height too high
             expect(drop.width, 'as wide as the field, not twice it').toBeCloseTo(field.width, 0);
             expect(drop.x).toBeCloseTo(field.x, 0);
-            expect(drop.y + drop.height, 'one gap above the field').toBeCloseTo(field.y - GAP, 0);
+            if (viewport - (field.y + field.height) > drop.height) {
+                expect(drop.y, 'one gap under the field').toBeCloseTo(field.y + field.height + GAP, 0);
+            } else {
+                expect(drop.y + drop.height, 'one gap above the field').toBeCloseTo(field.y - GAP, 0);
+            }
         });
     });
 
