@@ -158,6 +158,11 @@ test.describe('a value linking to a resource of a class', { tag: '@owner' }, () 
             const group = fieldFor(form, SEE_ALSO).first();
             await expect(group.locator('div.ac-cb-box'), 'the lookup searches both classes')
                 .toHaveAttribute('data-for-class', new RegExp(`^(?=.*${DOCUMENT})(?=.*${IMAGE})`));
+            // and names each in a tag of its own: joined into one, the strip read "DocumentImage". The order is
+            // the constructor's, which a CONSTRUCT does not promise, so the set is what is asserted
+            const tags = group.locator('.ldh-annot .an-term');
+            await expect(tags, 'one tag per class').toHaveCount(2);
+            expect((await tags.allTextContents()).map(text => text.trim()).sort()).toEqual(['Document', 'Image']);
 
             const input = group.locator('input.resource-combobox');
             const lookup = page.waitForRequest(request => /\/sparql\?query=DESCRIBE/i.test(request.url()), { timeout: 25_000 });
