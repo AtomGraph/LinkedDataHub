@@ -41,9 +41,12 @@ import org.apache.jena.sparql.syntax.ElementGroup;
  * declaration of the <code>ldh:parse-query</code> stylesheet function for
  * <code>ldh:construct-instance</code>.
  * <p>
- * The stylesheet consumes the Traqula query and pattern keys, including typed RDF terms. The
- * server only needs the construct template and whether the WHERE group is empty; it does not
- * manufacture a second parser AST for query patterns.
+ * The stylesheet consumes the Traqula query and pattern keys, including typed RDF terms (a blank
+ * node carries its name as <code>label</code>, as in Traqula). The server only needs the construct
+ * template and whether the WHERE group is empty; it does not manufacture a second parser AST for
+ * query patterns, and since nothing generates SPARQL from this tree, its nodes carry no source
+ * locations. Jena flattens blank-node property lists and collections in the template, which the
+ * browser's parser shim does as well.
  *
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
@@ -91,7 +94,6 @@ public class ParseQuery implements ExtensionFunction
                     map.put("subject", term(triple.getSubject()));
                     map.put("predicate", term(triple.getPredicate()));
                     map.put("object", term(triple.getObject()));
-                    map.put("loc", loc());
                     triples.add(map);
                 }
 
@@ -102,16 +104,13 @@ public class ParseQuery implements ExtensionFunction
             template.put("type", "pattern");
             template.put("subType", "bgp");
             template.put("triples", triples);
-            template.put("loc", loc());
             where.put("type", "pattern");
             where.put("subType", "group");
             where.put("patterns", patterns);
-            where.put("loc", loc());
             json.put("type", "query");
             json.put("subType", query.isConstructType() ? "construct" : query.isDescribeType() ? "describe" : query.isAskType() ? "ask" : "select");
             json.put("template", template);
             json.put("where", where);
-            json.put("loc", loc());
             return new XdmAtomicValue(json.toString());
         }
         catch (QueryParseException ex)
@@ -132,7 +131,7 @@ public class ParseQuery implements ExtensionFunction
         else if (node.isBlank())
         {
             term.put("subType", "blankNode");
-            term.put("value", node.getBlankNodeLabel());
+            term.put("label", node.getBlankNodeLabel());
         }
         if (node.isLiteral())
         {
@@ -145,7 +144,6 @@ public class ParseQuery implements ExtensionFunction
                 datatype.put("type", "term");
                 datatype.put("subType", "namedNode");
                 datatype.put("value", node.getLiteralDatatypeURI());
-                datatype.put("loc", loc());
                 term.put("langOrIri", datatype);
             }
         }
@@ -154,15 +152,8 @@ public class ParseQuery implements ExtensionFunction
             term.put("subType", "namedNode");
             term.put("value", node.getURI());
         }
-        term.put("loc", loc());
         return term;
     }
 
-    private JsonObject loc()
-    {
-        JsonObject loc = new JsonObject();
-        loc.put("sourceLocationType", "autoGenerate");
-        return loc;
-    }
 
 }

@@ -117,7 +117,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="lexical" select="if (starts-with($token, $quote)) then substring($token, 2, string-length($token) - 2 - string-length($suffix)) else ''" as="xs:string"/>
         <xsl:variable name="node" as="map(*)" select="
             if (matches($token, '^[?$]')) then map { 'type': 'term', 'subType': 'variable', 'value': substring($token, 2), 'loc': map { 'sourceLocationType': 'autoGenerate' } }
-            else if (starts-with($token, '_:')) then map { 'type': 'term', 'subType': 'blankNode', 'value': substring-after($token, '_:'), 'loc': map { 'sourceLocationType': 'autoGenerate' } }
+            else if (starts-with($token, '_:')) then map { 'type': 'term', 'subType': 'blankNode', 'label': substring-after($token, '_:'), 'loc': map { 'sourceLocationType': 'autoGenerate' } }
             else if (starts-with($token, $quote)) then map:merge((
                 map { 'type': 'term', 'subType': 'literal', 'value': $lexical, 'loc': map { 'sourceLocationType': 'autoGenerate' } },
                 if ($language) then map { 'langOrIri': $language }

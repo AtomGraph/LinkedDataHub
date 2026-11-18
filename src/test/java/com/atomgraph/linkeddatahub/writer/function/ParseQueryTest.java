@@ -54,4 +54,14 @@ public class ParseQueryTest
         assertTrue(json.contains("\"where\":{\"type\":\"pattern\",\"subType\":\"group\",\"patterns\":[{}]"), json);
     }
 
+    @Test
+    public void testBlankNodesCarryTheirLabel() throws SaxonApiException
+    {
+        String json = parse("CONSTRUCT { ?this <https://example.com/p> [ a <https://example.com/T> ] } WHERE { }");
+
+        assertTrue(json.contains("\"subType\":\"blankNode\",\"label\":"), json);
+        assertTrue(!json.contains("\"subType\":\"blankNode\",\"value\":"), json);
+        assertTrue(!json.contains("\"loc\""), json);
+    }
+
 }
