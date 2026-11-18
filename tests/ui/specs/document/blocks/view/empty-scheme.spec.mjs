@@ -77,6 +77,15 @@ test.describe('an empty concept scheme', { tag: '@owner' }, () => {
             await expect(modal).toHaveCount(0);
             await expect(rowLabel(rowFor(view, newConcept)), 'the scheme now lists it').toHaveText('First concept');
             expect(await turtle(newDocument), 'and the concept names the scheme, written on save').toContain(`<${concept(name)}>`);
+
+            // the next concept knows where it goes: the first one decided it. Measured before, the view's Create kept
+            // the container it was rendered with, none, and the second concept's form opened on an empty lookup again
+            await createButton(view).click();
+            await expect(modal).toBeVisible();
+            await expect(fieldFor(modal.locator('fieldset.ldh-fieldset').first(), HAS_CONTAINER).locator('span.ac-cb-committed input[name="ou"]').first(),
+                'the container the first concept went in, as a chip').toHaveValue(taxonomy.container);
+            await modal.locator('span.ac-modal-x button').first().click();
+            await expect(modal).toHaveCount(0);
         } finally {
             await ldh(['delete', newDocument], { allowFailure: true });
         }

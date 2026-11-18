@@ -122,4 +122,34 @@ test.describe('creating from a view', { tag: '@owner' }, () => {
         const { code } = await ldh(['get', '--accept', 'text/turtle', newDocument], { allowFailure: true });
         expect(code, 'nothing was written').not.toBe(0);
     });
+
+    // The property picker at the foot of the concept's form adds a value as it does in a page's form: a second
+    // label, in another language. Measured before: the picker's Add did nothing in a dialog, since the handler
+    // looked for the block the form sits in and a dialog is not one, so a concept could be given one label only
+    test('adds a second label through the property picker', async ({ page }) => {
+        const { view, modal } = await openCreate(page);
+        const entity = entityForm(modal);
+        const newDocument = await modal.getAttribute('about');
+        const newConcept = await modal.getAttribute('data-instance');
+
+        const picker = entity.locator('div.ldh-prop-addrow').last();
+        await picker.locator('select').first().selectOption(PREF_LABEL);
+        await picker.locator('button.add-value').first().click();
+        await expect(fieldFor(entity, PREF_LABEL), 'a second label field').toHaveCount(2, { timeout: 30_000 });
+
+        try {
+            await fieldFor(entity, PREF_LABEL).first().locator('input[name="ol"]').first().fill('Flat white');
+            const second = fieldFor(entity, PREF_LABEL).last();
+            await second.locator('input[name="ol"]').first().fill('Flad hvid');
+            await second.locator('.ldh-lang input[name="ll"]').first().fill('da');
+            await save(modal);
+            await expect(modal).toHaveCount(0);
+            await expect(rowLabel(rowFor(view, newConcept))).toHaveText('Flat white');
+            const stored = await triples(newDocument);
+            expect(stored).toContain('"Flat white"@en');
+            expect(stored).toContain('"Flad hvid"@da');
+        } finally {
+            await ldh(['delete', newDocument], { allowFailure: true });
+        }
+    });
 });
