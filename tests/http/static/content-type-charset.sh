@@ -25,7 +25,7 @@ clear_ontology
 declare -a expectations=(
     "static/com/atomgraph/linkeddatahub/css/ldh.css|text/css;charset=UTF-8"
     "static/com/atomgraph/linkeddatahub/xsl/client.xsl|text/xsl;charset=UTF-8"
-    "static/com/atomgraph/linkeddatahub/js/SPARQL.js|text/javascript;charset=UTF-8"
+    "static/com/atomgraph/linkeddatahub/js/traqula.min.js|text/javascript;charset=UTF-8"
     "static/com/atomgraph/linkeddatahub/js/saxon-js/LICENSE.txt|text/plain;charset=UTF-8"
     "static/com/atomgraph/linkeddatahub/css/ol.css.map|application/json"
     "AGENTS.md|text/markdown;charset=UTF-8"

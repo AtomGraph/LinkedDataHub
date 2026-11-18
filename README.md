@@ -385,7 +385,7 @@ The models are transcribed from the code, not extracted from it. The `Formal` wo
 ### Browser
 
 * [Saxon-JS](https://www.saxonica.com/saxon-js/)
-* [SPARQL.js](https://github.com/RubenVerborgh/SPARQL.js)
+* [Traqula](https://github.com/comunica/traqula)
 * [OpenLayers](https://openlayers.org)
 * [Google Charts](https://developers.google.com/chart)
 
