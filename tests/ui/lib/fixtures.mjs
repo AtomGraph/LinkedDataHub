@@ -145,10 +145,12 @@ function ldhEnv() {
 }
 
 // stdin, because `ldh patch` takes its SPARQL update that way and nothing else does.
-export function ldh(args, { allowFailure = false, stdin } = {}) {
+// `env` overrides the owner's certificate and base, for a call made as someone else - another instance's
+// owner (lib/messaging.mjs).
+export function ldh(args, { allowFailure = false, stdin, env = {} } = {}) {
     return new Promise((resolve, reject) => {
         const child = spawn('ldh', args, {
-            env: ldhEnv(),
+            env: { ...ldhEnv(), ...env },
             stdio: [stdin === undefined ? 'ignore' : 'pipe', 'pipe', 'pipe'],
         });
         if (stdin !== undefined) child.stdin.end(stdin);

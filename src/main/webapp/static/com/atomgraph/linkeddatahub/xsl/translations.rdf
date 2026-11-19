@@ -552,6 +552,14 @@
         <rdfs:label xml:lang="en-US">outside this dataspace, so the action cannot run</rdfs:label>
         <rdfs:label xml:lang="es-ES">fuera de este espacio de datos, así que la acción no puede ejecutarse</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="action-proxied">
+        <rdfs:label xml:lang="en-US">Send to</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Enviar a</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="action-proxied-note">
+        <rdfs:label xml:lang="en-US">delivered to another dataspace on your behalf</rdfs:label>
+        <rdfs:label xml:lang="es-ES">se entrega a otro espacio de datos en su nombre</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="action-preview">
         <rdfs:label xml:lang="en-US">Preview</rdfs:label>
         <rdfs:label xml:lang="es-ES">Vista previa</rdfs:label>

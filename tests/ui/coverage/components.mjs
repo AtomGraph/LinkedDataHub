@@ -99,10 +99,12 @@ export const components = [
             },
             {
                 // The actions a package declares for a resource's classes (ldh:action), as a menu in the
-                // block header. Rendered only for a reader who may write and where the dataspace has an
+                // block header, and the document's own (those of the document and its topic) at the end of
+                // its Actions menu. Rendered only for a reader who may write and where the dataspace has an
                 // executor (lds:assistant), which the CI stack does not run: the probe columns read 0
-                // there, and the spec says so when it skips.
-                id: 'actions', name: 'Actions menu', selector: '.ldh-action-menu',
+                // there, and the spec says so when it skips. The messaging specs also need the http-tests
+                // stack's second instance (REMOTE_OWNER_CERT_KEYSTORE, lib/messaging.mjs).
+                id: 'actions', name: 'Actions menu', selector: '.ldh-action-menu, .ldh-doc-action',
             },
             {
                 id: 'blocks', name: 'Block card', selector: '.block.ldh-block', lib: 'lib/block.mjs',

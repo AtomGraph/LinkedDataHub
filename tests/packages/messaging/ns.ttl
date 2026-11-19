@@ -1,0 +1,524 @@
+@prefix :	<#> .
+@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .
+@prefix def:	<https://w3id.org/atomgraph/linkeddatahub/default#> .
+@prefix dh:     <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#> .
+@prefix ac:	<https://w3id.org/atomgraph/client#> .
+@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:    <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+@prefix sp: 	<http://spinrdf.org/sp#> .
+@prefix spin:	<http://spinrdf.org/spin#> .
+@prefix spl:	<http://spinrdf.org/spl#> .
+@prefix dct:	<http://purl.org/dc/terms/> .
+@prefix foaf:   <http://xmlns.com/foaf/0.1/> .
+@prefix as:     <https://www.w3.org/ns/activitystreams#> .
+@prefix ldp:    <http://www.w3.org/ns/ldp#> .
+
+# the document the registry serves this file as (ns/), which is what the package's lds:ontology <ns/#> dereferences to
+
+<> a dh:Item ;
+    dct:title "Messaging ontology" ;
+    foaf:primaryTopic : .
+
+: a owl:Ontology ;
+    rdfs:label "Messaging ontology" .
+
+# Messages between dataspaces, as Linked Data Notifications carry them: a dataspace that accepts messages advertises an
+# inbox (ldp:inbox) on its root, a sender reads that link and writes the message into it, and the message is an
+# ActivityStreams note. Delivery is by copy: the recipient's inbox holds a document of its own per message, written
+# by the sender's dataspace on the sender's behalf through its Linked Data proxy, so the recipient's server records
+# who wrote it (dct:creator) rather than taking the sender's word for it. Consent is an authorization: accepting
+# messages grants every authenticated agent acl:Append on the inbox, which lets them create a document in it and
+# nothing else - not read it, not change what is there. A known hole: Append also admits a POST of triples into the
+# inbox document itself.
+
+# The package coins the inbox's class and the arguments its actions take, and labels the ActivityStreams and LDP
+# terms it renders, so property rows read as words. The inbox document's topic (<inbox/#this>) carries the class,
+# since a document carries only the hierarchy's types. As ActivityPub has it, an inbox is an ordered collection.
+
+:Inbox a owl:Class ;
+    rdfs:label "Inbox" ;
+    rdfs:comment "Where a dataspace accepts messages from others" ;
+    rdfs:subClassOf as:OrderedCollection ;
+    rdfs:isDefinedBy : .
+
+as:Note rdfs:label "Note" .
+as:Create rdfs:label "Create" .
+as:OrderedCollection rdfs:label "Ordered collection" .
+as:content rdfs:label "Content" .
+as:name rdfs:label "Name" .
+as:to rdfs:label "To" .
+as:object rdfs:label "Object" .
+as:published rdfs:label "Published" .
+as:attributedTo rdfs:label "Attributed to" .
+as:inReplyTo rdfs:label "In reply to" .
+ldp:inbox rdfs:label "Inbox" .
+
+# Actions: a dataspace's root accepts messages, its inbox sends them, and a note is replied to. Each plan takes
+# $wa:bindings (?this, ?document, ?base, ?admin, and its arguments), is evaluated first to show what it would write,
+# and is applied once the reader confirms. A write to another dataspace goes through this dataspace's proxy
+# (?base with a uri query parameter): the platform lists it as sent there, on the reader's behalf.
+
+def:Root ldh:action :AcceptMessages .
+
+:Inbox ldh:action :SendMessage .
+
+as:Note ldh:action :Reply .
+
+# The inbox (created, or updated when it is there already), the link that advertises it on the root, and the grant
+# that lets authenticated agents add to it. A plan is a literal and cannot name the package's own terms, since where
+# the package is published is not its to know: the inbox's class is minted from ?ontology, which the platform binds
+# to what the action is rdfs:isDefinedBy.
+
+:AcceptMessages a ldh:Action ;
+    dct:title "Accept messages" ;
+    dct:description "Creates the dataspace's inbox, advertises it on the root with ldp:inbox, and lets every authenticated agent add a message to it" ;
+    rdfs:isDefinedBy : ;
+    ldh:plan """<Sequence xmlns="https://w3id.org/atomgraph/web-algebra">
+  <ForEach>
+    <select><Value name="$wa:bindings"/></select>
+    <operation>
+      <Sequence>
+        <Variable name="this"><Value name="this"/></Variable>
+        <Variable name="inbox"><ResolveURI><base><Value name="base"/></base><relative>inbox/</relative></ResolveURI></Variable>
+
+        <!-- the inbox: a container whose children view lists the messages, about a resource of the inbox class -->
+        <PUT>
+          <url><Value name="$inbox"/></url>
+          <graph>
+            <CONSTRUCT>
+              <endpoint><ResolveURI><base><Value name="base"/></base><relative>sparql</relative></ResolveURI></endpoint>
+              <query>
+                <Substitute>
+                  <query><![CDATA[PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX ldh: <https://w3id.org/atomgraph/linkeddatahub#>
+PREFIX dh: <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#>
+CONSTRUCT {
+  ?inbox a dh:Container ;
+    dct:title "Inbox" ;
+    dct:description "Messages sent to this dataspace" ;
+    foaf:primaryTopic ?topic ;
+    rdf:_1 ?children .
+  ?topic a ?class .
+  ?children a ldh:Object ;
+    rdf:value ldh:ChildrenView .
+}
+WHERE {
+  BIND(IRI(CONCAT(STR(?ontology), "Inbox")) AS ?class)
+  BIND(IRI(CONCAT(STR(?inbox), "#this")) AS ?topic)
+  BIND(IRI(CONCAT(STR(?inbox), "#select-children")) AS ?children)
+}]]></query>
+                  <bindings>
+                    <binding name="inbox"><Value name="$inbox"/></binding>
+                    <binding name="ontology"><Value name="ontology"/></binding>
+                  </bindings>
+                </Substitute>
+              </query>
+            </CONSTRUCT>
+          </graph>
+        </PUT>
+
+        <!-- the root advertises it -->
+        <PATCH>
+          <url><Value name="document"/></url>
+          <update>
+            <Substitute>
+              <query><![CDATA[PREFIX ldp: <http://www.w3.org/ns/ldp#>
+INSERT { ?this ldp:inbox ?inbox } WHERE { }]]></query>
+              <bindings>
+                <binding name="this"><Value name="$this"/></binding>
+                <binding name="inbox"><Value name="$inbox"/></binding>
+              </bindings>
+            </Substitute>
+          </update>
+        </PATCH>
+
+        <!-- the consent: any authenticated agent may add to the inbox, and do nothing else with it -->
+        <Variable name="authorization"><ResolveURI><base><Value name="admin"/></base><relative>acl/authorizations/inbox-append/</relative></ResolveURI></Variable>
+        <PUT>
+          <url><Value name="$authorization"/></url>
+          <graph>
+            <CONSTRUCT>
+              <endpoint><ResolveURI><base><Value name="base"/></base><relative>sparql</relative></ResolveURI></endpoint>
+              <query>
+                <Substitute>
+                  <query><![CDATA[PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX acl: <http://www.w3.org/ns/auth/acl#>
+PREFIX dh: <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#>
+CONSTRUCT {
+  ?authorization a dh:Item ;
+    dct:title "Inbox: anyone authenticated may add" ;
+    foaf:primaryTopic ?auth .
+  ?auth a acl:Authorization ;
+    rdfs:label "Inbox: anyone authenticated may add" ;
+    acl:accessTo ?inbox ;
+    acl:mode acl:Append ;
+    acl:agentClass acl:AuthenticatedAgent .
+}
+WHERE {
+  BIND(IRI(CONCAT(STR(?authorization), "#this")) AS ?auth)
+}]]></query>
+                  <bindings>
+                    <binding name="authorization"><Value name="$authorization"/></binding>
+                    <binding name="inbox"><Value name="$inbox"/></binding>
+                  </bindings>
+                </Substitute>
+              </query>
+            </CONSTRUCT>
+          </graph>
+        </PUT>
+      </Sequence>
+    </operation>
+  </ForEach>
+</Sequence>"""^^rdf:XMLLiteral .
+
+# The arguments Send message and Reply take, declared as a SPIN template declares them: the dialog asks for each, a
+# string in a text area and a URI in an address field, and the value is the plan's ?to, ?subject or ?content, by the
+# predicate's local name.
+
+:to a rdf:Property ;
+    rdfs:label "To" ;
+    rdfs:isDefinedBy : .
+
+:subject a rdf:Property ;
+    rdfs:label "Subject" ;
+    rdfs:isDefinedBy : .
+
+:content a rdf:Property ;
+    rdfs:label "Message" ;
+    rdfs:isDefinedBy : .
+
+# The recipient is read through this dataspace's proxy, for the inbox it advertises; the message is a document of its
+# own in that inbox, written through the proxy on the reader's behalf. The note names where a reply goes (ldp:inbox:
+# the sender's inbox) and who it is to; the recipient's server adds who sent it.
+
+:SendMessage a ldh:Action ;
+    dct:title "Send message" ;
+    dct:description "Writes a note into the inbox another dataspace advertises, on the reader's behalf; a reply comes back to this inbox" ;
+    rdfs:isDefinedBy : ;
+    spin:constraint [ a spl:Argument ;
+        spl:predicate :to ;
+        spl:valueType xsd:anyURI ;
+        rdfs:comment "The dataspace to send to, or anything that advertises an inbox" ] ,
+    [ a spl:Argument ;
+        spl:predicate :subject ;
+        spl:valueType xsd:string ;
+        rdfs:comment "What the message is about" ] ,
+    [ a spl:Argument ;
+        spl:predicate :content ;
+        spl:valueType xsd:string ;
+        rdfs:comment "The message" ] ;
+    ldh:plan """<Sequence xmlns="https://w3id.org/atomgraph/web-algebra">
+  <ForEach>
+    <select><Value name="$wa:bindings"/></select>
+    <operation>
+      <Sequence>
+        <Variable name="base"><Value name="base"/></Variable>
+        <Variable name="document"><Value name="document"/></Variable>
+        <Variable name="to"><URI><input><Value name="to"/></input></URI></Variable>
+        <Variable name="subject"><Value name="subject"/></Variable>
+        <Variable name="content"><Value name="content"/></Variable>
+
+        <!-- the recipient's description, read through this dataspace's proxy -->
+        <Variable name="recipient">
+          <GET>
+            <url>
+              <Concat>
+                <input><Str><input><Value name="$base"/></input></Str></input>
+                <input>?uri=</input>
+                <input><EncodeForURI><input><Str><input><Value name="$to"/></input></Str></input></EncodeForURI></input>
+              </Concat>
+            </url>
+          </GET>
+        </Variable>
+
+        <!-- a recipient that advertises no inbox accepts no messages -->
+        <ForEach>
+          <select>
+            <SELECT>
+              <graph><Value name="$recipient"/></graph>
+              <query>
+                <Substitute>
+                  <query><![CDATA[PREFIX ldp: <http://www.w3.org/ns/ldp#>
+SELECT ?to WHERE { FILTER NOT EXISTS { ?to ldp:inbox ?inbox } }]]></query>
+                  <bindings>
+                    <binding name="to"><Value name="$to"/></binding>
+                  </bindings>
+                </Substitute>
+              </query>
+            </SELECT>
+          </select>
+          <operation>
+            <Error>
+              <description>The recipient advertises no inbox</description>
+              <value><Value name="$to"/></value>
+            </Error>
+          </operation>
+        </ForEach>
+
+        <!-- the copy, one document in the recipient's inbox -->
+        <ForEach>
+          <select>
+            <SELECT>
+              <graph><Value name="$recipient"/></graph>
+              <query>
+                <Substitute>
+                  <query><![CDATA[PREFIX ldp: <http://www.w3.org/ns/ldp#>
+SELECT DISTINCT ?inbox WHERE { ?to ldp:inbox ?inbox }]]></query>
+                  <bindings>
+                    <binding name="to"><Value name="$to"/></binding>
+                  </bindings>
+                </Substitute>
+              </query>
+            </SELECT>
+          </select>
+          <operation>
+            <Sequence>
+              <Variable name="msg">
+                <URI>
+                  <input>
+                    <Concat>
+                      <input><Str><input><Value name="inbox"/></input></Str></input>
+                      <input><StrUUID/></input>
+                      <input>/</input>
+                    </Concat>
+                  </input>
+                </URI>
+              </Variable>
+              <PUT>
+                <url>
+                  <Concat>
+                    <input><Str><input><Value name="$base"/></input></Str></input>
+                    <input>?uri=</input>
+                    <input><EncodeForURI><input><Str><input><Value name="$msg"/></input></Str></input></EncodeForURI></input>
+                  </Concat>
+                </url>
+                <graph>
+                  <CONSTRUCT>
+                    <endpoint><ResolveURI><base><Value name="$base"/></base><relative>sparql</relative></ResolveURI></endpoint>
+                    <query>
+                      <Substitute>
+                        <query><![CDATA[PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX dh: <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#>
+PREFIX as: <https://www.w3.org/ns/activitystreams#>
+PREFIX ldp: <http://www.w3.org/ns/ldp#>
+CONSTRUCT {
+  ?msg a dh:Item ;
+    dct:title ?subject ;
+    foaf:primaryTopic ?note .
+  ?activity a as:Create ;
+    as:object ?note ;
+    as:published ?now .
+  ?note a as:Note ;
+    as:name ?subject ;
+    as:content ?content ;
+    as:to ?to ;
+    as:published ?now ;
+    as:attributedTo ?base ;
+    ldp:inbox ?document .
+}
+WHERE {
+  BIND(IRI(CONCAT(STR(?msg), "#this")) AS ?activity)
+  BIND(IRI(CONCAT(STR(?msg), "#note")) AS ?note)
+}]]></query>
+                        <bindings>
+                          <binding name="msg"><Value name="$msg"/></binding>
+                          <binding name="base"><Value name="$base"/></binding>
+                          <binding name="document"><Value name="$document"/></binding>
+                          <binding name="to"><Value name="$to"/></binding>
+                          <binding name="subject"><Value name="$subject"/></binding>
+                          <binding name="content"><Value name="$content"/></binding>
+                          <binding name="now"><Now/></binding>
+                        </bindings>
+                      </Substitute>
+                    </query>
+                  </CONSTRUCT>
+                </graph>
+              </PUT>
+            </Sequence>
+          </operation>
+        </ForEach>
+      </Sequence>
+    </operation>
+  </ForEach>
+</Sequence>"""^^rdf:XMLLiteral .
+
+# A reply goes where the note says (its ldp:inbox), to whom the recipient's server says sent it (its document's
+# dct:creator), and names this dataspace's own inbox for the answer - so a dataspace replies once it accepts messages.
+
+:Reply a ldh:Action ;
+    dct:title "Reply" ;
+    dct:description "Writes a note answering this one into the inbox it came from, on the reader's behalf" ;
+    rdfs:isDefinedBy : ;
+    spin:constraint [ a spl:Argument ;
+        spl:predicate :content ;
+        spl:valueType xsd:string ;
+        rdfs:comment "The reply" ] ;
+    ldh:plan """<Sequence xmlns="https://w3id.org/atomgraph/web-algebra">
+  <ForEach>
+    <select><Value name="$wa:bindings"/></select>
+    <operation>
+      <Sequence>
+        <Variable name="this"><Value name="this"/></Variable>
+        <Variable name="base"><Value name="base"/></Variable>
+        <Variable name="content"><Value name="content"/></Variable>
+        <Variable name="endpoint"><ResolveURI><base><Value name="base"/></base><relative>sparql</relative></ResolveURI></Variable>
+
+        <!-- a dataspace that advertises no inbox of its own could not be answered -->
+        <ForEach>
+          <select>
+            <SELECT>
+              <endpoint><Value name="$endpoint"/></endpoint>
+              <query>
+                <Substitute>
+                  <query><![CDATA[PREFIX ldp: <http://www.w3.org/ns/ldp#>
+SELECT ?base WHERE { FILTER NOT EXISTS { GRAPH ?root { ?base ldp:inbox ?mine } } }]]></query>
+                  <bindings>
+                    <binding name="base"><Value name="$base"/></binding>
+                  </bindings>
+                </Substitute>
+              </query>
+            </SELECT>
+          </select>
+          <operation>
+            <Error>
+              <description>This dataspace advertises no inbox for the answer: accept messages first</description>
+              <value><Value name="$base"/></value>
+            </Error>
+          </operation>
+        </ForEach>
+
+        <!-- where the note asks to be answered, what it was about, who the recipient's server says sent it, and this
+             dataspace's own inbox -->
+        <ForEach>
+          <select>
+            <SELECT>
+              <endpoint><Value name="$endpoint"/></endpoint>
+              <query>
+                <Values>
+                  <query><![CDATA[PREFIX ldp: <http://www.w3.org/ns/ldp#>
+PREFIX as: <https://www.w3.org/ns/activitystreams#>
+PREFIX dct: <http://purl.org/dc/terms/>
+SELECT DISTINCT ?inbox ?subject ?sender ?mine
+WHERE {
+  GRAPH ?document { ?this ldp:inbox ?inbox ; as:name ?subject . ?document dct:creator ?sender }
+  GRAPH ?root { ?base ldp:inbox ?mine }
+}]]></query>
+                  <data><Value name="$wa:bindings"/></data>
+                  <var>this</var>
+                  <var>document</var>
+                  <var>base</var>
+                </Values>
+              </query>
+            </SELECT>
+          </select>
+          <operation>
+            <Sequence>
+              <Variable name="msg">
+                <URI>
+                  <input>
+                    <Concat>
+                      <input><Str><input><Value name="inbox"/></input></Str></input>
+                      <input><StrUUID/></input>
+                      <input>/</input>
+                    </Concat>
+                  </input>
+                </URI>
+              </Variable>
+              <PUT>
+                <url>
+                  <Concat>
+                    <input><Str><input><Value name="$base"/></input></Str></input>
+                    <input>?uri=</input>
+                    <input><EncodeForURI><input><Str><input><Value name="$msg"/></input></Str></input></EncodeForURI></input>
+                  </Concat>
+                </url>
+                <graph>
+                  <CONSTRUCT>
+                    <endpoint><Value name="$endpoint"/></endpoint>
+                    <query>
+                      <Substitute>
+                        <query><![CDATA[PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX dh: <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#>
+PREFIX as: <https://www.w3.org/ns/activitystreams#>
+PREFIX ldp: <http://www.w3.org/ns/ldp#>
+CONSTRUCT {
+  ?msg a dh:Item ;
+    dct:title ?name ;
+    foaf:primaryTopic ?note .
+  ?activity a as:Create ;
+    as:object ?note ;
+    as:published ?now .
+  ?note a as:Note ;
+    as:name ?name ;
+    as:content ?content ;
+    as:to ?sender ;
+    as:inReplyTo ?this ;
+    as:published ?now ;
+    as:attributedTo ?base ;
+    ldp:inbox ?mine .
+}
+WHERE {
+  BIND(IRI(CONCAT(STR(?msg), "#this")) AS ?activity)
+  BIND(IRI(CONCAT(STR(?msg), "#note")) AS ?note)
+  BIND(CONCAT("Re: ", STR(?subject)) AS ?name)
+}]]></query>
+                        <bindings>
+                          <binding name="msg"><Value name="$msg"/></binding>
+                          <binding name="base"><Value name="$base"/></binding>
+                          <binding name="this"><Value name="$this"/></binding>
+                          <binding name="sender"><Value name="sender"/></binding>
+                          <binding name="mine"><Value name="mine"/></binding>
+                          <binding name="subject"><Value name="subject"/></binding>
+                          <binding name="content"><Value name="$content"/></binding>
+                          <binding name="now"><Now/></binding>
+                        </bindings>
+                      </Substitute>
+                    </query>
+                  </CONSTRUCT>
+                </graph>
+              </PUT>
+            </Sequence>
+          </operation>
+        </ForEach>
+      </Sequence>
+    </operation>
+  </ForEach>
+</Sequence>"""^^rdf:XMLLiteral .
+
+# A note's replies, under the note they answer: the notes whose as:inReplyTo it is. Attached as an inverse view
+# (ldh:inverseView, shown on the resources in the property's range), since the link is stated by the reply.
+
+as:inReplyTo rdfs:range as:Note ;
+    ldh:inverseView :Replies .
+
+:Replies a ldh:View ;
+    dct:title "Replies" ;
+    spin:query :SelectReplies ;
+    ac:mode ac:TableMode ;
+    ldh:showWhenEmpty false ;
+    rdfs:isDefinedBy : .
+
+:SelectReplies a sp:Select ;
+    rdfs:label "Select replies" ;
+    dct:title "Select replies" ;
+    sp:text """
+PREFIX  as:   <https://www.w3.org/ns/activitystreams#>
+
+SELECT DISTINCT  ?reply
+WHERE
+  { GRAPH ?graph
+      { ?reply  as:inReplyTo  $about ;
+                as:published  ?published
+      }
+  }
+ORDER BY ?published
+""" ;
+    rdfs:isDefinedBy : .

@@ -786,6 +786,13 @@ WHERE
             </xsl:otherwise>
         </xsl:choose>
 
+        <!-- the actions the document and its topic declare, into its Actions menu (client/action.xsl) -->
+        <xsl:call-template name="ldh:DocumentActions">
+            <xsl:with-param name="pane-id" select="$pane-id"/>
+            <xsl:with-param name="doc-uri" select="$doc-uri"/>
+            <xsl:with-param name="response" select="$response"/>
+        </xsl:call-template>
+
         <!-- ac:ActionBar always renders the .ldh-bc pills list inside ac:ActionBarMain -->
         <xsl:variable name="pane-breadcrumb-nav" select="id($pane-id, ixsl:page())//*[contains-token(@class, 'ldh-bc')]" as="element()?"/>
         <xsl:if test="$pane-breadcrumb-nav">

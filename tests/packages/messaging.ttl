@@ -1,0 +1,32 @@
+@prefix lds:   <https://w3id.org/atomgraph/linkeddatahub/dataspaces#> .
+@prefix ldh:    <https://w3id.org/atomgraph/linkeddatahub#> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix dh:     <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#> .
+@prefix dct:    <http://purl.org/dc/terms/> .
+@prefix foaf:   <http://xmlns.com/foaf/0.1/> .
+
+<> a dh:Container ;
+    dct:title "Messaging" ;
+    dct:description "Messages between dataspaces, as Linked Data Notifications: a dataspace accepts them into an inbox it advertises, sends a note to another's inbox on the reader's behalf, and replies to a note it received." ;
+    foaf:primaryTopic <#this> ;
+    rdf:_1 <#content> ;
+    rdf:_2 <#select-children> .
+
+<#content> a ldh:XHTML ;
+    rdf:value """<div xmlns="http://www.w3.org/1999/xhtml">
+    <p class="ldh-body-lg">Messages between dataspaces, as Linked Data Notifications: a dataspace accepts them into an inbox it advertises, sends a note to another's inbox on the reader's behalf, and replies to a note it received.</p>
+    <p>Accepting messages grants every authenticated agent acl:Append on the inbox: they may add a message and do nothing else with it. Append also admits a POST of triples into the inbox document itself, which this version does not close. A sender reads the recipient's root, through its own dataspace's proxy, for the inbox it advertises, so the root has to be readable by anyone.</p>
+</div>"""^^rdf:XMLLiteral .
+
+<#select-children> a ldh:Object ;
+    rdf:value ldh:ChildrenView .
+
+<#this> a lds:Package ;
+    dct:title "Messaging" ;
+    dct:description "Lets dataspaces message each other: accept messages into an advertised inbox, send a note to another dataspace's inbox on the reader's behalf, and reply to a note received." ;
+    dct:creator <https://atomgraph.com/#company> ;
+    lds:ontology <ns/#> .
+
+<https://atomgraph.com/#company> a foaf:Organization ;
+    foaf:name "AtomGraph" ;
+    foaf:homepage <https://atomgraph.com> .
