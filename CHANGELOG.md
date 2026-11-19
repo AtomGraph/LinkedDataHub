@@ -4,6 +4,7 @@
 - Create > Item names the container the item goes in, and Create > Container the parent, prefilled with the page the menu was opened on and the reader's to change: `dh:Item` and `dh:Container` gain the constructors for their one editable link (`ldh:ItemContainerConstructor`, `ldh:ContainerParentConstructor`), whose lookup offers containers and the dataspace root alike
 
 ### Security
+- nginx's rate limits exempt the platform's own requests by the proxy secret they now carry (`Proxy-Secret`, sent by `ClientUriRewriteFilter`), no longer by a private address: every client arriving from one was exempt, and Docker relays IPv6 clients from the bridge gateway's, as a shared front proxy or a load balancer sends everyone from its own. A scraper reaching linkeddatahub.com over IPv6 went unlimited until the platform ran out of heap
 - `PATCH /settings` refuses to change a dataspace's wiring (`422`): `lds:origin` and `lds:service` are the deployment's, set when the dataspace is made. An owner of one dataspace could otherwise point it at another's SPARQL service, or take another's origin, through their own settings
 - `PATCH /settings` refuses to change `lds:versioningRepository` too: an owner could otherwise have their dataspace commit, with the deployment's credentials, over another dataspace's versions
 

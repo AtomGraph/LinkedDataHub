@@ -820,7 +820,9 @@ public class Application extends ResourceConfig
             
             if (proxyHostname != null)
             {
-                ClientRequestFilter rewriteFilter = new ClientUriRewriteFilter(baseURI.getHost(), proxyScheme, proxyHostname, proxyPort, selfRequestTimeout); // proxyPort can be null
+                byte[] proxySecret = ProxiedWebIDFilter.readProxySecret(System.getProperty(ProxiedWebIDFilter.PROXY_SECRET_FILE_PROPERTY)); // the one nginx sends the platform
+                ClientRequestFilter rewriteFilter = new ClientUriRewriteFilter(baseURI.getHost(), proxyScheme, proxyHostname, proxyPort, selfRequestTimeout, // proxyPort can be null
+                    proxySecret != null ? new String(proxySecret, StandardCharsets.UTF_8) : null);
 
                 client.register(rewriteFilter);
                 externalClient.register(rewriteFilter);
