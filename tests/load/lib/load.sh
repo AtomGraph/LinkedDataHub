@@ -3,7 +3,7 @@
 # through the front door and watch what it does to the platform.
 #
 # The front door caps /sparql per client address, and exempts only the platform's own requests, which
-# carry its Proxy-Secret. A curl on the runner reaches nginx as the one Docker bridge or Docker Desktop
+# carry its proxy secret in Rate-Limit-Exempt. A curl on the runner reaches nginx as the one Docker bridge or Docker Desktop
 # VM address - so the query load comes from the `loadgen` containers on the 100.64.0.0/24 network, each
 # a distinct client to nginx. The containers are idle; these helpers drive them with `docker compose
 # exec`. The site probe, measuring what an ordinary visitor sees meanwhile, runs from the host, once a

@@ -1,7 +1,7 @@
 // Page loads as a visitor sees them, with and without the front door's rate limits.
 //
 // nginx limits each client address and exempts only the platform's own requests, which carry its
-// Proxy-Secret. An exempt load sends that secret too, so the limits do not count it. This runs in a
+// proxy secret in Rate-Limit-Exempt. An exempt load sends that header too, so the limits do not count it. This runs in a
 // container attached to two networks: the stack's default one, which the exempt loads use, and `loadgen`
 // (100.64.0.0/24), whose addresses nginx limits like any visitor's. The pages are loaded at their public origin, https://localhost:4443/, through a relay on
 // the container's own loopback that connects to nginx's address on one network or the other - so the
@@ -73,7 +73,7 @@ const fromOrigin = url => new URL(url).origin === ORIGIN;
 
 async function load(browser, url, exempt) {
     const context = await browser.newContext({ ignoreHTTPSErrors: true, viewport: { width: 1440, height: 900 },
-        extraHTTPHeaders: exempt ? { 'Proxy-Secret': PROXY_SECRET } : {} });
+        extraHTTPHeaders: exempt ? { 'Rate-Limit-Exempt': PROXY_SECRET } : {} });
     const page = await context.newPage();
     const statuses = new Map(); // request key -> every status it was answered with, in order
     let requests = 0, refused = 0, inflight = 0, last = 0, errors = 0;

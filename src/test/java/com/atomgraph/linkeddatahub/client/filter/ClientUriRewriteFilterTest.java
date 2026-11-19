@@ -203,7 +203,7 @@ public class ClientUriRewriteFilterTest
         ClientUriRewriteFilter filter = new ClientUriRewriteFilter("example.com", "http", "nginx", 9443, null, "s3cret");
         StubRequestContext ctx = new StubRequestContext(URI.create("https://admin.example.com/sparql"));
         filter.filter(ctx);
-        assertEquals("s3cret", ctx.getHeaders().getFirst("Proxy-Secret"));
+        assertEquals("s3cret", ctx.getHeaders().getFirst("Rate-Limit-Exempt"));
     }
 
     /** The proxy secret is never sent to another host. */
@@ -216,14 +216,14 @@ public class ClientUriRewriteFilterTest
         assertTrue(ctx.getHeaders().isEmpty());
     }
 
-    /** Without a configured secret no Proxy-Secret header is added. */
+    /** Without a configured secret no Rate-Limit-Exempt header is added. */
     @Test
     public void testNoProxySecretWhenUnset() throws IOException
     {
         ClientUriRewriteFilter filter = new ClientUriRewriteFilter("example.com", "http", "nginx", 9443, null);
         StubRequestContext ctx = new StubRequestContext(URI.create("https://example.com/sparql"));
         filter.filter(ctx);
-        assertFalse(ctx.getHeaders().containsKey("Proxy-Secret"));
+        assertFalse(ctx.getHeaders().containsKey("Rate-Limit-Exempt"));
     }
 
     /** Query string with special characters must survive URI rewrite without decoding. */

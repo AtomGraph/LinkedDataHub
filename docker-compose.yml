@@ -278,12 +278,13 @@ configs:
               server ${NGINX_UPSTREAM_SERVER:-varnish-frontend:6060};
           }
 
-          # the platform's requests to its own URLs carry the proxy secret (ClientUriRewriteFilter) and are not rate limited;
-          # every other client is limited by its address. The exemption is by secret, not by a private address: a request
-          # can arrive from one that is not the platform's - Docker relays IPv6 clients from the bridge gateway, and a
-          # shared front proxy or a load balancer sends everyone from its own
+          # the platform's requests to its own URLs carry the proxy secret in Rate-Limit-Exempt (ClientUriRewriteFilter) and
+          # are not rate limited; every other client is limited by its address. The exemption is by secret, not by a private
+          # address: a request can arrive from one that is not the platform's - Docker relays IPv6 clients from the bridge
+          # gateway, and a shared front proxy or a load balancer sends everyone from its own. Not Proxy-Secret, the header
+          # nginx sends the platform: a browser cannot send a Proxy-* header, and the page-load test's exempt loads must
           map_hash_bucket_size 128; # fits the secret as a key: make secrets writes 64 hex characters, the default bucket's size
-          map $$http_proxy_secret $$limit_key {
+          map $$http_rate_limit_exempt $$limit_key {
               default $$binary_remote_addr;
               "${PROXY_SECRET:?set PROXY_SECRET in .env - make secrets generates it}" "";
           }
@@ -365,6 +366,7 @@ configs:
               proxy_set_header X-Forwarded-For $$remote_addr;
               proxy_set_header Client-Cert $$ssl_client_escaped_cert; # empty, and so not sent, without a client certificate
               proxy_set_header Proxy-Secret "${PROXY_SECRET:?set PROXY_SECRET in .env - make secrets generates it}";
+              proxy_set_header Rate-Limit-Exempt ''; # read here, not passed on
 
               # the platform uses no path parameters (;)
               if ($$request_uri ~ "^[^?]*;") {
@@ -393,7 +395,7 @@ configs:
                   proxy_read_timeout 600s;
 
                   # repeats the server-level set, since it also clears On-Behalf-Of. Proxy-Secret is for the platform only and
-                  # is not sent to the sidecar, including the one the platform's own requests carry
+                  # is not sent to the sidecar, nor is Rate-Limit-Exempt
                   proxy_set_header Host $$host;
                   proxy_set_header X-Forwarded-Host $$host;
                   proxy_set_header X-Forwarded-Proto $$scheme;
@@ -401,7 +403,7 @@ configs:
                   proxy_set_header X-Forwarded-For $$remote_addr;
                   proxy_set_header Client-Cert $$ssl_client_escaped_cert;
                   proxy_set_header On-Behalf-Of '';
-                  proxy_set_header Proxy-Secret '';
+                  proxy_set_header Rate-Limit-Exempt '';
               }
 
               location / {
@@ -477,6 +479,7 @@ configs:
               proxy_set_header X-Forwarded-For $$remote_addr;
               proxy_set_header Client-Cert $$ssl_client_escaped_cert; # empty, and so not sent, without a client certificate
               proxy_set_header Proxy-Secret "${PROXY_SECRET:?set PROXY_SECRET in .env - make secrets generates it}";
+              proxy_set_header Rate-Limit-Exempt ''; # read here, not passed on
 
               # the platform uses no path parameters (;)
               if ($$request_uri ~ "^[^?]*;") {

@@ -51,7 +51,7 @@ services:
     networks:
       - loadgen
   # A browser for page-load.sh, on both networks: measure.mjs alternates between loads the limits do not
-  # count (the default network, with the platform's Proxy-Secret) and a visitor's (the loadgen one). Under a profile, so
+  # count (the default network, with the platform's Rate-Limit-Exempt) and a visitor's (the loadgen one). Under a profile, so
   # `up` leaves it out; the test starts it with `run`. The image's Playwright matches page-load/package.json.
   pageload:
     image: mcr.microsoft.com/playwright:v1.61.1-noble

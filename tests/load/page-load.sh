@@ -11,7 +11,7 @@ set -uo pipefail
 # either shows up here as a 429, a lost request, or a settle time the limits stretched.
 #
 # The browser runs in the pageload container (docker-compose.load-tests.yml), which loads every page both
-# exempt (with the platform's Proxy-Secret) and limited (as a visitor's address), alternating the two - see
+# exempt (with the platform's Rate-Limit-Exempt) and limited (as a visitor's address), alternating the two - see
 # page-load/measure.mjs.
 # The verdict and its margins are page-load/evaluate.mjs's; the request counts are compared with
 # page-load/baseline.json, which UPDATE_BASELINE=1 rewrites from the measurement.

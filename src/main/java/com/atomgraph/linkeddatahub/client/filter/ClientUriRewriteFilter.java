@@ -16,7 +16,6 @@
  */
 package com.atomgraph.linkeddatahub.client.filter;
 
-import com.atomgraph.linkeddatahub.server.filter.request.auth.ProxiedWebIDFilter;
 import java.io.IOException;
 import java.net.URI;
 import jakarta.ws.rs.client.ClientRequestContext;
@@ -38,7 +37,7 @@ import org.slf4j.LoggerFactory;
  * waits a few seconds and then fails, and the caller renders without it (the stylesheets catch the failure),
  * rather than waiting for the client's read timeout, which is sized for a stalled backend.
  * <p>
- * A self-call also carries the proxy secret in the <code>Proxy-Secret</code> header, which is how the reverse proxy
+ * A self-call also carries the proxy secret in the <code>Rate-Limit-Exempt</code> header, which is how the reverse proxy
  * tells the platform's own requests from a client's and exempts them from its rate limits. The secret goes only to the
  * proxy: the filter adds it to requests for the matched host alone.
  *
@@ -48,6 +47,9 @@ public class ClientUriRewriteFilter implements ClientRequestFilter
 {
 
     private static final Logger log = LoggerFactory.getLogger(ClientUriRewriteFilter.class);
+
+    /** Name of the request header that carries the proxy secret to the proxy */
+    public static final String RATE_LIMIT_EXEMPT_HEADER_NAME = "Rate-Limit-Exempt";
 
     private final String host;
     private final String proxyScheme, proxyHost, proxySecret;
@@ -98,7 +100,7 @@ public class ClientUriRewriteFilter implements ClientRequestFilter
         if (cr.getUri().getPort() != -1) originalHost += ":" + cr.getUri().getPort();
         cr.getHeaders().putSingle(HttpHeaders.HOST, originalHost);
         // the proxy does not rate limit the platform's own requests
-        if (getProxySecret() != null) cr.getHeaders().putSingle(ProxiedWebIDFilter.PROXY_SECRET_HEADER_NAME, getProxySecret());
+        if (getProxySecret() != null) cr.getHeaders().putSingle(RATE_LIMIT_EXEMPT_HEADER_NAME, getProxySecret());
 
         String newScheme = cr.getUri().getScheme();
         if (getProxyScheme() != null) newScheme = getProxyScheme();
