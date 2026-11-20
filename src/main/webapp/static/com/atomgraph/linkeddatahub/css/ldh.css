@@ -64,6 +64,10 @@ a.external::after { content: "⤴"; padding-left: 0.2em; }
    too. An uncapped body is what the opt-out above already assumes: the page scrolls the grid, and the
    pager sits after it in flow. */
 .ldh-block-body:has(> .ldh-pager:not(:empty)):has(.container-results > .ldh-grid-block) { max-height: none; }
+/* A SELECT chart drawn as a Table carries the same pager, and its canvas is the same kind of flex
+   item - overflow visible, content-sized minimum - so past the cap the rows ran out under the pager
+   the same way. Same answer: the page scrolls the table, the pager follows it in flow */
+.ldh-block-body:has(> .ldh-pager:not(:empty)):has(> .chart-canvas .google-visualization-table) { max-height: none; }
 .map-canvas { height: 45em; width: 100%; }
 #uri { height: 24px; width: 100%; }
 /* Web-Client's default resource templates emit p.description summaries LDH does not surface */
