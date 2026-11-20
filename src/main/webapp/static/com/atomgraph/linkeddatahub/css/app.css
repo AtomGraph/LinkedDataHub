@@ -3807,7 +3807,10 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
    tall and inflated every form row to twice a read row. Clipping revealed
    metadata is the right trade. */
 .ldh-annot { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; min-width: 0; }
-.ldh-annot > .ac-tag { flex-shrink: 0; }
+/* A chip gives way before the strip clips it: its label already ellipsizes (.ac-tag-lbl),
+   so in a short strip - a modal's column beside a full-width control - a hover-revealed
+   "rdf:langString" reads as "rdf:lang…" instead of ending in a straight cut. */
+.ldh-annot > .ac-tag { flex-shrink: 1; min-width: 0; }
 .ldh-annot .an-term.is-literal  { background: var(--success-50); color: var(--rdf-literal); }
 .ldh-annot .an-term.is-resource { background: var(--bg-accent-quiet); color: var(--rdf-resource); }
 .ldh-annot .an-term.is-class    { background: var(--ldh-violet-100); color: var(--rdf-class); }
@@ -3821,8 +3824,9 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
    own bordered input; the only thing it needed was a width. */
 .ldh-annot > .ac-tag.sz-xs { flex-shrink: 0; }
 .ldh-lang { display: inline-flex; min-width: 0; }
-/* The strip clips (overflow hidden) and its chips do not shrink, so without this
-   the language INPUT was the first thing to lose width in a short strip. */
+/* The strip clips (overflow hidden), and the language is the one annotation shown at
+   rest, so it is the one that keeps its width: it comes first in the strip (values.xsl,
+   @xml:lang in ac:ValueAnnotations) and never shrinks; the chip after it gives way. */
 .ldh-annot > .ldh-lang { flex-shrink: 0; }
 .ldh-lang > .ac-field { width: 11ch; }
 /* Pill in BOTH states. The field is a language tag whichever side of the read/edit

@@ -36,6 +36,10 @@ import org.slf4j.LoggerFactory;
  * render, none is free to answer any of them, and nothing completes until a read times out. So a self-call
  * waits a few seconds and then fails, and the caller renders without it (the stylesheets catch the failure),
  * rather than waiting for the client's read timeout, which is sized for a stalled backend.
+ * <p>
+ * A self-call also carries the proxy secret in the <code>Rate-Limit-Exempt</code> header, which is how the reverse proxy
+ * tells the platform's own requests from a client's and exempts them from its rate limits. The secret goes only to the
+ * proxy: the filter adds it to requests for the matched host alone.
  *
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
@@ -44,12 +48,15 @@ public class ClientUriRewriteFilter implements ClientRequestFilter
 
     private static final Logger log = LoggerFactory.getLogger(ClientUriRewriteFilter.class);
 
+    /** Name of the request header that carries the proxy secret to the proxy */
+    public static final String RATE_LIMIT_EXEMPT_HEADER_NAME = "Rate-Limit-Exempt";
+
     private final String host;
-    private final String proxyScheme, proxyHost;
+    private final String proxyScheme, proxyHost, proxySecret;
     private final Integer proxyPort, selfRequestTimeout;
 
     /**
-     * Constructs filter from URI components.
+     * Constructs filter from URI components, without a proxy secret.
      *
      * @param host external hostname to match, including subdomains (e.g., "localhost", "linkeddatahub.com")
      * @param proxyScheme proxy scheme to rewrite to (e.g., "http")
@@ -59,11 +66,27 @@ public class ClientUriRewriteFilter implements ClientRequestFilter
      */
     public ClientUriRewriteFilter(String host, String proxyScheme, String proxyHost, Integer proxyPort, Integer selfRequestTimeout)
     {
+        this(host, proxyScheme, proxyHost, proxyPort, selfRequestTimeout, null);
+    }
+
+    /**
+     * Constructs filter from URI components.
+     *
+     * @param host external hostname to match, including subdomains (e.g., "localhost", "linkeddatahub.com")
+     * @param proxyScheme proxy scheme to rewrite to (e.g., "http")
+     * @param proxyHost proxy hostname to rewrite to (e.g., "nginx")
+     * @param proxyPort proxy port to rewrite to (e.g., 9443)
+     * @param selfRequestTimeout connect and read timeout in milliseconds for requests to the matched host, or null to leave the client's
+     * @param proxySecret secret sent to the proxy with requests to the matched host, or null to send none
+     */
+    public ClientUriRewriteFilter(String host, String proxyScheme, String proxyHost, Integer proxyPort, Integer selfRequestTimeout, String proxySecret)
+    {
         this.host = host;
         this.proxyScheme = proxyScheme;
         this.proxyHost = proxyHost;
         this.proxyPort = proxyPort;
         this.selfRequestTimeout = selfRequestTimeout;
+        this.proxySecret = proxySecret;
     }
     
     @Override
@@ -76,6 +99,8 @@ public class ClientUriRewriteFilter implements ClientRequestFilter
         String originalHost = cr.getUri().getHost();
         if (cr.getUri().getPort() != -1) originalHost += ":" + cr.getUri().getPort();
         cr.getHeaders().putSingle(HttpHeaders.HOST, originalHost);
+        // the proxy does not rate limit the platform's own requests
+        if (getProxySecret() != null) cr.getHeaders().putSingle(RATE_LIMIT_EXEMPT_HEADER_NAME, getProxySecret());
 
         String newScheme = cr.getUri().getScheme();
         if (getProxyScheme() != null) newScheme = getProxyScheme();
@@ -153,6 +178,16 @@ public class ClientUriRewriteFilter implements ClientRequestFilter
     public Integer getSelfRequestTimeout()
     {
         return selfRequestTimeout;
+    }
+
+    /**
+     * Secret sent to the proxy with requests to the matched host.
+     *
+     * @return secret string, or null if none is sent
+     */
+    public String getProxySecret()
+    {
+        return proxySecret;
     }
 
 }

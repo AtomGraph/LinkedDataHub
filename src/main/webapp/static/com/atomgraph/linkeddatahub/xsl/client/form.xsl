@@ -88,7 +88,28 @@ WHERE
     <xsl:template match="*[key('predicates-by-object', (@rdf:nodeID, @rdf:about))[self::spin:violationSource or self::sh:sourceShape]]" mode="ac:ResourceForm" priority="3"/>
 
     <!-- suppress the system properties of document resources (they are set automatically by LinkedDataHub) -->
-    <xsl:template match="*[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/dct:created | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/dct:modified | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/sioc:has_container | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/sioc:has_parent | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/dct:creator | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/acl:owner | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container')]/*[namespace-uri() = '&rdf;'][starts-with(local-name(), '_')][@rdf:resource] | *[rdf:type/@rdf:resource = '&dh;Item']/*[namespace-uri() = '&rdf;'][starts-with(local-name(), '_')]" mode="ac:FormControl" priority="1"/>
+    <xsl:template match="*[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/dct:created | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/dct:modified | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/dct:creator | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/acl:owner | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container')]/*[namespace-uri() = '&rdf;'][starts-with(local-name(), '_')][@rdf:resource] | *[rdf:type/@rdf:resource = '&dh;Item']/*[namespace-uri() = '&rdf;'][starts-with(local-name(), '_')]" mode="ac:FormControl" priority="1"/>
+
+    <!-- a document's containment is the server's once the document is written, so an edit form hides it; a form that
+         creates the document shows it as the field that says where the document goes (ldh:ItemContainerConstructor), and
+         says so with this parameter. The client mints the document's URI under the value, which is all the server reads -->
+    <xsl:template match="*[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/sioc:has_container | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/sioc:has_parent" mode="ac:FormControl" priority="1">
+        <xsl:param name="containment-editable" select="false()" as="xs:boolean" tunnel="yes"/>
+        <!-- what the fieldset hands every property group, passed on: xsl:next-match forwards nothing by itself -->
+        <xsl:param name="violations" as="element()*"/>
+        <xsl:param name="constructor" as="document-node()?"/>
+        <xsl:param name="type-constraints" as="element()*"/>
+        <xsl:param name="type-shapes" as="element()*"/>
+
+        <xsl:if test="$containment-editable">
+            <xsl:next-match>
+                <xsl:with-param name="violations" select="$violations"/>
+                <xsl:with-param name="constructor" select="$constructor"/>
+                <xsl:with-param name="type-constraints" select="$type-constraints"/>
+                <xsl:with-param name="type-shapes" select="$type-shapes"/>
+            </xsl:next-match>
+        </xsl:if>
+    </xsl:template>
     
     <xsl:template match="*" mode="ldh:RenderRowForm">
         <xsl:apply-templates mode="#current"/>
@@ -301,7 +322,7 @@ WHERE
                 <xsl:with-param name="class" select="'property-combobox combobox'"/>
                 <xsl:with-param name="id" select="'annotation-' || $field"/>
                 <xsl:with-param name="list-class" select="'property-combobox combobox ac-cb-panel'"/>
-                <xsl:with-param name="forClass" select="$for-class"/>
+                <xsl:with-param name="for-class" select="$for-class"/>
             </xsl:call-template>
         </span>
     </xsl:function>
@@ -318,7 +339,7 @@ WHERE
                     <xsl:with-param name="class" select="'property-combobox combobox'"/>
                     <xsl:with-param name="id" select="'annotation-' || $field"/>
                     <xsl:with-param name="list-class" select="'property-combobox combobox ac-cb-panel'"/>
-                    <xsl:with-param name="forClass" select="$for-class"/>
+                    <xsl:with-param name="for-class" select="$for-class"/>
                     <xsl:with-param name="value" select="if ($iri ne '') then $iri else ()"/>
                 </xsl:call-template>
             </xsl:result-document>
@@ -964,12 +985,12 @@ WHERE
                         <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', lds:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
                         <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
                         <xsl:variable name="http-request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
-                        <!-- 'document' = raw response body; the renderer handles per-Description suppression via ldh:DocumentForm match templates. 'action' defaults to the response document's URL if the caller didn't set it. property-uris/object-uris seed the downstream ldh:load-property-metadata / ldh:load-object-metadata steps. 'forClass' seeds ldh:load-constructed-doc / ldh:load-shapes / ldh:load-constructors / ldh:load-constraints — same shape as the CREATE chains, so the EDIT promise chain can include the constructor fetch and produce the same pure-constructor input to ac:FormControl as CREATE. -->
+                        <!-- 'document' = raw response body; the renderer handles per-Description suppression via ldh:DocumentForm match templates. 'action' defaults to the response document's URL if the caller didn't set it. property-uris/object-uris seed the downstream ldh:load-property-metadata / ldh:load-object-metadata steps. 'for-class' seeds ldh:load-constructed-doc / ldh:load-shapes / ldh:load-constructors / ldh:load-constraints — same shape as the CREATE chains, so the EDIT promise chain can include the constructor fetch and produce the same pure-constructor input to ac:FormControl as CREATE. -->
                         <xsl:sequence select="map:merge(($context, map{
                           'type-metadata-request': $http-request,
                           'resource': $resource,
                           'types': $types,
-                          'forClass': $types,
+                          'for-class': $types,
                           'property-uris': distinct-values($resource/*/concat(namespace-uri(), local-name())),
                           'object-uris': distinct-values($resource/*/@rdf:resource[not(key('resources', .))]),
                           'document': .,
@@ -1053,16 +1074,16 @@ WHERE
         </xsl:for-each>
     </xsl:function>
 
-    <!-- Fold step for the create-new-instance chain. Instantiates the (pure, bnode-prototyped) constructor under the minted URI and extracts the row-form resource + its types. Reads context('constructed-doc'), context('forClass'), context('this'); writes context('instance-doc'), context('resource'), context('types'). context('constructed-doc') stays the pure constructor — ac:FormControl reads it via the 'constructor' tunnel to derive $template / the property dropdown. -->
+    <!-- Fold step for the create-new-instance chain. Instantiates the (pure, bnode-prototyped) constructor under the minted URI and extracts the row-form resource + its types. Reads context('constructed-doc'), context('for-class'), context('this'); writes context('instance-doc'), context('resource'), context('types'). context('constructed-doc') stays the pure constructor — ac:FormControl reads it via the 'constructor' tunnel to derive $template / the property dropdown. -->
     <xsl:function name="ldh:set-row-form-resource" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="constructed-doc" select="$context('constructed-doc')" as="document-node()"/>
-        <xsl:variable name="forClass" select="$context('forClass')" as="xs:anyURI"/>
+        <xsl:variable name="for-class" select="$context('for-class')" as="xs:anyURI"/>
         <xsl:variable name="this" select="$context('this')" as="xs:anyURI"/>
 
-        <xsl:variable name="instance-doc" select="ldh:instantiate-constructor($constructed-doc, $forClass, $this, ())" as="document-node()"/>
+        <xsl:variable name="instance-doc" select="ldh:instantiate-constructor($constructed-doc, $for-class, $this, ())" as="document-node()"/>
 
-        <xsl:variable name="resource" select="key('resources-by-type', $forClass, $instance-doc)[rdf:type/@rdf:resource = '&owl;NamedIndividual' or (not(key('predicates-by-object', @rdf:nodeID)) and exists(* except rdf:type))]" as="element()"/>
+        <xsl:variable name="resource" select="key('resources-by-type', $for-class, $instance-doc)[rdf:type/@rdf:resource = '&owl;NamedIndividual' or (not(key('predicates-by-object', @rdf:nodeID)) and exists(* except rdf:type))]" as="element()"/>
         <xsl:variable name="types" select="for $t in distinct-values($resource/rdf:type/@rdf:resource) return xs:anyURI($t)" as="xs:anyURI*"/>
 
         <xsl:sequence select="map:merge(($context, map{
@@ -1141,7 +1162,7 @@ WHERE
         <xsl:variable name="constructed-doc" select="$context('constructed-doc')" as="document-node()?"/>
         <xsl:variable name="object-metadata" select="$context('object-metadata')" as="document-node()?"/>
 
-        <!-- Fold SHACL shape-instance and SPIN constructed-doc into the pure, bnode-prototyped constructor consumed by ac:FormControl. Skips instantiation — EDIT already has $resource with its real URI from the server fetch, so nothing to mint. forClass is the resource's primary rdf:type. Shared helper with ldh:render-row-form-violation so the merge lives in one place. -->
+        <!-- Fold SHACL shape-instance and SPIN constructed-doc into the pure, bnode-prototyped constructor consumed by ac:FormControl. Skips instantiation — EDIT already has $resource with its real URI from the server fetch, so nothing to mint. for-class is the resource's primary rdf:type. Shared helper with ldh:render-row-form-violation so the merge lives in one place. -->
         <xsl:variable name="constructor" select="ldh:build-merged-constructor($shapes, $constructed-doc, $types[1])" as="document-node()?"/>
 
         <xsl:variable name="row" as="element()">
@@ -1500,14 +1521,14 @@ WHERE
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="property-addrow" select="$context('property-addrow')" as="element()"/>
         <xsl:variable name="property-uri" select="$context('property-uri')" as="xs:anyURI"/>
-        <xsl:variable name="forClass" select="$context('forClass')" as="xs:anyURI*"/>
+        <xsl:variable name="for-class" select="$context('for-class')" as="xs:anyURI*"/>
         <xsl:variable name="constructed-doc" select="$context('constructed-doc')" as="document-node()"/>
         <xsl:variable name="shapes" select="$context('shapes')" as="document-node()?"/>
-        <xsl:variable name="constructor" select="ldh:build-merged-constructor($shapes, $constructed-doc, $forClass[1])" as="document-node()"/>
+        <xsl:variable name="constructor" select="ldh:build-merged-constructor($shapes, $constructed-doc, $for-class[1])" as="document-node()"/>
 
         <!-- the prototypes of the resource's classes: a resource of several is built one per class where a class brings
              a model of its own, so there may be more than one, and the property's template is the first that has it -->
-        <xsl:variable name="resources" select="key('resources-by-type', $forClass, $constructor)[not(key('predicates-by-object', @rdf:nodeID))]" as="element()*"/>
+        <xsl:variable name="resources" select="key('resources-by-type', $for-class, $constructor)[not(key('predicates-by-object', @rdf:nodeID))]" as="element()*"/>
         <!-- a type added is a new value, so an empty lookup rather than a copy of a type the resource already has -->
         <xsl:variable name="blank-type" as="element()">
             <rdf:Description rdf:nodeID="A1">
@@ -1548,19 +1569,25 @@ WHERE
     </xsl:function>
 
     <!-- any block, typed or not: a resource without a type is given its first one from here. Its types are the nearest
-         block's own, so an untyped resource does not borrow the types of a block it is nested in -->
-    <xsl:template match="div[contains-token(@class, 'block')]//form//button[contains-token(@class, 'add-value')]" mode="ixsl:onclick">
+         block's own, so an untyped resource does not borrow the types of a block it is nested in. A constructor
+         dialog's form is one too: the picker did nothing there, as a dialog is no block. Its types are read off the
+         fieldset the picker belongs to, since the Create from a view holds two resources, the document's fieldset
+         over the entity's, and the dialog's own @typeof names the entity alone; a fieldset without a type yet
+         falls back to the host's @typeof, as before -->
+    <xsl:template match="div[contains-token(@class, 'block') or contains-token(@class, 'modal-constructor')]//form//button[contains-token(@class, 'add-value')]" mode="ixsl:onclick">
         <xsl:variable name="property-addrow" select="ancestor::div[contains-token(@class, 'ldh-prop-addrow')][1]" as="element()"/>
         <xsl:variable name="property-uri" select="preceding-sibling::span[contains-token(@class, 'ac-select')]/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
-        <xsl:variable name="forClass" select="for $type in tokenize(ancestor::div[contains-token(@class, 'block')][1]/@typeof) return xs:anyURI($type)" as="xs:anyURI*"/>
+        <xsl:variable name="fieldset-types" select="ancestor::fieldset[contains-token(@class, 'ldh-fieldset')][1]//div[contains-token(@class, 'ldh-prop-group')][input[@name = 'pu']/@value = '&rdf;type']//input[@name = 'ou']/ixsl:get(., 'value')[. != '']" as="xs:string*"/>
+        <xsl:variable name="host-types" select="tokenize(ancestor::div[contains-token(@class, 'block') or contains-token(@class, 'modal-constructor')][1]/@typeof)" as="xs:string*"/>
+        <xsl:variable name="for-class" select="for $type in (if (exists($fieldset-types)) then $fieldset-types else $host-types) return xs:anyURI($type)" as="xs:anyURI*"/>
 
         <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:variable name="context" as="map(*)" select="map{
             'property-addrow': $property-addrow,
             'property-uri': $property-uri,
-            'forClass': $forClass,
-            'types': $forClass
+            'for-class': $for-class,
+            'types': $for-class
         }"/>
 
         <!-- constructed-doc + shapes fetched in parallel and folded by ldh:render-add-value — the same merged-constructor input the picker was rendered from -->
@@ -1583,8 +1610,8 @@ WHERE
     </xsl:template>
 
     <xsl:template match="fieldset" mode="ldh:SyncFormWithConstructor">
-        <xsl:variable name="forClass" select="for $type in tokenize(ancestor::div[@typeof][contains-token(@class, 'block')][1]/@typeof) return xs:anyURI($type)" as="xs:anyURI*"/>
-        <xsl:variable name="context" as="map(*)" select="map{ 'fieldset': ., 'forClass': $forClass, 'types': $forClass }"/>
+        <xsl:variable name="for-class" select="for $type in tokenize(ancestor::div[@typeof][contains-token(@class, 'block')][1]/@typeof) return xs:anyURI($type)" as="xs:anyURI*"/>
+        <xsl:variable name="context" as="map(*)" select="map{ 'fieldset': ., 'for-class': $for-class, 'types': $for-class }"/>
 
         <!-- constructed-doc + shapes fetched in parallel and folded by ldh:sync-form-with-constructor, so SHACL-defined properties survive the reconciliation the same as SPIN-defined ones -->
         <ixsl:promise select="ixsl:resolve($context) =>
@@ -1605,13 +1632,13 @@ WHERE
     <xsl:function name="ldh:sync-form-with-constructor" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="fieldset" select="$context('fieldset')" as="element()"/>
-        <xsl:variable name="forClass" select="$context('forClass')" as="xs:anyURI*"/>
+        <xsl:variable name="for-class" select="$context('for-class')" as="xs:anyURI*"/>
 
         <xsl:if test="map:contains($context, 'constructed-doc')">
             <xsl:variable name="constructed-doc" select="$context('constructed-doc')" as="document-node()"/>
             <xsl:variable name="shapes" select="$context('shapes')" as="document-node()?"/>
-            <xsl:variable name="constructor" select="ldh:build-merged-constructor($shapes, $constructed-doc, $forClass[1])" as="document-node()"/>
-            <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructor)[not(key('predicates-by-object', @rdf:nodeID))]" as="element()*"/>
+            <xsl:variable name="constructor" select="ldh:build-merged-constructor($shapes, $constructed-doc, $for-class[1])" as="document-node()"/>
+            <xsl:variable name="resource" select="key('resources-by-type', $for-class, $constructor)[not(key('predicates-by-object', @rdf:nodeID))]" as="element()*"/>
             <xsl:variable name="arcs" select="$resource/*[not(concat(namespace-uri(), local-name()) = '&rdf;type')]" as="element()*"/>
             <xsl:variable name="arc-uris" select="distinct-values(for $arc in $arcs return concat(namespace-uri($arc), local-name($arc)))" as="xs:string*"/>
             <xsl:variable name="prop-form" select="$fieldset/div[contains-token(@class, 'ldh-prop-form')]" as="element()"/>
@@ -1862,17 +1889,17 @@ WHERE
                 <xsl:when test="empty($resources/rdf:RDF/*)">
                     <xsl:sequence select="ixsl:call(($block/ancestor::div[contains-token(@class, 'ldh-block-row')][1], $block)[1], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:when>
-                <!-- the row is drawn from the submitted triples alone, so the labels of their objects are queried first,
-                     as every other block render does; if the query fails, the row is drawn without them -->
+                <!-- the row is drawn from the submitted triples alone, so the labels of their objects and of their
+                     properties are queried first, as every other block render does; if a query fails, the row is drawn
+                     without them -->
                 <xsl:otherwise>
-                    <xsl:variable name="metadata-context" select="map:merge(($context, map{ 'endpoint': sd:endpoint(), 'object-uris': distinct-values($resources//@rdf:resource) }), map{ 'duplicates': 'use-last' })" as="map(*)"/>
+                    <xsl:variable name="metadata-context" select="map:merge(($context, map{ 'endpoint': sd:endpoint(), 'object-uris': distinct-values($resources//@rdf:resource), 'property-uris': distinct-values($resources/rdf:RDF/*/*/concat(namespace-uri(), local-name())) }), map{ 'duplicates': 'use-last' })" as="map(*)"/>
                     <ixsl:promise select="
-                      ldh:http-request-threaded(ldh:load-object-metadata($metadata-context), 'metadata-request', 'metadata-response')
-                        => ixsl:then(ldh:handle-response(?, 'metadata-response'))
-                        => ixsl:then(ldh:set-object-metadata#1)
-                        => ixsl:then(ldh:http-request-threaded(?, 'ns-metadata-request', 'ns-metadata-response'))
-                        => ixsl:then(ldh:handle-response(?, 'ns-metadata-response'))
-                        => ixsl:then(ldh:set-object-metadata-ns#1)
+                      ldh:fire-load-set-parallel($metadata-context, [
+                        [ ldh:load-object-metadata#1,   'metadata-request',          'metadata-response',          ldh:set-object-metadata#1 ],
+                        [ ldh:load-object-metadata#1,   'ns-metadata-request',       'ns-metadata-response',       ldh:set-object-metadata-ns#1 ],
+                        [ ldh:load-property-metadata#1, 'property-metadata-request', 'property-metadata-response', ldh:set-property-metadata#1 ]
+                      ])
                         => ixsl:then(ldh:merge-object-metadata#1)
                         => ixsl:then(ldh:form-horizontal-render#1)
                     " on-failure="ldh:form-horizontal-render($metadata-context, ?)"/>
@@ -1890,7 +1917,8 @@ WHERE
         </xsl:for-each>
     </xsl:function>
 
-    <!-- draws the saved row again from the submitted triples, with the labels of their objects when the query for them succeeded -->
+    <!-- draws the saved row again from the submitted triples, with the labels of their objects and properties when the
+         queries for them succeeded -->
     <xsl:function name="ldh:form-horizontal-render" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
 
@@ -1903,6 +1931,7 @@ WHERE
         <xsl:variable name="block" select="$context('block')" as="element()"/>
         <xsl:variable name="resources" select="$context('resources')" as="document-node()"/>
         <xsl:variable name="object-metadata" select="if (map:contains($context, 'object-metadata')) then $context('object-metadata') else ()" as="document-node()?"/>
+        <xsl:variable name="property-metadata" select="if (map:contains($context, 'property-metadata')) then $context('property-metadata') else ()" as="document-node()?"/>
 
         <xsl:message>ldh:form-horizontal-render</xsl:message>
 
@@ -1913,6 +1942,7 @@ WHERE
                 <xsl:with-param name="style" select="()"/> <!-- TO-DO: remove? -->
                 <xsl:with-param name="type-content" select="false()"/>
                 <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
+                <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
                 <xsl:sort select="ac:label(.)"/>
             </xsl:apply-templates>
         </xsl:variable>
@@ -1959,7 +1989,7 @@ WHERE
         <xsl:message>ldh:row-form-submit-violation</xsl:message>
 
         <xsl:variable name="body" select="$response?body" as="document-node()"/>
-        <!-- the type set comes from the block's RDFa @typeof (stamped at render time by ldh:BlockRow and the create flows; the submit handler's match pattern guarantees it), not from the response body: the 422 echo carries auxiliary descriptions - inlined bnodes like the signup cert key, constraint descriptions referenced via spin:violationSource - whose types would pollute the constructor's forClass and fail ac:FormControl's prototype subset test. Trade-off: a type added via the type control just before submit is missing from @typeof until the next successful render -->
+        <!-- the type set comes from the block's RDFa @typeof (stamped at render time by ldh:BlockRow and the create flows; the submit handler's match pattern guarantees it), not from the response body: the 422 echo carries auxiliary descriptions - inlined bnodes like the signup cert key, constraint descriptions referenced via spin:violationSource - whose types would pollute the constructor's for-class and fail ac:FormControl's prototype subset test. Trade-off: a type added via the type control just before submit is missing from @typeof until the next successful render -->
         <xsl:variable name="block" select="$context('block')" as="element()"/>
         <xsl:variable name="types" select="for $t in tokenize($block/@typeof, ' ') return xs:anyURI($t)" as="xs:anyURI*"/>
 
@@ -1968,14 +1998,14 @@ WHERE
             map{
                 'body': $body,
                 'types': $types,
-                'forClass': $types,
+                'for-class': $types,
                 'endpoint': sd:endpoint(),
                 'property-uris': distinct-values($body/rdf:RDF/*[not(@rdf:about = $doc-uri)][not(rdf:type/@rdf:resource = $ldh:system-types)]/*/concat(namespace-uri(), local-name())),
                 'object-uris': distinct-values($body/rdf:RDF/*[not(rdf:type/@rdf:resource = $ldh:system-types)]/*/@rdf:resource[not(key('resources', .))])
             }
         ), map{ 'duplicates': 'use-last' })"/>
 
-        <!-- $new-context is built synchronously above; types/forClass/property-uris/object-uris populated from the violation response body. No pre-baked type-metadata-request here, so the type-metadata pair uses the normal ldh:load-type-metadata. The ldh:load-constructed-doc pair fetches the SPIN constructor so ldh:render-row-form-violation can merge it with $shapes via ldh:build-merged-constructor — same input shape as the initial CREATE / EDIT renders. -->
+        <!-- $new-context is built synchronously above; types/for-class/property-uris/object-uris populated from the violation response body. No pre-baked type-metadata-request here, so the type-metadata pair uses the normal ldh:load-type-metadata. The ldh:load-constructed-doc pair fetches the SPIN constructor so ldh:render-row-form-violation can merge it with $shapes via ldh:build-merged-constructor — same input shape as the initial CREATE / EDIT renders. -->
         <ixsl:promise select="ixsl:resolve($new-context) =>
             ixsl:then(ldh:fire-load-set-parallel(?, [
               [ ldh:load-constructed-doc#1,   'constructed-doc-request',   'constructed-doc-response',   ldh:set-constructed-doc#1 ],
@@ -2074,7 +2104,7 @@ WHERE
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="container" select="ancestor::div[contains-token(@class, 'block-row') or contains-token(@class, 'create-resource')][1]" as="element()"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
-        <xsl:variable name="forClass" select="xs:anyURI(@data-for-class)" as="xs:anyURI"/>
+        <xsl:variable name="for-class" select="xs:anyURI(@data-for-class)" as="xs:anyURI"/>
         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:variable name="id" select="'id' || ac:uuid()" as="xs:string"/>
         <xsl:variable name="this" select="xs:anyURI($doc-uri || '#' || $id)" as="xs:anyURI"/>
@@ -2087,7 +2117,7 @@ WHERE
         <xsl:variable name="context" as="map(*)" select="map{
             'method': $method,
             'container': $container,
-            'forClass': $forClass,
+            'for-class': $for-class,
             'doc-uri': $doc-uri,
             'base-uri': $doc-uri,
             'this': $this,
@@ -2135,7 +2165,7 @@ WHERE
         <xsl:param name="menu" select="(following-sibling::ul, ../following-sibling::div[contains-token(@class, 'ac-cb-panel')])[1]" as="element()"/>
         <xsl:param name="delay" select="400" as="xs:integer"/>
         <xsl:param name="endpoint" select="sd:endpoint()" as="xs:anyURI"/>
-        <xsl:param name="forClass" select="../ixsl:get(., 'dataset.forClass') ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/>
+        <xsl:param name="for-class" select="../ixsl:get(., 'dataset.forClass') ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="select-string" select="$ldh:select-labelled-string" as="xs:string?"/>
         <xsl:param name="limit" select="100" as="xs:integer?"/>
         <xsl:param name="label-var-name" select="'label'" as="xs:string"/>
@@ -2153,7 +2183,7 @@ WHERE
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
-        <!-- append VALUES $Type { $forClass }, one row per class. Not FILTER($Type IN ()): the SELECT is a UNION of a
+        <!-- append VALUES $Type { $for-class }, one row per class. Not FILTER($Type IN ()): the SELECT is a UNION of a
              GRAPH ?graph branch and a default-graph one, and Jena does not push a filter after it into the GRAPH
              branch, which then walks every typed resource in every graph (30 s on 15M quads, 0.1 s with VALUES) -->
         <xsl:variable name="select-xml" as="document-node()">
@@ -2163,13 +2193,13 @@ WHERE
                     <xsl:when test="not($type-var-name)">
                         <xsl:sequence select="$select-xml"/>
                     </xsl:when>
-                    <!-- do not bind $forClass if the only type is rdfs:Resource -->
-                    <xsl:when test="empty($forClass[not(. = '&rdfs;Resource')])">
+                    <!-- do not bind $for-class if the only type is rdfs:Resource -->
+                    <xsl:when test="empty($for-class[not(. = '&rdfs;Resource')])">
                         <xsl:sequence select="$select-xml"/>
                     </xsl:when>
                     <xsl:otherwise>
                         <xsl:apply-templates select="$select-xml" mode="ldh:append-values">
-                            <xsl:with-param name="values-map" select="$forClass ! map{ $type-var-name: . }" tunnel="yes"/>
+                            <xsl:with-param name="values-map" select="$for-class ! map{ $type-var-name: . }" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:otherwise>
                 </xsl:choose>
@@ -2217,7 +2247,7 @@ WHERE
                         <xsl:result-document href="?." method="ixsl:replace-element">
                             <xsl:apply-templates select="$resource" mode="ldh:ComboboxChip">
                                 <xsl:with-param name="class" select="$chip-class"/>
-                                <xsl:with-param name="forClass" select="$forClass"/>
+                                <xsl:with-param name="for-class" select="$for-class"/>
                             </xsl:apply-templates>
                         </xsl:result-document>
                     </xsl:for-each>
@@ -2241,7 +2271,7 @@ WHERE
                         <xsl:with-param name="query" select="ixsl:get(., 'value')"/>
                         <xsl:with-param name="uri" select="$request-uri"/>
                         <!-- we don't want to use rdfs:Resource as a type because a filter in ldh:ComboboxProcess would not select any resources with this type -->
-                        <xsl:with-param name="resource-types" select="$forClass[not(. = '&rdfs;Resource')]"/>
+                        <xsl:with-param name="resource-types" select="$for-class[not(. = '&rdfs;Resource')]"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
             </xsl:when>
@@ -2304,7 +2334,7 @@ WHERE
     <xsl:function name="ldh:set-combobox-form-resource" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="constructed-doc" select="$context('constructed-doc')" as="document-node()"/>
-        <xsl:variable name="forClass" select="$context('forClass')" as="xs:anyURI"/>
+        <xsl:variable name="for-class" select="$context('for-class')" as="xs:anyURI"/>
         <xsl:variable name="this" select="$context('this')" as="xs:anyURI"/>
         <xsl:variable name="shapes" select="$context('shapes')" as="document-node()?"/>
 
@@ -2313,10 +2343,10 @@ WHERE
         </xsl:variable>
         <xsl:variable name="shape-instance-doc" select="ldh:reserialize($shape-instance-doc)" as="document-node()"/>
 
-        <xsl:variable name="merged-constructor" select="ldh:merge-constructors($shape-instance-doc, $constructed-doc, $forClass)" as="document-node()"/>
-        <xsl:variable name="instance-doc" select="ldh:instantiate-constructor($merged-constructor, $forClass, $this, ())" as="document-node()"/>
+        <xsl:variable name="merged-constructor" select="ldh:merge-constructors($shape-instance-doc, $constructed-doc, $for-class)" as="document-node()"/>
+        <xsl:variable name="instance-doc" select="ldh:instantiate-constructor($merged-constructor, $for-class, $this, ())" as="document-node()"/>
 
-        <xsl:variable name="resource" select="key('resources-by-type', $forClass, $instance-doc)[not(key('predicates-by-object', @rdf:nodeID))]" as="element()"/>
+        <xsl:variable name="resource" select="key('resources-by-type', $for-class, $instance-doc)[not(key('predicates-by-object', @rdf:nodeID))]" as="element()"/>
         <xsl:variable name="types" select="for $t in distinct-values($resource/rdf:type/@rdf:resource) return xs:anyURI($t)" as="xs:anyURI*"/>
 
         <xsl:sequence select="map:merge(($context, map{
@@ -2387,19 +2417,19 @@ WHERE
         <xsl:variable name="resource-id" select="input[@name = ('ou', 'ob')]/ixsl:get(., 'value')" as="xs:string"/> <!-- can be URI resource or blank node ID -->
         <xsl:variable name="combobox-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.combobox.rdfXml')" as="document-node()"/>
         <xsl:variable name="resource" select="key('resources', $resource-id, $combobox-doc)" as="element()"/>
-        <xsl:variable name="initial-forClass" select="(../../@data-for-class, ../preceding-sibling::div[contains-token(@class, 'ac-cb-box')]/@data-for-class)[1] ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/>
+        <xsl:variable name="initial-for-class" select="(../../@data-for-class, ../preceding-sibling::div[contains-token(@class, 'ac-cb-box')]/@data-for-class)[1] ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/>
 
         <!-- render the committed chip replacing the whole lookup wrapper (synchronous DOM mutation, runs before the promise) -->
         <xsl:for-each select="../..">
             <xsl:result-document href="?." method="ixsl:replace-element">
                 <xsl:apply-templates select="$resource" mode="ldh:ComboboxChip">
                     <xsl:with-param name="class" select="$chip-class"/>
-                    <xsl:with-param name="forClass" select="$initial-forClass"/>
+                    <xsl:with-param name="for-class" select="$initial-for-class"/>
                 </xsl:apply-templates>
             </xsl:result-document>
         </xsl:for-each>
 
-        <xsl:variable name="forClass" select="xs:anyURI($resource/@rdf:about)" as="xs:anyURI"/>
+        <xsl:variable name="for-class" select="xs:anyURI($resource/@rdf:about)" as="xs:anyURI"/>
 
         <xsl:choose>
             <!-- a resource that exists (its block names it): the class is a type added to it, or put in place of one it
@@ -2407,13 +2437,13 @@ WHERE
                  save fits open forms: what the classes' models add is appended, empty rows they no longer model go, and
                  the resource, its values and its other types stay -->
             <xsl:when test="$container/@about">
-                <xsl:variable name="types" select="distinct-values(($fieldset//div[contains-token(@class, 'ldh-prop-group')][input[@name = 'pu']/@value = '&rdf;type']//input[@name = 'ou'][not(ancestor::* intersect current()/../..)]/ixsl:get(., 'value'), $forClass))[. != ''] ! xs:anyURI(.)" as="xs:anyURI*"/>
+                <xsl:variable name="types" select="distinct-values(($fieldset//div[contains-token(@class, 'ldh-prop-group')][input[@name = 'pu']/@value = '&rdf;type']//input[@name = 'ou'][not(ancestor::* intersect current()/../..)]/ixsl:get(., 'value'), $for-class))[. != ''] ! xs:anyURI(.)" as="xs:anyURI*"/>
 
                 <ixsl:set-attribute name="typeof" select="string-join($types, ' ')" object="$container"/>
 
                 <xsl:variable name="context" as="map(*)" select="map{
                     'fieldset': $fieldset,
-                    'forClass': $types,
+                    'for-class': $types,
                     'types': $types
                 }"/>
 
@@ -2431,9 +2461,9 @@ WHERE
                 <xsl:variable name="this" select="xs:anyURI($doc-uri || '#id' || ac:uuid())" as="xs:anyURI"/>
 
                 <!-- update @typeof value on container (synchronous DOM mutation, runs before the promise) -->
-                <ixsl:set-attribute name="typeof" select="$forClass" object="$container"/>
+                <ixsl:set-attribute name="typeof" select="$for-class" object="$container"/>
 
-                <!-- 'types' is initially set to ($forClass) so the shape fetch (which runs before
+                <!-- 'types' is initially set to ($for-class) so the shape fetch (which runs before
                      ldh:set-combobox-form-resource and feeds the SHACL+SPIN merge) targets the right class.
                      After ldh:set-combobox-form-resource runs the merge and extracts the real types from the
                      merged document, it overwrites 'types' to the actual derived value used by load-constructors. -->
@@ -2441,8 +2471,8 @@ WHERE
                     'container': $container,
                     'fieldset': $fieldset,
                     'doc-uri': $doc-uri,
-                    'forClass': $forClass,
-                    'types': ($forClass),
+                    'for-class': $for-class,
+                    'types': ($for-class),
                     'this': $this
                 }"/>
 
@@ -2472,14 +2502,14 @@ WHERE
         <xsl:variable name="resource-id" select="input[@name = ('ou', 'ob')]/ixsl:get(., 'value')" as="xs:string"/> <!-- can be URI resource or blank node ID -->
         <xsl:variable name="combobox-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.combobox.rdfXml')" as="document-node()"/>
         <xsl:variable name="resource" select="key('resources', $resource-id, $combobox-doc)" as="element()"/>
-        <xsl:variable name="forClass" select="(../../@data-for-class, ../preceding-sibling::div[contains-token(@class, 'ac-cb-box')]/@data-for-class)[1] ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/>
+        <xsl:variable name="for-class" select="(../../@data-for-class, ../preceding-sibling::div[contains-token(@class, 'ac-cb-box')]/@data-for-class)[1] ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/>
 
         <!-- the committed chip replaces the whole lookup wrapper (legacy span or .ac-combobox) -->
         <xsl:for-each select="../..">
             <xsl:result-document href="?." method="ixsl:replace-element">
                 <xsl:apply-templates select="$resource" mode="ldh:ComboboxChip">
                     <xsl:with-param name="class" select="$chip-class"/>
-                    <xsl:with-param name="forClass" select="$forClass"/>
+                    <xsl:with-param name="for-class" select="$for-class"/>
                 </xsl:apply-templates>
             </xsl:result-document>
         </xsl:for-each>
@@ -2593,7 +2623,7 @@ WHERE
         <xsl:variable name="uuid" select="ac:uuid()" as="xs:string"/>
         <!-- the committed chip span carries the class scope; the fresh lookup replaces it wholesale -->
         <xsl:variable name="committed" select="ancestor::span[contains-token(@class, 'ac-cb-committed')][1]" as="element()"/>
-        <xsl:variable name="forClass" select="$committed/@data-for-class ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/>
+        <xsl:variable name="for-class" select="$committed/@data-for-class ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/>
         <!-- the replace destroys the chip; its clone is the snapshot an abandoned edit restores -->
         <xsl:variable name="committed-html" select="ixsl:call($committed, 'cloneNode', [ true() ])"/>
 
@@ -2603,7 +2633,7 @@ WHERE
                     <xsl:with-param name="id" select="'input-' || $uuid"/>
                     <xsl:with-param name="class" select="$combobox-class"/>
                     <xsl:with-param name="list-class" select="$combobox-list-class"/>
-                    <xsl:with-param name="forClass" select="$forClass"/>
+                    <xsl:with-param name="for-class" select="$for-class"/>
                 </xsl:call-template>
             </xsl:result-document>
         </xsl:for-each>

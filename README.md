@@ -262,6 +262,8 @@ _:warning: Do not use blank nodes to identify applications or services. We recom
 
 The options are described in more detail in the [configuration documentation](https://docs.linkeddatahub.com/reference/configuration/).
 
+The search box asks a text index where the dataspace's service declares one, and runs a regex over every label where it does not. The end-user dataset in `config/fuseki/config.ttl` carries a jena-text index over the labels the search reads, and `config/system.trig` declares it on the dataspace's service with `sd:propertyFeature <http://jena.apache.org/text#query>`. The index follows writes through Fuseki on its own; after a bulk load with `tdb2.tdbloader`, `make reindex` rebuilds it from the data (`make load` runs it).
+
   ## Reset
 
   If you need to start fresh and wipe the existing setup (e.g. after configuring a new base URI), you can do that using

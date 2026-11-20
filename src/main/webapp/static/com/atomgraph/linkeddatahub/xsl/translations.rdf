@@ -452,6 +452,10 @@
         <rdfs:label xml:lang="en-US">Installed</rdfs:label>
         <rdfs:label xml:lang="es-ES">Instalado</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="not-in-catalog">
+        <rdfs:label xml:lang="en-US">Not in the catalog</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No está en el catálogo</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="ontology">
         <rdfs:label xml:lang="en-US">Ontology</rdfs:label>
         <rdfs:label xml:lang="es-ES">Ontología</rdfs:label>

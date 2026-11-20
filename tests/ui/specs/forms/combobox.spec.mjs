@@ -389,6 +389,32 @@ test.describe('the resource combobox', { tag: '@owner' }, () => {
             expect(drop.y + drop.height, 'so it sits one gap above the field')
                 .toBeCloseTo(field.y - GAP, 0);
         });
+
+        // Under a CSS zoom on the page (a screen recording runs the whole page at 2), a rect is measured
+        // in zoomed pixels while a style is written in layout ones. Measured before: the translation that
+        // flips the panel above its field was read off the rects and written as it was, so a flip of 316
+        // moved the panel 632, and it sat 548px above the field it drops from, as wide as two of it.
+        test('keeps its place under a CSS zoom', async ({ page }) => {
+            await page.setViewportSize({ width: 1280, height: 720 });
+            const form = await conceptForm(page);
+            await page.evaluate(() => { document.documentElement.style.zoom = '2'; });
+            const parts = partsOf(groupFor(form, RELATED));
+            await parts.input.click();
+            await parts.input.pressSequentially('drinks', { delay: 110 });
+            await expect(parts.panel).toBeVisible({ timeout: 25_000 });
+            await page.waitForTimeout(400);
+            const { field, drop, viewport } = await geometry(page, parts.box, parts.panel);
+
+            // Either placement, whichever the room below the field decides: the doubling threw both off,
+            // a drop below landing a field's height too low, a flip above landing a panel's height too high
+            expect(drop.width, 'as wide as the field, not twice it').toBeCloseTo(field.width, 0);
+            expect(drop.x).toBeCloseTo(field.x, 0);
+            if (viewport - (field.y + field.height) > drop.height) {
+                expect(drop.y, 'one gap under the field').toBeCloseTo(field.y + field.height + GAP, 0);
+            } else {
+                expect(drop.y + drop.height, 'one gap above the field').toBeCloseTo(field.y - GAP, 0);
+            }
+        });
     });
 
     test.describe('a lookup that fails', () => {

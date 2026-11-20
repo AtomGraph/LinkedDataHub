@@ -486,7 +486,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
         <xsl:variable name="query-type" select="ldh:query-type($query-string)" as="xs:string"/>
-        <xsl:variable name="forClass" select="if ($query-type = ('SELECT', 'ASK')) then xs:anyURI('&ldh;ResultSetChart') else xs:anyURI('&ldh;GraphChart')" as="xs:anyURI"/>
+        <xsl:variable name="for-class" select="if ($query-type = ('SELECT', 'ASK')) then xs:anyURI('&ldh;ResultSetChart') else xs:anyURI('&ldh;GraphChart')" as="xs:anyURI"/>
         <!-- the create button rides the chart's .ldh-block-foot, a sibling of the .chart-controls grid -->
         <xsl:variable name="chart-controls" select="ancestor::div[contains-token(@class, 'ldh-block-foot')][1]/preceding-sibling::div[contains-token(@class, 'chart-controls')][1]" as="element()"/>
         <xsl:variable name="chart-type" select="$chart-controls//select[contains-token(@class, 'chart-type')]/ixsl:get(., 'value')" as="xs:anyURI?"/>
@@ -501,7 +501,7 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:call-template name="ldh:CreateBlock">
             <xsl:with-param name="block" select="$block"/>
-            <xsl:with-param name="forClass" select="$forClass"/>
+            <xsl:with-param name="for-class" select="$for-class"/>
             <!-- title/description come from the class constructor; these are what make it *this* chart -->
             <xsl:with-param name="properties" as="element()*">
                 <ldh:chartType rdf:resource="{$chart-type}"/>

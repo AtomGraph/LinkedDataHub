@@ -32,4 +32,12 @@ do
     grep -q "<${sd}supportedLanguage> <${sd}SPARQL11Query> \." <<< "$response"
     ! grep -q "<${sd}SPARQL11Update>" <<< "$response"
     grep -q "<${sd}resultFormat> <http://www.w3.org/ns/formats/SPARQL_Results_XML> \." <<< "$response"
+
+    # the property functions the dataspace's service declares (config/system.trig) are what the page reads to decide
+    # how to search: the test end-user service declares the text index, the test admin service declares none
+    if [ "$endpoint" = "${END_USER_BASE_URL}sparql" ]; then
+        grep -q "<${sd}propertyFeature> <http://jena.apache.org/text#query> \." <<< "$response"
+    else
+        ! grep -q "<${sd}propertyFeature>" <<< "$response"
+    fi
 done

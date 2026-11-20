@@ -1286,6 +1286,39 @@ extension-element-prefixes="ixsl"
         </xsl:copy>
     </xsl:template>
 
+    <!-- ?var text:query "lucene": the text index asked for the resources, where the dataspace's service declares one -->
+
+    <!-- identity transform -->
+    <xsl:template match="@* | node()" mode="ldh:add-text-query">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+
+    <!-- prepend the text:query pattern to WHERE: first, so the index answers before the label patterns run, and never
+         inside their GRAPH ?graph, where a property function is evaluated once per named graph - one per document.
+         The query is a plain literal, which jena-text takes as the query over the index's default field, so no list
+         argument has to round-trip through the generator. The literal carries the query text as is: Traqula's
+         generator escapes it on output -->
+    <xsl:template match="json:map[@key = 'where']/json:array[@key = 'patterns']" mode="ldh:add-text-query" priority="1">
+        <xsl:param name="var-name" as="xs:string" tunnel="yes"/>
+        <xsl:param name="query" as="xs:string" tunnel="yes"/>
+
+        <xsl:copy>
+            <xsl:apply-templates select="@*" mode="#current"/>
+
+            <json:map>
+                <json:string key="type">pattern</json:string>
+                <json:string key="subType">bgp</json:string>
+                <json:array key="triples">
+                    <xsl:sequence select="ldh:triple-node(ldh:term-node('?' || $var-name), ldh:typed-term-node('namedNode', 'http://jena.apache.org/text#query', ()), ldh:typed-term-node('literal', $query, ()))"/>
+                </json:array>
+            </json:map>
+
+            <xsl:apply-templates select="node()" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+
     <!-- Append VALUES block to WHERE clause: one row per map, keyed by the variable name without its sigil ('type'), as Traqula keys VALUES rows -->
 
     <xsl:template match="@* | node()" mode="ldh:append-values">
