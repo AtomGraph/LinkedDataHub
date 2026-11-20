@@ -48,9 +48,8 @@ exclude-result-prefixes="#all"
          also carry skos:narrower on the parent, and gets both branches for free.
 
          The type requirement keeps a tree to resources that describe themselves, which is what the
-         stored ldh:SelectChildren asked for; its ORDER BY and its ?thing binding are deliberately not
-         reproduced, because the children are sorted by ac:label() when they are rendered and the topic
-         was already being stripped out before the query ran. -->
+         stored ldh:SelectChildren asks for; its ORDER BY is deliberately not reproduced, because the
+         children are sorted by ac:label() when they are rendered. -->
     <xsl:function name="ldh:tree-children-query" as="xs:string">
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="parent-properties" as="xs:anyURI*"/> <!-- asserted on the child: ?child P $this -->

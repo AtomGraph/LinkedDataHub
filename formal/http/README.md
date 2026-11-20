@@ -86,7 +86,6 @@ formal/http/tracks-code.sh origin/develop
 | `postB`, `putB`, `patchB`, `deleteB`, `deleteChecked` | `DocumentHierarchyGraphStoreImpl.post`, `put`, `patch`, `delete`, in their order of checks; `delete`'s `404` is Core's `GraphStoreBase.delete` |
 | `precondFails` | `evaluatePreconditions`: `428` without `If-Match` or `If-None-Match: *`, and Core's evaluation of either |
 | `HSite.fixed`, `HSite.isRoot` | `allowedMethods`: no `PUT` or `DELETE` of the owner's or the secretary's WebID document, no `DELETE` of the root |
-| `untypesB` | `patch`'s `rdf:type cannot be removed` |
 | `parentIri`, `doubleSlash`, `slashed` (`IO.lean`) | `IRIx.resolve("..")`; `put`'s redirect to a trailing slash and refusal of a double slash |
 | `ETags` | `EntityTags.entityTag`, over `toSortedNTriples` (`server/util/`) |
 | `Cond.resolve` | `evaluatePreconditions`' reading of `If-Match` and `If-None-Match: *` |
@@ -116,6 +115,7 @@ Proven with no `sorry`, using only the axioms `propext`, `Quot.sound` and, throu
 | `answer_not_forbidden` | No check of the graph store answers `403`: that status is the authorization decision's |
 | `answer_write` | A request that goes through is a `Write` of it from the store before to the store after, or changes nothing |
 | `answer_inv` | So the graph store keeps `Inv` and `Typed`, as every `Write` does |
+| `patch_untypes_described` | A PATCH that deletes only `rdf:type` statements of resources other than the document is accepted: only the document is held to being typed. The direction `answer_write` leaves out, since a refusal is never a write |
 | `no_lost_update` | A write guarded by `If-Match` with the tag of the graph a client read changes the store only if the document still holds that graph |
 | `concurrent_write_changes_nothing` | Once another write has changed the graph a client read, the client's write quoting its tag changes nothing |
 | `select_mem`, `select_none_iff` | The TimeGate's Memento is one of the document's; there is one exactly when the history is not empty |
@@ -186,3 +186,6 @@ The TimeGate is replayed twice:
 - **Versioning's failures and limits:** why a reconcile fails (the model has that it can, and what the TimeGate then
   answers), a write whose response fails after the store has changed (no reconcile is queued for it), and a history longer than `listCommits` pages through. The history's order
   is GitHub's.
+- **Which dataspaces are versioned:** the model takes a document's dataspace as versioned or not. Which ones are, and
+  with which repository, `GraphVersioningService` reads from the dataspace descriptions as they are when asked
+  (`lds:versioningRepository`), building a repository again only when its description changes.

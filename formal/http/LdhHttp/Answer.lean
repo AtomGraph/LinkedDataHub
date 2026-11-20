@@ -244,10 +244,6 @@ def deleteB (hs : HSite) (fs : FinStore) (x : Node) (pc : Precond) : Except Refu
     | none => deleteChecked fs x
   else deleteChecked fs x
 
-/-- `rdf:type cannot be removed`: a resource the update leaves described but untyped. -/
-def untypesB (g after : List Triple) : Bool :=
-  g.any fun t => t.p == .rdfType && !(after.any fun u => u.s == t.s && u.p == .rdfType) && after.any fun u => u.s == t.s
-
 /-- `patch()`. -/
 def patchB (hs : HSite) (fs : FinStore) (x : Node) (del ins : List Triple) (pc : Precond) :
     Except Refusal (Success × FinStore) :=
@@ -265,7 +261,6 @@ def patchB (hs : HSite) (fs : FinStore) (x : Node) (del ins : List Triple) (pc :
       else if after.any (fun t => t.s == x && t.p == .rdfType && !hierClassB t.o && !decide (t ∈ g))
         then .error .unprocessable
       else if !typedB x after then .error .unprocessable
-      else if untypesB g after then .error .unprocessable
       else .ok (.noContent, fs.set x after)
 
 /-- What the graph store does with a request: everything after the authorization decision. -/
@@ -490,7 +485,6 @@ theorem answer_write {tr : Tree} {hs : HSite} (h : hs.agrees tr) {fs : FinStore}
     rename_i hft
     split at hd; · cases hd
     rename_i hty
-    split at hd; · cases hd
     cases hd
     refine Or.inr ⟨Req.patch x fun t => t ∈ (graphOf fs x).filter (fun t => !decide (t ∈ del)) ++ ins,
       ⟨rfl, Or.inl rfl⟩, ?_⟩
@@ -541,5 +535,49 @@ theorem answer_inv {tr : Tree} {hs : HSite} (h : hs.agrees tr) {fs : FinStore} {
   rcases answer_write h hinv.own hd with rfl | ⟨_, _, hw⟩
   · exact ⟨hinv, id⟩
   · exact ⟨hw.inv hinv, hw.typed⟩
+
+/-- **A resource the document describes may lose its type.** Only the document is held to being typed, with a
+document hierarchy class: a PATCH that deletes nothing but `rdf:type` statements of other resources, from a document
+so typed and with its preconditions met, is accepted, and leaves those resources described without a type, as
+imported data describes them. `answer_write` cannot tell a store that refuses this from one that does not, since a
+refusal is never a write; this is the direction it leaves out, for the case #308 refused. -/
+theorem patch_untypes_described {hs : HSite} {fs : FinStore} {x : Node} {del : List Triple} {pc : Precond}
+    (hx : hasDoc fs x = true) (hpc : precondFails pc = none) (hty : typedB x (graphOf fs x) = true)
+    (hdel : ∀ t ∈ del, t.p = .rdfType ∧ t.s ≠ x) :
+    patchB hs fs x del [] pc = .ok (.noContent, fs.set x ((graphOf fs x).filter fun t => !decide (t ∈ del))) := by
+  -- what the update keeps is a part of the graph, and all of what the graph says of the document itself
+  have sub : ∀ t, t ∈ (graphOf fs x).filter (fun t => !decide (t ∈ del)) → t ∈ graphOf fs x :=
+    fun t ht => (List.mem_filter.1 ht).1
+  have keep : ∀ t, t.s = x → t ∈ graphOf fs x → t ∈ (graphOf fs x).filter (fun t => !decide (t ∈ del)) := by
+    intro t hs ht
+    refine List.mem_filter.2 ⟨ht, ?_⟩
+    have : t ∉ del := fun hd => (hdel t hd).2 hs
+    simp [this]
+  obtain ⟨w, hw, hwp⟩ := List.any_eq_true.1 hty
+  have hws : w.s = x := by simp at hwp; exact hwp.1.1
+  have hwa := keep w hws hw
+  -- so it is not empty, changes no ownership or containment, adds nothing, and keeps the document's type
+  have hne : ((graphOf fs x).filter fun t => !decide (t ∈ del)).isEmpty = false := by
+    cases hl : (graphOf fs x).filter (fun t => !decide (t ∈ del)) with
+    | nil => rw [hl] at hwa; cases hwa
+    | cons _ _ => rfl
+  have hown : (graphOf fs x).any (fun t => (ownershipB x t || containmentB x t) &&
+      decide (t ∈ graphOf fs x) != decide (t ∈ (graphOf fs x).filter fun t => !decide (t ∈ del))) = false := by
+    refine List.any_eq_false.2 fun t ht hp => ?_
+    have hs : t.s = x := by
+      simp only [ownershipB, containmentB, Bool.and_eq_true, Bool.or_eq_true, beq_iff_eq] at hp
+      rcases hp.1 with h | h <;> exact h.1
+    have := keep t hs ht
+    simp [ht, this] at hp
+  have hfc : ((graphOf fs x).filter fun t => !decide (t ∈ del)).any
+      (fun t => isContainmentB t && t.s != x && !decide (t ∈ graphOf fs x)) = false :=
+    List.any_eq_false.2 fun t ht hp => by simp [sub t ht] at hp
+  have hft : ((graphOf fs x).filter fun t => !decide (t ∈ del)).any
+      (fun t => t.s == x && t.p == .rdfType && !hierClassB t.o && !decide (t ∈ graphOf fs x)) = false :=
+    List.any_eq_false.2 fun t ht hp => by simp [sub t ht] at hp
+  have htyped : typedB x ((graphOf fs x).filter fun t => !decide (t ∈ del)) = true :=
+    List.any_eq_true.2 ⟨w, hwa, hwp⟩
+  simp only [patchB, hx, hpc, List.append_nil, hne, hown, hfc, hft, htyped]
+  rfl
 
 end LdhHttp

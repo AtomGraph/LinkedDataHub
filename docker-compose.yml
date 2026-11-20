@@ -278,15 +278,15 @@ configs:
               server ${NGINX_UPSTREAM_SERVER:-varnish-frontend:6060};
           }
 
-          # Exempt internal requests from the linkeddatahub container from rate limiting
-          # Use RFC 1918 private IP ranges (same logic as InetAddress.isSiteLocalAddress())
-          map $$remote_addr $$limit_key {
+          # the platform's requests to its own URLs carry the proxy secret in Rate-Limit-Exempt (ClientUriRewriteFilter) and
+          # are not rate limited; every other client is limited by its address. The exemption is by secret, not by a private
+          # address: a request can arrive from one that is not the platform's - Docker relays IPv6 clients from the bridge
+          # gateway, and a shared front proxy or a load balancer sends everyone from its own. Not Proxy-Secret, the header
+          # nginx sends the platform: a browser cannot send a Proxy-* header, and the page-load test's exempt loads must
+          map_hash_bucket_size 128; # fits the secret as a key: make secrets writes 64 hex characters, the default bucket's size
+          map $$http_rate_limit_exempt $$limit_key {
               default $$binary_remote_addr;
-              ~^10\.          "";  # RFC 1918: 10.0.0.0/8
-              ~^172\.1[6-9]\. "";  # RFC 1918: 172.16.0.0/12 (172.16-19.x.x)
-              ~^172\.2[0-9]\. "";  # RFC 1918: 172.16.0.0/12 (172.20-29.x.x)
-              ~^172\.3[0-1]\. "";  # RFC 1918: 172.16.0.0/12 (172.30-31.x.x)
-              ~^192\.168\.    "";  # RFC 1918: 192.168.0.0/16
+              "${PROXY_SECRET:?set PROXY_SECRET in .env - make secrets generates it}" "";
           }
 
           # a page is many requests at once - up to ~175 on a rich one, 35-46 of them in its first second (measured on
@@ -299,7 +299,7 @@ configs:
 
           # SPARQL endpoints are capped by concurrency, not only by rate: a handful of heavy queries in flight at once is
           # what exhausts the store's heap, however slowly they arrive. The keys are set for an external client's
-          # /sparql request only - every other path and every internal (RFC 1918) caller maps to "", which nginx does not
+          # /sparql request only - every other path and the platform's own requests map to "", which nginx does not
           # count - so the caps sit in the generic locations below without touching anything else
           map $$uri $$sparql_key {
               default "";
@@ -366,6 +366,7 @@ configs:
               proxy_set_header X-Forwarded-For $$remote_addr;
               proxy_set_header Client-Cert $$ssl_client_escaped_cert; # empty, and so not sent, without a client certificate
               proxy_set_header Proxy-Secret "${PROXY_SECRET:?set PROXY_SECRET in .env - make secrets generates it}";
+              proxy_set_header Rate-Limit-Exempt ''; # read here, not passed on
 
               # the platform uses no path parameters (;)
               if ($$request_uri ~ "^[^?]*;") {
@@ -388,10 +389,13 @@ configs:
                   set $$web_algebra http://web-algebra:8080;
                   proxy_pass $$web_algebra;
                   limit_req zone=web_algebra burst=10 nodelay;
-                  proxy_read_timeout 120s; # writing a plan is a 10-30 s model call
+                  # writing a plan is one model call that the sidecar may follow with a repair pass when the model's SPARQL
+                  # does not parse: 40-130 s measured against a 15M-quad dataspace, so the bound sits well above that.
+                  # Executing is polled at /webalgebra/{id}/result and needs no long wait
+                  proxy_read_timeout 600s;
 
                   # repeats the server-level set, since it also clears On-Behalf-Of. Proxy-Secret is for the platform only and
-                  # is not sent to the sidecar
+                  # is not sent to the sidecar, nor is Rate-Limit-Exempt
                   proxy_set_header Host $$host;
                   proxy_set_header X-Forwarded-Host $$host;
                   proxy_set_header X-Forwarded-Proto $$scheme;
@@ -399,6 +403,7 @@ configs:
                   proxy_set_header X-Forwarded-For $$remote_addr;
                   proxy_set_header Client-Cert $$ssl_client_escaped_cert;
                   proxy_set_header On-Behalf-Of '';
+                  proxy_set_header Rate-Limit-Exempt '';
               }
 
               location / {
@@ -474,6 +479,7 @@ configs:
               proxy_set_header X-Forwarded-For $$remote_addr;
               proxy_set_header Client-Cert $$ssl_client_escaped_cert; # empty, and so not sent, without a client certificate
               proxy_set_header Proxy-Secret "${PROXY_SECRET:?set PROXY_SECRET in .env - make secrets generates it}";
+              proxy_set_header Rate-Limit-Exempt ''; # read here, not passed on
 
               # the platform uses no path parameters (;)
               if ($$request_uri ~ "^[^?]*;") {

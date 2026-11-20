@@ -239,10 +239,16 @@ version="3.0"
         <!-- above only when it fits there: a panel taller than the space on either side stays below, where
              its own scrollbar is reachable rather than hanging off the top of the window -->
         <xsl:variable name="top" select="if ($below + $height gt ixsl:get(ixsl:window(), 'innerHeight') and $above ge 0) then $above else $below" as="xs:double"/>
+        <!-- Under a CSS zoom on an ancestor (the html element, say) a rect is measured in zoomed pixels while a
+             style is written in layout ones, so a correction read off the rects is divided by the zoom before
+             it is written, or a flip of 300 moves the panel 600. The zoom is the ratio of the panel's rect
+             width to its layout width: 1 wherever nothing is zoomed. -->
+        <xsl:variable name="layout-width" select="ixsl:get($menu, 'offsetWidth')" as="xs:double"/>
+        <xsl:variable name="zoom" select="if ($layout-width gt 0) then ixsl:get($panel, 'width') div $layout-width else 1" as="xs:double"/>
 
         <xsl:for-each select="$menu">
-            <ixsl:set-style name="width" select="round(ixsl:get($box, 'width')) || 'px'"/>
-            <ixsl:set-style name="transform" select="'translate(' || round(ixsl:get($box, 'left') - ixsl:get($panel, 'left')) || 'px, ' || round($top - ixsl:get($panel, 'top')) || 'px)'"/>
+            <ixsl:set-style name="width" select="round(ixsl:get($box, 'width') div $zoom) || 'px'"/>
+            <ixsl:set-style name="transform" select="'translate(' || round((ixsl:get($box, 'left') - ixsl:get($panel, 'left')) div $zoom) || 'px, ' || round(($top - ixsl:get($panel, 'top')) div $zoom) || 'px)'"/>
         </xsl:for-each>
     </xsl:template>
 

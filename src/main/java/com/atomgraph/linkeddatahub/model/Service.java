@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.model;
 
+import java.util.List;
 import org.apache.jena.rdf.model.Resource;
 
 /**
@@ -62,5 +63,14 @@ public interface Service extends Resource
      * @return password string, or null
      */
     String getAuthPwd();
+
+    /**
+     * Returns the property functions the SPARQL endpoint supports, as the service declares them with
+     * <code>sd:propertyFeature</code>: a text index's <code>text:query</code>, for one. The page asks the index for a
+     * search where it is declared and runs a regex where it is not.
+     *
+     * @return list of property function resources, empty if none is declared
+     */
+    List<Resource> getPropertyFeatures();
 
 }
