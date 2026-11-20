@@ -101,7 +101,9 @@ async function load(browser, url, exempt) {
         if (response.status() === 429) refused++;
         statuses.set(keyOf(request), [...(statuses.get(keyOf(request)) ?? []), response.status()]);
     });
-    page.on('pageerror', () => errors++);
+    const errorMessages = [];
+    page.on('pageerror', error => { errors++; errorMessages.push(error.message); });
+    page.on('console', message => { if (message.type() === 'error') errorMessages.push(message.text()); });
 
     await page.goto(url, { waitUntil: 'load', timeout: LOAD_TIMEOUT_MS });
     const deadline = t0 + LOAD_TIMEOUT_MS;
@@ -111,9 +113,10 @@ async function load(browser, url, exempt) {
     const timedOut = Date.now() >= deadline;
 
     const lost = [...statuses.entries()].filter(([, s]) => s.includes(429) && s.at(-1) === 429).map(([key]) => key);
-    const failures = await page.locator('.ldh-failure').count();
+    const failureTexts = await page.locator('.ldh-failure').allTextContents();
+    const failures = failureTexts.length;
     await context.close();
-    return { requests, refused, lost: lost.length, lostRequests: lost, failures, errors, timedOut, settleMs: last - t0 };
+    return { requests, refused, lost: lost.length, lostRequests: lost, failures, failureTexts, errors, errorMessages, timedOut, settleMs: last - t0 };
 }
 
 const { exempt, limited } = await nginxAddresses();
@@ -142,6 +145,9 @@ for (let i = 1; i <= LOADS; i++) {
         console.log(`load ${i}/${LOADS} ${url}`);
         console.log(`  exempt  ${e.requests} requests, ${e.refused} refused, ${e.lost} lost, ${e.failures} failures, settled ${e.settleMs} ms`);
         console.log(`  limited ${l.requests} requests, ${l.refused} refused, ${l.lost} lost, ${l.failures} failures, settled ${l.settleMs} ms`);
+        // what a failure said, so a red run names its cause
+        for (const text of new Set([...e.failureTexts, ...l.failureTexts])) console.log(`  DEBUG failure: ${text.replace(/\s+/g, ' ').trim()}`);
+        for (const text of new Set([...e.errorMessages, ...l.errorMessages])) console.log(`  DEBUG error: ${text}`);
     }
 }
 

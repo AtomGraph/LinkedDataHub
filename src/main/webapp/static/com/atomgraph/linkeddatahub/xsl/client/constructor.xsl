@@ -381,23 +381,24 @@ exclude-result-prefixes="#all"
         <ixsl:set-style name="cursor" select="'default'" object="$container"/>
     </xsl:function>
 
-    <xsl:template match="json:array[@key = 'template']/json:map[json:string[@key = 'subject'] = '?this']" mode="ldh:ConstructorTripleForm" priority="1">
+    <!-- a template triple of ?this: the parser shim gives a blank-node property list ([ a xsd:string ]) as plain triples, so the value range is the rdf:type of the object's blank node -->
+    <xsl:template match="json:map[@key = 'template']/json:array[@key = 'triples']/json:map[json:map[@key = 'subject'][json:string[@key = 'subType'] = 'variable'][json:string[@key = 'value'] = 'this']]" mode="ldh:ConstructorTripleForm" priority="1">
         <xsl:param name="class" select="'ldh-ctor-row constructor-triple'" as="xs:string?"/>
         <div>
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
-            <xsl:apply-templates select="json:string[@key = 'predicate']" mode="ldh:ConstructorTripleFormControl"/>
+            <xsl:apply-templates select="json:map[@key = 'predicate']" mode="ldh:ConstructorTripleFormControl"/>
 
-            <xsl:apply-templates select="json:string[@key = 'object']" mode="ldh:ConstructorTripleFormControl"/>
+            <xsl:apply-templates select="json:map[@key = 'object']" mode="ldh:ConstructorTripleFormControl"/>
         </div>
     </xsl:template>
     
     <xsl:template match="*" mode="ldh:ConstructorTripleForm"/>
     
-    <xsl:template match="json:map/json:string[@key = 'predicate']" mode="ldh:ConstructorTripleFormControl" name="ldh:ConstructorPredicate">
-        <xsl:param name="predicate" select="." as="xs:anyURI?"/>
+    <xsl:template match="json:map/json:map[@key = 'predicate']" mode="ldh:ConstructorTripleFormControl" name="ldh:ConstructorPredicate">
+        <xsl:param name="predicate" select="self::json:map[json:string[@key = 'subType'] = 'namedNode']/json:string[@key = 'value']" as="xs:anyURI?"/>
 
         <div class="ctor-pred">
             <xsl:choose>
@@ -448,9 +449,9 @@ exclude-result-prefixes="#all"
         </div>
     </xsl:template>
 
-    <xsl:template match="json:map/json:string[@key = 'object']" mode="ldh:ConstructorTripleFormControl" name="ldh:ConstructorObject">
-        <xsl:param name="object-bnode-id" select="." as="xs:string"/>
-        <xsl:param name="object-type" select="../../json:map[json:string[@key = 'subject'] = $object-bnode-id]/json:string[@key = 'object']" as="xs:anyURI?"/>
+    <xsl:template match="json:map/json:map[@key = 'object']" mode="ldh:ConstructorTripleFormControl" name="ldh:ConstructorObject">
+        <xsl:param name="object-bnode-id" select="ldh:term-key(self::json:map)" as="xs:string?"/>
+        <xsl:param name="object-type" select="../../json:map[ldh:term-key(json:map[@key = 'subject']) = $object-bnode-id]/json:map[@key = 'object']/json:string[@key = 'value']" as="xs:anyURI?"/>
         <!-- rdf:langString is a LITERAL datatype that merely lives outside the XSD namespace, so the object
              kind cannot be read off the namespace alone - imports/values.xsl excludes it from its non-XSD
              resource lookup for the same reason. Read as a resource it lit the Resource toggle, left the
@@ -594,8 +595,8 @@ exclude-result-prefixes="#all"
             </div>
 
             <div class="ldh-ctor-rows">
-                <xsl:apply-templates select="$construct-xml/json:map/json:array[@key = 'template']/json:map" mode="ldh:ConstructorTripleForm">
-                    <xsl:sort select="json:string[@key = 'predicate']"/>
+                <xsl:apply-templates select="$construct-xml/json:map/json:map[@key = 'template']/json:array[@key = 'triples']/json:map" mode="ldh:ConstructorTripleForm">
+                    <xsl:sort select="json:map[@key = 'predicate']/json:string[@key = 'value']"/>
                 </xsl:apply-templates>
             </div>
 
@@ -1034,11 +1035,18 @@ exclude-result-prefixes="#all"
                                 <xsl:param name="construct-xml" as="document-node()">
                                     <xsl:document>
                                         <json:map>
-                                            <json:string key="queryType">CONSTRUCT</json:string>
-                                            <json:array key="template"/>
-                                            <json:array key="where"/>
                                             <json:string key="type">query</json:string>
-                                            <json:map key="prefixes"/>
+                                            <json:string key="subType">construct</json:string>
+                                            <json:map key="template">
+                                                <json:string key="type">pattern</json:string>
+                                                <json:string key="subType">bgp</json:string>
+                                                <json:array key="triples"/>
+                                            </json:map>
+                                            <json:map key="where">
+                                                <json:string key="type">pattern</json:string>
+                                                <json:string key="subType">group</json:string>
+                                                <json:array key="patterns"/>
+                                            </json:map>
                                         </json:map>
                                     </xsl:document>
                                 </xsl:param>
@@ -1059,7 +1067,7 @@ exclude-result-prefixes="#all"
                         </xsl:variable>
                         <xsl:variable name="construct-json-string" select="xml-to-json($construct-xml)" as="xs:string"/>
                         <xsl:variable name="construct-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $construct-json-string ])"/>
-                        <xsl:variable name="construct-string" select="ixsl:call($ldh:sparql-generator, 'stringify', [ $construct-json ])" as="xs:string"/>
+                        <xsl:variable name="construct-string" select="ixsl:call($ldh:sparql-generator, 'generate', [ $construct-json ])" as="xs:string"/>
 
                         <!-- A constructor exists exactly when it templates at least one property: the first one
                              creates it, the last one removed deletes it, and one that never existed and still has

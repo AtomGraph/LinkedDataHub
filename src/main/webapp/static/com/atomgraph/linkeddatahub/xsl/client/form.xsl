@@ -2199,7 +2199,7 @@ WHERE
                     </xsl:when>
                     <xsl:otherwise>
                         <xsl:apply-templates select="$select-xml" mode="ldh:append-values">
-                            <xsl:with-param name="values-map" select="$for-class ! map{ ('?' || $type-var-name): . }" tunnel="yes"/>
+                            <xsl:with-param name="values-map" select="$for-class ! map{ $type-var-name: . }" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:otherwise>
                 </xsl:choose>
@@ -2219,7 +2219,7 @@ WHERE
         </xsl:variable>
         <xsl:variable name="query-json-string" select="xml-to-json($query-xml)" as="xs:string"/>
         <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
-        <xsl:variable name="query-string" select="ixsl:call($ldh:sparql-generator, 'stringify', [ $query-json ])" as="xs:string"/>
+        <xsl:variable name="query-string" select="ixsl:call($ldh:sparql-generator, 'generate', [ $query-json ])" as="xs:string"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/> <!-- proxy the results -->
 
@@ -2533,38 +2533,7 @@ WHERE
                     <!-- content-flow blocks sit in an .ldh-block-row shell that goes with them; modal forms have no row and fall back to the block itself -->
                     <xsl:sequence select="ixsl:call(($block/ancestor::div[contains-token(@class, 'ldh-block-row')][1], $block)[1], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
 
-                    <xsl:variable name="where-pattern" as="element()">
-                        <json:map>
-                            <json:string key="type">bgp</json:string>
-                            <json:array key="triples">
-                                <json:map>
-                                    <json:string key="subject"><xsl:sequence select="$about"/></json:string>
-                                    <json:string key="predicate">?p</json:string>
-                                    <json:string key="object">?o</json:string>
-                                </json:map>
-                            </json:array>
-                        </json:map>
-                    </xsl:variable>
-                    <xsl:variable name="update-xml" as="element()">
-                        <json:map>
-                            <json:string key="type">update</json:string>
-                            <json:array key="updates">
-                                <json:map>
-                                    <json:string key="updateType">insertdelete</json:string>
-                                    <json:array key="delete">
-                                        <xsl:sequence select="$where-pattern"/>
-                                    </json:array>
-                                    <json:array key="insert"/>
-                                    <json:array key="where">
-                                        <xsl:sequence select="$where-pattern"/>
-                                    </json:array>
-                                </json:map>
-                            </json:array>
-                        </json:map>
-                    </xsl:variable>
-                    <xsl:variable name="update-json-string" select="xml-to-json($update-xml)" as="xs:string"/>
-                    <xsl:variable name="update-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $update-json-string ])"/>
-                    <xsl:variable name="update-string" select="ixsl:call($ldh:sparql-generator, 'stringify', [ $update-json ])" as="xs:string"/>
+                    <xsl:variable name="update-string" select="ldh:insertdelete-update(ldh:triples-to-bgp(ldh:uri-po-pattern($about)), (), ldh:triples-to-bgp(ldh:uri-po-pattern($about)))" as="xs:string"/>
                     <xsl:variable name="request-uri" select="ldh:href($action, map{})" as="xs:anyURI"/>
 
                     <xsl:variable name="request" as="item()*">

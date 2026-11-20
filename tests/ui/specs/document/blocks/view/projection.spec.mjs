@@ -2,7 +2,7 @@
 //
 // A view lists the resources its query's first variable binds: it wraps the SELECT in a DESCRIBE
 // of that variable, and counts it for the pager. The variable may be projected plain, ?resource,
-// or as an expression's alias, (?s AS ?resource) - SPARQL.js gives the two in different shapes,
+// or as an expression's alias, (?s AS ?resource) - the parser gives the two in different shapes,
 // and reading only the plain one left the name empty and the whole block failing to render. An
 // alias is as good a variable as any. What a view cannot show is a first variable that binds
 // values rather than resources, (YEAR(NOW()) AS ?year): the count finds rows where the DESCRIBE

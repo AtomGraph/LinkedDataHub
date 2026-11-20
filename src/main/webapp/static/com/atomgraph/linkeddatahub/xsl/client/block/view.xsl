@@ -121,14 +121,14 @@ exclude-result-prefixes="#all"
         "/>
     </xsl:template>
     
-    <!-- flatten a SPARQL.js predicate node to its candidate URIs: simple URI (json:string) returns one; alt-path (pathType '|') recurses through items; sequence/inverse/variable predicates return empty -->
+    <!-- flatten a Traqula predicate node to its candidate URIs: an IRI returns itself; an alternative path ('|') recurses through its items; sequence/inverse/variable predicates return empty -->
     <xsl:function name="ldh:alt-path-uris" as="xs:anyURI*">
         <xsl:param name="node" as="element()"/>
         <xsl:choose>
-            <xsl:when test="$node/self::json:string[not(starts-with(., '?'))]">
-                <xsl:sequence select="xs:anyURI($node)"/>
+            <xsl:when test="$node[json:string[@key = 'type'] = 'term'][json:string[@key = 'subType'] = 'namedNode']">
+                <xsl:sequence select="xs:anyURI($node/json:string[@key = 'value'])"/>
             </xsl:when>
-            <xsl:when test="$node/self::json:map[json:string[@key = 'type'] = 'path'][json:string[@key = 'pathType'] = '|']">
+            <xsl:when test="$node[json:string[@key = 'type'] = 'path'][json:string[@key = 'subType'] = '|']">
                 <xsl:sequence select="for $item in $node/json:array[@key = 'items']/* return ldh:alt-path-uris($item)"/>
             </xsl:when>
         </xsl:choose>
@@ -381,7 +381,7 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:variable name="select-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
         <xsl:variable name="select-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $select-json-string ])"/>
-        <xsl:variable name="query-string" select="ixsl:call($ldh:sparql-generator, 'stringify', [ $select-json ])" as="xs:string"/>
+        <xsl:variable name="query-string" select="ixsl:call($ldh:sparql-generator, 'generate', [ $select-json ])" as="xs:string"/>
         <xsl:variable name="request-uri" select="ldh:href($endpoint, map{})" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'POST', 'href': $request-uri, 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
@@ -437,7 +437,7 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:variable name="select-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
         <xsl:variable name="select-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $select-json-string ])"/>
-        <xsl:variable name="query-string" select="ixsl:call($ldh:sparql-generator, 'stringify', [ $select-json ])" as="xs:string"/>
+        <xsl:variable name="query-string" select="ixsl:call($ldh:sparql-generator, 'generate', [ $select-json ])" as="xs:string"/>
         <xsl:variable name="request-uri" select="ldh:href($endpoint, map{})" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'POST', 'href': $request-uri, 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
@@ -561,8 +561,8 @@ exclude-result-prefixes="#all"
         <!-- the row-shaped modes are the ones that page: the map unsets LIMIT/OFFSET to plot every member,
              and the chart and graph draw a whole result set rather than a page of rows -->
         <xsl:param name="active-mode" as="xs:anyURI"/>
-        <xsl:variable name="offset" select="if ($select-xml/json:map/json:number[@key = 'offset']) then xs:integer($select-xml/json:map/json:number[@key = 'offset']) else 0" as="xs:integer"/>
-        <xsl:variable name="limit" select="if ($select-xml/json:map/json:number[@key = 'limit']) then xs:integer($select-xml/json:map/json:number[@key = 'limit']) else 0" as="xs:integer"/>
+        <xsl:variable name="offset" select="(ldh:query-offset($select-xml/json:map), 0)[1]" as="xs:integer"/>
+        <xsl:variable name="limit" select="(ldh:query-limit($select-xml/json:map), 0)[1]" as="xs:integer"/>
         <xsl:variable name="show" select="$active-mode = ('&ac;ListMode', '&ac;TableMode', '&ac;GridMode') and $limit gt 0 and (($offset - $limit) ge 0 or $result-count ge $limit)" as="xs:boolean"/>
 
         <xsl:for-each select="id($container-id || '-pager', ixsl:page())">
@@ -586,8 +586,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="result-count" as="xs:integer?"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="total-count" as="xs:integer?"/>
-        <xsl:variable name="offset" select="if ($select-xml/json:map/json:number[@key = 'offset']) then xs:integer($select-xml/json:map/json:number[@key = 'offset']) else 0" as="xs:integer"/>
-        <xsl:variable name="limit" select="if ($select-xml/json:map/json:number[@key = 'limit']) then xs:integer($select-xml/json:map/json:number[@key = 'limit']) else 0" as="xs:integer"/>
+        <xsl:variable name="offset" select="(ldh:query-offset($select-xml/json:map), 0)[1]" as="xs:integer"/>
+        <xsl:variable name="limit" select="(ldh:query-limit($select-xml/json:map), 0)[1]" as="xs:integer"/>
         <xsl:variable name="select-id" select="$container-id ! (. || '-pager-size')" as="xs:string?"/>
 
         <div class="ldh-pager-size">
@@ -852,7 +852,7 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:variable name="query-json-string" select="xml-to-json($query-xml)" as="xs:string"/>
         <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
-        <xsl:variable name="query-string" select="ixsl:call($ldh:sparql-generator, 'stringify', [ $query-json ])" as="xs:string"/>
+        <xsl:variable name="query-string" select="ixsl:call($ldh:sparql-generator, 'generate', [ $query-json ])" as="xs:string"/>
         <xsl:variable name="request-uri" select="ldh:href($endpoint, map{})" as="xs:anyURI"/>
         <xsl:variable name="headers" as="map(xs:string, xs:string)">
             <xsl:map>
@@ -894,8 +894,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="direction" as="xs:string"/> <!-- 'previous' or 'next' -->
 
         <!-- step by the query's own LIMIT so paging stays aligned after the page size is changed -->
-        <xsl:variable name="limit" select="if ($select-xml/json:map/json:number[@key = 'limit']) then xs:integer($select-xml/json:map/json:number[@key = 'limit']) else $ldh:page-size" as="xs:integer"/>
-        <xsl:variable name="offset" select="if ($select-xml/json:map/json:number[@key = 'offset']) then xs:integer($select-xml/json:map/json:number[@key = 'offset']) else 0" as="xs:integer"/>
+        <xsl:variable name="limit" select="(ldh:query-limit($select-xml/json:map), $ldh:page-size)[1]" as="xs:integer"/>
+        <xsl:variable name="offset" select="(ldh:query-offset($select-xml/json:map), 0)[1]" as="xs:integer"/>
         <xsl:variable name="offset" select="if ($direction = 'previous') then $offset - $limit else $offset + $limit" as="xs:integer"/>
 
         <xsl:document>
@@ -995,8 +995,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="var-predicates" as="map(xs:string, xs:anyURI*)?"/>
-        <xsl:param name="order-by-var-name" select="$select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:string[@key = 'expression']/substring-after(., '?')" as="xs:string?"/>
-        <xsl:param name="order-by-desc" select="$select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:boolean[@key = 'descending']" as="xs:boolean?"/>
+        <xsl:param name="order-by-var-name" select="ldh:order-var-name($select-xml/json:map, 1)" as="xs:string?"/>
+        <xsl:param name="order-by-desc" select="ldh:order-desc($select-xml/json:map, 1)" as="xs:boolean?"/>
         <xsl:param name="cache" as="item()"/>
 
         <!-- total cached by ldh:result-count-response (or the exact-count short-circuit); empty until the first COUNT response arrives -->
@@ -1105,8 +1105,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="total-count" as="xs:integer?"/>
         <xsl:param name="var-predicates" as="map(xs:string, xs:anyURI*)?"/>
-        <xsl:param name="order-by-var-name" select="$select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:string[@key = 'expression']/substring-after(., '?')" as="xs:string?"/>
-        <xsl:param name="order-by-desc" select="$select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:boolean[@key = 'descending']" as="xs:boolean?"/>
+        <xsl:param name="order-by-var-name" select="ldh:order-var-name($select-xml/json:map, 1)" as="xs:string?"/>
+        <xsl:param name="order-by-desc" select="ldh:order-desc($select-xml/json:map, 1)" as="xs:boolean?"/>
 
         <!-- a view reading its results from somewhere else carries that endpoint into the rendering, so its
              links and lookups follow the results; one drawn from this pane's own endpoint carries nothing -->
@@ -1396,8 +1396,8 @@ exclude-result-prefixes="#all"
         </xsl:if>
 
         <!-- result count: stays in sync with re-queried results (e.g. modal search keyword changes). Short-circuit the COUNT HTTP request when the entire result set fits in one page — typical for narrowed search queries. -->
-        <xsl:variable name="limit" select="if ($select-xml/json:map/json:number[@key = 'limit']) then xs:integer($select-xml/json:map/json:number[@key = 'limit']) else 0" as="xs:integer"/>
-        <xsl:variable name="offset" select="if ($select-xml/json:map/json:number[@key = 'offset']) then xs:integer($select-xml/json:map/json:number[@key = 'offset']) else 0" as="xs:integer"/>
+        <xsl:variable name="limit" select="(ldh:query-limit($select-xml/json:map), 0)[1]" as="xs:integer"/>
+        <xsl:variable name="offset" select="(ldh:query-offset($select-xml/json:map), 0)[1]" as="xs:integer"/>
         <xsl:variable name="exact-count" select="count($results/rdf:RDF/rdf:Description)" as="xs:integer"/>
 
         <!-- ldh:showWhenEmpty (default true): when false, hide the whole injected view block while the query returns no results and un-hide it when results appear on a later refresh. Only evaluated on the first page: at offset 0 an empty page means an empty result set, while a non-zero offset implies interaction with a visible block -->
@@ -1469,7 +1469,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="initial-var-name" select="ldh:first-var-name($select-xml/json:map)" as="xs:string"/>
         
         <!-- use the BGPs where the predicate is a URI value and the subject and object are variables -->
-        <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $initial-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
+        <xsl:variable name="bgp-triples-map" select="ldh:subject-var-triples($select-xml/json:map, $initial-var-name)[json:map[@key = 'predicate'][json:string[@key = 'subType'] = 'namedNode']][json:map[@key = 'object'][json:string[@key = 'subType'] = 'variable']]" as="element()*"/>
 
         <!-- only append facets if they are not already present and there are BGP triples to facet on -->
         <xsl:if test="not(child::div[contains-token(@class, 'facet')]) and exists($bgp-triples-map)">
@@ -1477,11 +1477,11 @@ exclude-result-prefixes="#all"
 
             <xsl:for-each select="$bgp-triples-map">
                 <!-- only simple properties in the BGP are supported, not property paths etc. -->
-                <xsl:if test="json:string[@key = 'predicate']">
+                <xsl:if test="json:map[@key = 'predicate'][json:string[@key = 'subType'] = 'namedNode']">
                     <xsl:variable name="id" select="generate-id()" as="xs:string"/>
-                    <xsl:variable name="subject-var-name" select="json:string[@key = 'subject']/substring-after(., '?')" as="xs:string"/>
-                    <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
-                    <xsl:variable name="object-var-name" select="json:string[@key = 'object']/substring-after(., '?')" as="xs:string"/>
+                    <xsl:variable name="subject-var-name" select="json:map[@key = 'subject']/json:string[@key = 'value']" as="xs:string"/>
+                    <xsl:variable name="predicate" select="json:map[@key = 'predicate']/json:string[@key = 'value']" as="xs:anyURI"/>
+                    <xsl:variable name="object-var-name" select="json:map[@key = 'object']/json:string[@key = 'value']" as="xs:string"/>
                     <!-- render the facet header synchronously from the /ns property-metadata; fall back to the predicate's local name when it is not in the closure -->
                     <xsl:variable name="predicate-desc" as="element()">
                         <xsl:sequence select="$property-metadata!key('resources', $predicate, .)"/>
@@ -1811,7 +1811,7 @@ exclude-result-prefixes="#all"
                 <!-- deduplicate the focus resources before the property fan-out, unless the query aggregates (re-projecting a GROUP BY query onto a non-grouping variable is invalid SPARQL) -->
                 <xsl:variable name="select-xml" as="document-node()">
                     <xsl:choose>
-                        <xsl:when test="$select-xml/json:map/json:array[@key = 'group'] or $select-xml/json:map/json:array[@key = 'variables']/json:map">
+                        <xsl:when test="$select-xml/json:map/json:map[@key = 'solutionModifiers']/json:map[@key = 'group'] or $select-xml/json:map/json:array[@key = 'variables']/*[json:string[@key = 'subType'] = 'bind']">
                             <xsl:sequence select="$select-xml"/>
                         </xsl:when>
                         <xsl:otherwise>
@@ -1847,7 +1847,7 @@ exclude-result-prefixes="#all"
                     </xsl:variable>
                     <xsl:variable name="query-json-string" select="xml-to-json($query-xml)" as="xs:string"/>
                     <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
-                    <xsl:variable name="query-string" select="ixsl:call($ldh:sparql-generator, 'stringify', [ $query-json ])" as="xs:string"/>
+                    <xsl:variable name="query-string" select="ixsl:call($ldh:sparql-generator, 'generate', [ $query-json ])" as="xs:string"/>
                     <xsl:variable name="request-uri" select="ldh:href($endpoint, map{})" as="xs:anyURI"/>
                     <xsl:variable name="request" select="map{ 'method': 'POST', 'href': $request-uri, 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
                     <xsl:variable name="context" as="map(*)" select="
@@ -2152,7 +2152,7 @@ exclude-result-prefixes="#all"
 
         <xsl:apply-templates select="$container" mode="ldh:SortControlsState">
             <xsl:with-param name="var-name" select="$var-name"/>
-            <xsl:with-param name="desc" select="boolean($select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:boolean[@key = 'descending'][. = 'true'])"/>
+            <xsl:with-param name="desc" select="boolean(ldh:order-desc($select-xml/json:map, 1))"/>
         </xsl:apply-templates>
 
         <xsl:variable name="view-context" as="map(*)">
@@ -2199,7 +2199,7 @@ exclude-result-prefixes="#all"
         <ixsl:set-property name="select-xml" select="$select-xml" object="$cache"/>
 
         <xsl:apply-templates select="$container" mode="ldh:SortControlsState">
-            <xsl:with-param name="var-name" select="$select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:string[@key = 'expression']/substring-after(., '?')"/>
+            <xsl:with-param name="var-name" select="ldh:order-var-name($select-xml/json:map, 1)"/>
             <xsl:with-param name="desc" select="not($desc)"/>
         </xsl:apply-templates>
 
@@ -2237,8 +2237,8 @@ exclude-result-prefixes="#all"
         <xsl:variable name="endpoint" select="ixsl:get($cache, 'endpoint')" as="xs:anyURI"/>
         <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/*[contains-token(@class, 'mi')][contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($ldh:class-modes)]" as="xs:string"/>
         <xsl:variable name="active-mode" select="map:get($ldh:class-modes, $active-class)" as="xs:anyURI"/>
-        <xsl:variable name="order-by-var-name" select="$select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:string[@key = 'expression']/substring-after(., '?')" as="xs:string?"/>
-        <xsl:variable name="desc" select="boolean($select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:boolean[@key = 'descending'][. = 'true'])" as="xs:boolean"/>
+        <xsl:variable name="order-by-var-name" select="ldh:order-var-name($select-xml/json:map, 1)" as="xs:string?"/>
+        <xsl:variable name="desc" select="boolean(ldh:order-desc($select-xml/json:map, 1))" as="xs:boolean"/>
 
         <xsl:sequence select="ldh:busy-cursor()"/>
 
@@ -2262,7 +2262,7 @@ exclude-result-prefixes="#all"
         <ixsl:set-property name="select-xml" select="$select-xml" object="$cache"/>
 
         <!-- keep the toolbar sort controls in agreement with the column-driven state -->
-        <xsl:variable name="new-desc" select="boolean($select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:boolean[@key = 'descending'][. = 'true'])" as="xs:boolean"/>
+        <xsl:variable name="new-desc" select="boolean(ldh:order-desc($select-xml/json:map, 1))" as="xs:boolean"/>
         <xsl:apply-templates select="$container" mode="ldh:SortControlsState">
             <xsl:with-param name="var-name" select="$var-name"/>
             <xsl:with-param name="desc" select="$new-desc"/>
@@ -2351,7 +2351,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($ldh:sparql-parser, 'parse', [ $select-string ]) ])" as="xs:string"/>
         <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
         <!-- TO-DO: can we get multiple BGPs here with the same ?s/p/?o ? -->
-        <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $subject-var-name][json:string[@key = 'predicate'] = $predicate][json:string[@key = 'object'] = '?' || $object-var-name]" as="element()"/>
+        <xsl:variable name="bgp-triples-map" select="ldh:subject-var-triples($select-xml/json:map, $subject-var-name)[json:map[@key = 'predicate']/json:string[@key = 'value'] = $predicate][json:map[@key = 'object'][json:string[@key = 'subType'] = 'variable']/json:string[@key = 'value'] = $object-var-name]" as="element()"/>
 
         <!-- opening one facet closes the others in the same toolbar -->
         <xsl:apply-templates select="$facet-container/../div[contains-token(@class, 'facet')][contains-token(@class, 'is-open')][not(. is $facet-container)]/div[contains-token(@class, 'facet-pop')]" mode="ldh:CloseFacetPopover"/>
@@ -2394,11 +2394,11 @@ exclude-result-prefixes="#all"
                     <xsl:sequence select="ldh:busy-cursor()"/>
 
                     <!-- the subject is a variable - trim the leading question mark -->
-                    <xsl:variable name="subject-var-name" select="substring-after($bgp-triples-map/json:string[@key = 'subject'], '?')" as="xs:string"/>
+                    <xsl:variable name="subject-var-name" select="$bgp-triples-map/json:map[@key = 'subject']/json:string[@key = 'value']" as="xs:string"/>
                     <!-- predicate is a URI -->
-                    <xsl:variable name="predicate" select="$bgp-triples-map/json:string[@key = 'predicate']" as="xs:anyURI"/>
+                    <xsl:variable name="predicate" select="$bgp-triples-map/json:map[@key = 'predicate']/json:string[@key = 'value']" as="xs:anyURI"/>
                     <!-- the object is a variable - trim the leading question mark -->
-                    <xsl:variable name="object-var-name" select="substring-after($bgp-triples-map/json:string[@key = 'object'], '?')" as="xs:string"/>
+                    <xsl:variable name="object-var-name" select="$bgp-triples-map/json:map[@key = 'object']/json:string[@key = 'value']" as="xs:string"/>
                     <!-- generate unique variable name for COUNT(?subject) -->
                     <xsl:variable name="count-var-name" select="'count' || $subject-var-name || generate-id()" as="xs:string"/>
                     <!-- generate unique variable name for ?label -->
@@ -2433,7 +2433,7 @@ exclude-result-prefixes="#all"
                     </xsl:variable>
                     <xsl:variable name="select-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
                     <xsl:variable name="select-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $select-json-string ])"/>
-                    <xsl:variable name="query-string" select="ixsl:call($ldh:sparql-generator, 'stringify', [ $select-json ])" as="xs:string"/>
+                    <xsl:variable name="query-string" select="ixsl:call($ldh:sparql-generator, 'generate', [ $select-json ])" as="xs:string"/>
                     <xsl:variable name="request-uri" select="ldh:href($endpoint, map{})" as="xs:anyURI"/>
                     <xsl:variable name="request" select="map{ 'method': 'POST', 'href': $request-uri, 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
                     <xsl:variable name="context" as="map(*)" select="
@@ -3071,10 +3071,10 @@ exclude-result-prefixes="#all"
             <!-- map { object-var-name -> candidate predicate URIs } from BGP triples whose subject is the focus variable; deduped per var. SPARQL ORDER BY uses variables, but the wrapped DESCRIBE returns an unordered RDF graph, so the view sorts by predicates client-side - this map bridges the two. -->
             <xsl:variable name="var-predicates" as="map(xs:string, xs:anyURI*)">
                 <xsl:map>
-                    <xsl:for-each-group select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $initial-var-name][starts-with(json:string[@key = 'object'], '?')]" group-by="substring-after(json:string[@key = 'object'], '?')">
+                    <xsl:for-each-group select="ldh:subject-var-triples($select-xml/json:map, $initial-var-name)[json:map[@key = 'object'][json:string[@key = 'subType'] = 'variable']]" group-by="string(json:map[@key = 'object']/json:string[@key = 'value'])">
                         <xsl:variable name="predicates" as="xs:anyURI*">
                             <xsl:for-each select="current-group()">
-                                <xsl:sequence select="ldh:alt-path-uris((json:string[@key = 'predicate'], json:map[@key = 'predicate'])[1])"/>
+                                <xsl:sequence select="ldh:alt-path-uris(json:map[@key = 'predicate'])"/>
                             </xsl:for-each>
                         </xsl:variable>
                         <xsl:if test="exists($predicates)">
@@ -3084,13 +3084,13 @@ exclude-result-prefixes="#all"
                 </xsl:map>
             </xsl:variable>
 
-            <xsl:variable name="order-by-var-name" select="$select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:string[@key = 'expression']/substring-after(., '?')" as="xs:string?"/>
+            <xsl:variable name="order-by-var-name" select="ldh:order-var-name($select-xml/json:map, 1)" as="xs:string?"/>
             <xsl:variable name="order-by-predicates" select="if ($order-by-var-name and map:contains($var-predicates, $order-by-var-name)) then $var-predicates($order-by-var-name) else ()" as="xs:anyURI*"/>
-            <xsl:variable name="desc" select="$select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:boolean[@key = 'descending']" as="xs:boolean?"/>
-            <xsl:variable name="default-order-by-var-name" select="$select-xml/json:map/json:array[@key = 'order']/json:map[2]/json:string[@key = 'expression']/substring-after(., '?')" as="xs:string?"/>
+            <xsl:variable name="desc" select="ldh:order-desc($select-xml/json:map, 1)" as="xs:boolean?"/>
+            <xsl:variable name="default-order-by-var-name" select="ldh:order-var-name($select-xml/json:map, 2)" as="xs:string?"/>
             <!-- empty unless distinct from the primary, so the secondary keys below collapse to () when both ORDER BY conditions resolve to the same predicates -->
             <xsl:variable name="default-order-by-predicates" select="if ($default-order-by-var-name and map:contains($var-predicates, $default-order-by-var-name) and not(deep-equal($order-by-predicates, $var-predicates($default-order-by-var-name)))) then $var-predicates($default-order-by-var-name) else ()" as="xs:anyURI*"/>
-            <xsl:variable name="default-desc" select="$select-xml/json:map/json:array[@key = 'order']/json:map[2]/json:boolean[@key = 'descending']" as="xs:boolean?"/>
+            <xsl:variable name="default-desc" select="ldh:order-desc($select-xml/json:map, 2)" as="xs:boolean?"/>
             <!-- each column's datatype is resolved once over the whole result set, not per row: xsl:sort requires every key to be mutually comparable, so the type has to be a property of the column rather than of the value -->
             <xsl:variable name="order-by-datatype" select="ldh:sort-datatype(/rdf:RDF/*, $order-by-predicates)" as="xs:anyURI?"/>
             <xsl:variable name="default-order-by-datatype" select="ldh:sort-datatype(/rdf:RDF/*, $default-order-by-predicates)" as="xs:anyURI?"/>
@@ -3498,7 +3498,7 @@ exclude-result-prefixes="#all"
                                  values - a literal, a computed (YEAR(NOW()) AS ?year) - and a view shows resources. Said in the
                                  results region, where the empty state would have claimed that nothing matched -->
                             <xsl:variable name="described" select="if (ixsl:contains($context('cache'), 'results')) then ixsl:get($context('cache'), 'results')/rdf:RDF/rdf:Description else ()" as="element()*"/>
-                            <xsl:variable name="offset" select="xs:integer((ixsl:get($context('cache'), 'select-xml')/json:map/json:number[@key = 'offset'], 0)[1])" as="xs:integer"/>
+                            <xsl:variable name="offset" select="(ldh:query-offset(ixsl:get($context('cache'), 'select-xml')/json:map), 0)[1]" as="xs:integer"/>
                             <xsl:if test="$container-id and $total-count gt 0 and empty($described) and $offset = 0">
                                 <xsl:sequence select="ldh:render-block-error(id($container-id || '-container-results', ixsl:page()), 'view-no-resources', 'view-no-resources-explanation', (), ())"/>
                             </xsl:if>
@@ -3814,11 +3814,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="descriptions" select="ldh:triples-to-descriptions($triples)" as="element()*"/>
                 <xsl:variable name="link-triple" as="element()?">
                     <xsl:if test="$modal/@data-inverse">
-                        <json:map>
-                            <json:string key="subject"><xsl:sequence select="string($instance)"/></json:string>
-                            <json:string key="predicate"><xsl:sequence select="string($modal/@data-property)"/></json:string>
-                            <json:string key="object"><xsl:sequence select="string($modal/@data-about)"/></json:string>
-                        </json:map>
+                        <xsl:sequence select="ldh:triple-node(ldh:typed-term-node('namedNode', string($instance), ()), ldh:typed-term-node('namedNode', string($modal/@data-property), ()), ldh:typed-term-node('namedNode', string($modal/@data-about), ()))"/>
                     </xsl:if>
                 </xsl:variable>
 
@@ -3843,11 +3839,7 @@ exclude-result-prefixes="#all"
 
                 <xsl:variable name="doc-triples" as="element()*">
                     <xsl:if test="not($descriptions[@rdf:about = $doc-uri]/dct:title) and exists($title)">
-                        <json:map>
-                            <json:string key="subject"><xsl:sequence select="string($doc-uri)"/></json:string>
-                            <json:string key="predicate">&dct;title</json:string>
-                            <json:string key="object">"<xsl:value-of select="$title[1]"/>"</json:string>
-                        </json:map>
+                        <xsl:sequence select="ldh:triple-node(ldh:typed-term-node('namedNode', string($doc-uri), ()), ldh:typed-term-node('namedNode', '&dct;title', ()), ldh:typed-term-node('literal', string($title[1]), ()))"/>
                     </xsl:if>
                 </xsl:variable>
 
