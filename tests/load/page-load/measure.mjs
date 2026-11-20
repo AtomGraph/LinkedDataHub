@@ -1,10 +1,9 @@
 // Page loads as a visitor sees them, with and without the front door's rate limits.
 //
-// nginx limits each client address and exempts RFC 1918 ones as the platform's own calls, so a browser
-// on the runner - which reaches nginx from the Docker bridge - is never limited, and the UI suite never
-// sees the limits at all. This runs in a container attached to two networks: the stack's default one,
-// whose addresses nginx exempts, and `loadgen` (100.64.0.0/24), whose addresses it limits like any
-// visitor's. The pages are loaded at their public origin, https://localhost:4443/, through a relay on
+// nginx limits each client address and exempts only the platform's own requests, which carry its
+// proxy secret in Rate-Limit-Exempt. An exempt load sends that header too, so the limits do not count it. This runs in a
+// container attached to two networks: the stack's default one, which the exempt loads use, and `loadgen`
+// (100.64.0.0/24), whose addresses nginx limits like any visitor's. The pages are loaded at their public origin, https://localhost:4443/, through a relay on
 // the container's own loopback that connects to nginx's address on one network or the other - so the
 // two kinds of load differ in nothing but the address nginx counts them against, and they alternate,
 // so cache warm-up and the runner's drift fall on both alike.
@@ -36,6 +35,8 @@ const LOADGEN_SUBNET = process.env.LOADGEN_SUBNET ?? '100.64.0.0/24';
 const NGINX_EXEMPT = process.env.NGINX_EXEMPT ?? 'nginx-exempt';
 const NGINX_LIMITED = process.env.NGINX_LIMITED ?? 'nginx-limited';
 const NGINX_PORT = Number(process.env.NGINX_PORT ?? 8443);
+const PROXY_SECRET = process.env.PROXY_SECRET; // what the platform's own requests carry: nginx does not limit a load that sends it
+if (!PROXY_SECRET) throw new Error('PROXY_SECRET is not set: the exempt loads would be limited like the others');
 
 if (PAGES.length === 0) throw new Error('PAGES names no page to load');
 
@@ -70,8 +71,9 @@ function relay() {
 const keyOf = request => `${request.method()} ${request.url()}\n${request.postData() ?? ''}`;
 const fromOrigin = url => new URL(url).origin === ORIGIN;
 
-async function load(browser, url) {
-    const context = await browser.newContext({ ignoreHTTPSErrors: true, viewport: { width: 1440, height: 900 } });
+async function load(browser, url, exempt) {
+    const context = await browser.newContext({ ignoreHTTPSErrors: true, viewport: { width: 1440, height: 900 },
+        extraHTTPHeaders: exempt ? { 'Rate-Limit-Exempt': PROXY_SECRET } : {} });
     const page = await context.newPage();
     const statuses = new Map(); // request key -> every status it was answered with, in order
     let requests = 0, refused = 0, inflight = 0, last = 0, errors = 0;
@@ -126,15 +128,15 @@ for (const url of PAGES) results.pages[url] = { exempt: [], limited: [] };
 
 // one discarded load per page: the stack's caches and the platform's JIT start cold for both kinds alike
 state.upstream = exempt;
-for (const url of PAGES) await load(browser, url);
+for (const url of PAGES) await load(browser, url, true);
 
 for (let i = 1; i <= LOADS; i++) {
     for (const url of PAGES) {
         state.upstream = exempt;
-        const e = await load(browser, url);
+        const e = await load(browser, url, true);
         await new Promise(resolve => setTimeout(resolve, COOLDOWN_MS));
         state.upstream = limited;
-        const l = await load(browser, url);
+        const l = await load(browser, url, false);
         results.pages[url].exempt.push(e);
         results.pages[url].limited.push(l);
         console.log(`load ${i}/${LOADS} ${url}`);
