@@ -72,7 +72,7 @@ formal/acl/tracks-code.sh origin/develop
 | `Auth.principal` | `aclQuery`'s agent branches, `AuthorizationParams.get` (`server/util/`) |
 | `Auth.matchRow`, `Auth.covers` | `aclQuery`'s target branches over the injected `VALUES (?Rel ?Target)` |
 | `Reader`, `authIn`, `memberIn` | `aclQuery`'s `?g foaf:primaryTopic ?auth` and `?groupG foaf:primaryTopic ?Group` |
-| `grant`, `allow` | `AuthorizationFilter.authorize`, including the `PUT` fallback to the parent |
+| `grant`, `allow` | `DataspaceAuthorization.authorize` (`server/security/`), the decision for a resource of any dataspace, which `AuthorizationFilter.authorize` makes for the request's dataspace, including the `PUT` fallback to the parent |
 | `allowRequest` | `AuthorizationFilter.filter`, `getAccessMode` |
 | `EndUserOnly` (class part) | the `adm:HierarchyClassAccess` constraint on `acl:Authorization` (`app/admin/adm.ttl`) |
 | `ownerAccess` | `acl/authorizations/owner-access/` (`platform/namespace-ontology.trig.template`) |
@@ -84,6 +84,12 @@ formal/acl/tracks-code.sh origin/develop
 | `HReq.method` (`LdhHttp.Answer`) | `getAccessMode`: a `PUT` with `If-None-Match: *` requires acl:Append |
 
 `AuthorizationFilter` lives in `server/filter/request/`, under `src/main/java/com/atomgraph/linkeddatahub/`.
+
+Since the federation of dataspaces (`ServiceRewriter`, `server/util/`), the decision is also made for a dataspace other
+than the request's: a `SERVICE` clause naming a dataspace's endpoint is allowed when `grant` holds for the agent, the
+endpoint and `acl:Read` in that dataspace, as a `GET` of the endpoint would be. The model is unchanged by it: the
+decision's inputs and rule are the same, only the dataspace they are read from is a parameter now, which is why the
+code moved from `AuthorizationFilter` to `DataspaceAuthorization` without a change to the definitions here.
 
 ## Results
 
