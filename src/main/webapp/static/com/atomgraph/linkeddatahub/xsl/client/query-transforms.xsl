@@ -966,47 +966,6 @@ extension-element-prefixes="ixsl"
         </json:map>
     </xsl:template>
 
-    <!-- The same subquery wrapper, projecting every variable the SELECT projects rather than the first: an expression
-         by its alias, SELECT * as itself. Its rows are the original's rows, so a slice or a count put on the wrapper
-         slices or counts them, and whatever the original says about its own rows - GROUP BY, DISTINCT, its own
-         LIMIT and OFFSET - stays inside, untouched -->
-    <xsl:template match="/json:map" mode="ldh:wrap-select">
-        <json:map>
-            <json:string key="type">query</json:string>
-            <json:string key="queryType">SELECT</json:string>
-            <json:array key="variables">
-                <xsl:for-each select="json:array[@key = 'variables']/*">
-                    <json:string><xsl:value-of select="(self::json:string, self::json:map/json:string[@key = 'variable'])[1]"/></json:string>
-                </xsl:for-each>
-            </json:array>
-            <!-- the dataset clause is only legal on the outermost query (see ldh:wrap-describe) -->
-            <xsl:copy-of select="json:map[@key = 'from']"/>
-            <!-- a subquery stands in a group: bare, the generator prints it without braces -->
-            <json:array key="where">
-                <json:map>
-                    <json:string key="type">group</json:string>
-                    <json:array key="patterns">
-                        <xsl:apply-templates select="." mode="ldh:strip-from"/>
-                    </json:array>
-                </json:map>
-            </json:array>
-        </json:map>
-    </xsl:template>
-
-    <!-- a SELECT to be paged: one that slices its own rows is wrapped (ldh:wrap-select), so the pages slice within
-         its LIMIT and from its OFFSET rather than replacing them; one that does not is paged as it stands -->
-
-    <!-- identity transform -->
-    <xsl:template match="@* | node()" mode="ldh:wrap-slice">
-        <xsl:copy>
-            <xsl:apply-templates select="@* | node()" mode="#current"/>
-        </xsl:copy>
-    </xsl:template>
-
-    <xsl:template match="/json:map[json:number[@key = ('limit', 'offset')]]" mode="ldh:wrap-slice" priority="1">
-        <xsl:apply-templates select="." mode="ldh:wrap-select"/>
-    </xsl:template>
-
     <!-- result COUNT -->
     
     <!-- identity transform -->
