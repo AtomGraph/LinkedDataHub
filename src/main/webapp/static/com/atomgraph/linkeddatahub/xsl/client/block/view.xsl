@@ -324,27 +324,113 @@ exclude-result-prefixes="#all"
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
-            <button type="button" class="facet-pill" title="{@rdf:about}" aria-haspopup="true" aria-expanded="false">
-                <span class="pred">
-                    <xsl:value-of>
-                        <xsl:apply-templates select="." mode="ac:label"/>
-                    </xsl:value-of>
-                </span>
-                <!-- the summary of what is selected: 'Any' until a value is picked -->
-                <span class="val">
-                    <xsl:apply-templates select="key('resources', 'facet-any', ldh:translations())" mode="ac:label"/>
-                </span>
-
-                <span class="msi sm caret" aria-hidden="true">expand_more</span>
-                <input type="hidden" name="subject" value="{$subject-var-name}"/>
-                <input type="hidden" name="predicate" value="{@rdf:about}"/>
-                <input type="hidden" name="object" value="{$object-var-name}"/>
-            </button>
+            <xsl:apply-templates select="." mode="ldh:FacetPill">
+                <xsl:with-param name="subject-var-name" select="$subject-var-name"/>
+                <xsl:with-param name="object-var-name" select="$object-var-name"/>
+            </xsl:apply-templates>
 
             <!-- the value popover is appended here on first open -->
         </div>
     </xsl:template>
+
+    <!-- a predicate whose values are strings is faceted by the text they contain: a list of every distinct string
+         would be as long as the result set -->
+    <xsl:template match="rdf:Description[@rdf:about][rdfs:range/@rdf:resource = ('&xsd;string', '&rdf;langString', '&rdfs;Literal')]" mode="ldh:FilterIn" priority="1">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'facet'" as="xs:string?"/>
+        <xsl:param name="subject-var-name" as="xs:string"/>
+        <xsl:param name="object-var-name" as="xs:string"/>
+
+        <xsl:apply-templates select="." mode="ldh:FilterContains">
+            <xsl:with-param name="id" select="$id"/>
+            <xsl:with-param name="class" select="$class"/>
+            <xsl:with-param name="subject-var-name" select="$subject-var-name"/>
+            <xsl:with-param name="object-var-name" select="$object-var-name"/>
+        </xsl:apply-templates>
+    </xsl:template>
+
+    <!-- text facet block: the same toolbar dropdown, its popover a text input instead of value checkboxes. There are no
+         values to load, so the popover ships with the pill, and the pill's click only opens and closes it -->
+    <xsl:template match="rdf:Description[@rdf:about]" mode="ldh:FilterContains">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'facet'" as="xs:string?"/>
+        <xsl:param name="subject-var-name" as="xs:string"/>
+        <xsl:param name="object-var-name" as="xs:string"/>
+        <xsl:variable name="label" select="ac:label(key('resources', 'facet-contains', ldh:translations()))" as="xs:string"/>
+
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+
+            <xsl:apply-templates select="." mode="ldh:FacetPill">
+                <xsl:with-param name="subject-var-name" select="$subject-var-name"/>
+                <xsl:with-param name="object-var-name" select="$object-var-name"/>
+            </xsl:apply-templates>
+
+            <div class="facet-pop" role="dialog">
+                <xsl:attribute name="aria-label">
+                    <xsl:apply-templates select="." mode="ac:label"/>
+                </xsl:attribute>
+
+                <div class="head">
+                    <span class="pname">
+                        <xsl:value-of select="@rdf:about"/>
+                    </span>
+                    <button type="button" class="clear">
+                        <xsl:apply-templates select="key('resources', 'clear-facet', ldh:translations())" mode="ac:label"/>
+                    </button>
+                </div>
+                <div class="ldh-field-input">
+                    <span class="msi sm" aria-hidden="true">search</span>
+                    <!-- the filter is applied on change (Enter, or leaving the field); @value is kept equal to what was
+                         applied, which is how the facet's state reads back, as a value list's does off its options -->
+                    <input type="search" name="contains" placeholder="{$label}" aria-label="{$label}" autocomplete="off"/>
+                </div>
+            </div>
+        </div>
+    </xsl:template>
+
+    <!-- a facet's pill: the predicate, the summary of the facet's state ('Any' until it filters anything), and the
+         variables the facet filters on -->
+    <xsl:template match="rdf:Description[@rdf:about]" mode="ldh:FacetPill">
+        <xsl:param name="subject-var-name" as="xs:string"/>
+        <xsl:param name="object-var-name" as="xs:string"/>
+
+        <button type="button" class="facet-pill" title="{@rdf:about}" aria-haspopup="true" aria-expanded="false">
+            <span class="pred">
+                <xsl:value-of>
+                    <xsl:apply-templates select="." mode="ac:label"/>
+                </xsl:value-of>
+            </span>
+            <span class="val">
+                <xsl:apply-templates select="key('resources', 'facet-any', ldh:translations())" mode="ac:label"/>
+            </span>
+
+            <span class="msi sm caret" aria-hidden="true">expand_more</span>
+            <input type="hidden" name="subject" value="{$subject-var-name}"/>
+            <input type="hidden" name="predicate" value="{@rdf:about}"/>
+            <input type="hidden" name="object" value="{$object-var-name}"/>
+        </button>
+    </xsl:template>
     
+    <!-- the text a text facet matches, as last applied; none when it matches nothing -->
+    <xsl:function name="ldh:facet-text" as="xs:string?">
+        <xsl:param name="facet" as="element()"/>
+
+        <xsl:sequence select="string(($facet/div[contains-token(@class, 'facet-pop')]//input[@name = 'contains']/@value)[1])[. ne '']"/>
+    </xsl:function>
+
+    <!-- whether a facet filters the view: a value picked, or text to match -->
+    <xsl:function name="ldh:facet-filters" as="xs:boolean">
+        <xsl:param name="facet" as="element()"/>
+
+        <xsl:sequence select="exists($facet//button[contains-token(@class, 'opt')][contains-token(@class, 'is-on')]) or exists(ldh:facet-text($facet))"/>
+    </xsl:function>
+
     <!-- result counts -->
     
     <xsl:template name="ldh:ResultCount">
@@ -963,6 +1049,25 @@ exclude-result-prefixes="#all"
         </xsl:document>
     </xsl:template>
 
+    <xsl:template name="ldh:ViewFilterText">
+        <xsl:param name="select-xml" as="document-node()"/>
+        <xsl:param name="var-name" as="xs:string"/>
+        <xsl:param name="text" as="xs:string?"/> <!-- none removes the variable's text filter -->
+
+        <xsl:variable name="select-xml" as="document-node()">
+            <xsl:document>
+                <xsl:apply-templates select="$select-xml" mode="ldh:filter-contains">
+                    <xsl:with-param name="var-name" select="$var-name" tunnel="yes"/>
+                    <xsl:with-param name="text" select="$text" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:document>
+        </xsl:variable>
+        <!-- a changed filter changes the result set, so paging restarts from the first page (no tunneled $offset removes OFFSET) -->
+        <xsl:document>
+            <xsl:apply-templates select="$select-xml" mode="ldh:replace-offset"/>
+        </xsl:document>
+    </xsl:template>
+
     <xsl:template name="ldh:ViewParallax">
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="predicate" as="xs:anyURI"/>
@@ -1518,7 +1623,7 @@ exclude-result-prefixes="#all"
         <xsl:apply-templates select="." mode="ldh:BlockBlank">
             <xsl:with-param name="action" as="item()*">
                 <!-- with filters active the empty state is recoverable: the same control the toolbar's Clear-all carries -->
-                <xsl:if test="$container//button[contains-token(@class, 'opt')][contains-token(@class, 'is-on')]">
+                <xsl:if test="$container//div[contains-token(@class, 'facet')][ldh:facet-filters(.)]">
                     <button type="button" class="ac-btn in-neutral ap-outline sz-sm facet-clear-all">
                         <span class="msi outline sm" aria-hidden="true">filter_alt_off</span>
                         <span>
@@ -2492,14 +2597,20 @@ exclude-result-prefixes="#all"
          for a single pick, a count otherwise. The pill also carries the selection as 'is-active' -->
 
     <xsl:template match="div[contains-token(@class, 'facet')]" mode="ldh:UpdateFacetPill">
-        <xsl:variable name="selected" select="child::div[contains-token(@class, 'facet-pop')]/div[contains-token(@class, 'facet-values')]/button[contains-token(@class, 'opt')][contains-token(@class, 'is-on')]" as="element()*"/>
+        <xsl:param name="selected" select="child::div[contains-token(@class, 'facet-pop')]/div[contains-token(@class, 'facet-values')]/button[contains-token(@class, 'opt')][contains-token(@class, 'is-on')]" as="element()*"/>
+        <!-- what the pill says the facet holds, when that is not a pick of its values (a text facet's text) -->
+        <xsl:param name="summary" as="xs:string?"/>
+        <xsl:variable name="active" select="exists($selected) or exists($summary)" as="xs:boolean"/>
 
         <xsl:for-each select="button[contains-token(@class, 'facet-pill')]">
-            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-active', exists($selected))"/>
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-active', $active)"/>
 
             <xsl:for-each select="span[contains-token(@class, 'val')]">
                 <xsl:result-document href="?." method="ixsl:replace-content">
                     <xsl:choose>
+                        <xsl:when test="exists($summary)">
+                            <xsl:value-of select="$summary"/>
+                        </xsl:when>
                         <xsl:when test="empty($selected)">
                             <xsl:apply-templates select="key('resources', 'facet-any', ldh:translations())" mode="ac:label"/>
                         </xsl:when>
@@ -2520,7 +2631,7 @@ exclude-result-prefixes="#all"
             <xsl:for-each select="(span[contains-token(@class, 'caret')], span[contains-token(@class, 'x')])[1]">
                 <xsl:result-document href="?." method="ixsl:replace-element">
                     <xsl:choose>
-                        <xsl:when test="exists($selected)">
+                        <xsl:when test="$active">
                             <span class="x" role="button" tabindex="0" aria-label="{ac:label(key('resources', 'clear-facet', ldh:translations()))} {string(../span[contains-token(@class, 'pred')])}">
                                 <span class="msi sm" aria-hidden="true">close</span>
                             </span>
@@ -2534,16 +2645,32 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:template>
 
+    <!-- a text facet's pill says the text it matches -->
+    <xsl:template match="div[contains-token(@class, 'facet')][div[contains-token(@class, 'facet-pop')]//input[@name = 'contains']]" mode="ldh:UpdateFacetPill" priority="1">
+        <xsl:next-match>
+            <xsl:with-param name="selected" select="()"/>
+            <xsl:with-param name="summary" select="ldh:facet-text(.)"/>
+        </xsl:next-match>
+    </xsl:template>
+
+    <!-- a facet set back to filtering nothing: its options off, its text gone -->
+    <xsl:template match="div[contains-token(@class, 'facet')]" mode="ldh:ResetFacet">
+        <xsl:for-each select=".//button[contains-token(@class, 'opt')][contains-token(@class, 'is-on')]">
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-on', false())"/>
+            <ixsl:set-property name="ariaChecked" select="'false'" object="."/>
+        </xsl:for-each>
+        <xsl:for-each select=".//input[@name = 'contains']">
+            <ixsl:set-property name="value" select="''" object="."/>
+            <ixsl:set-attribute name="value" select="''"/>
+        </xsl:for-each>
+    </xsl:template>
+
     <!-- clearing a facet is the same rebuild as unchecking its last value, so both reach ldh:FilterFacet -->
 
     <xsl:template match="div[@typeof = '&ldh;View']//div[contains-token(@class, 'facet-pop')]/div[contains-token(@class, 'head')]/button[contains-token(@class, 'clear')]" mode="ixsl:onclick">
         <xsl:variable name="facet" select="ancestor::div[contains-token(@class, 'facet')][1]" as="element()"/>
 
-        <xsl:for-each select="$facet//button[contains-token(@class, 'opt')][contains-token(@class, 'is-on')]">
-            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-on', false())"/>
-            <ixsl:set-property name="ariaChecked" select="'false'" object="."/>
-        </xsl:for-each>
-
+        <xsl:apply-templates select="$facet" mode="ldh:ResetFacet"/>
         <xsl:apply-templates select="$facet" mode="ldh:FilterFacet"/>
     </xsl:template>
 
@@ -2552,11 +2679,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="div[@typeof = '&ldh;View']//button[contains-token(@class, 'facet-pill')]/span[contains-token(@class, 'x')]" mode="ixsl:onclick" priority="1">
         <xsl:variable name="facet" select="ancestor::div[contains-token(@class, 'facet')][1]" as="element()"/>
 
-        <xsl:for-each select="$facet//button[contains-token(@class, 'opt')][contains-token(@class, 'is-on')]">
-            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-on', false())"/>
-            <ixsl:set-property name="ariaChecked" select="'false'" object="."/>
-        </xsl:for-each>
-
+        <xsl:apply-templates select="$facet" mode="ldh:ResetFacet"/>
         <xsl:apply-templates select="$facet" mode="ldh:FilterFacet"/>
     </xsl:template>
 
@@ -2564,13 +2687,9 @@ exclude-result-prefixes="#all"
          Also reached from the blank state's recovery action, which carries the same class -->
     <xsl:template match="div[@typeof = '&ldh;View']//button[contains-token(@class, 'facet-clear-all')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[@typeof = '&ldh;View'][1]" as="element()"/>
-        <xsl:variable name="facets" select="$container//div[contains-token(@class, 'facet')][.//button[contains-token(@class, 'opt')][contains-token(@class, 'is-on')]]" as="element()*"/>
+        <xsl:variable name="facets" select="$container//div[contains-token(@class, 'facet')][ldh:facet-filters(.)]" as="element()*"/>
 
-        <xsl:for-each select="$facets//button[contains-token(@class, 'opt')][contains-token(@class, 'is-on')]">
-            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-on', false())"/>
-            <ixsl:set-property name="ariaChecked" select="'false'" object="."/>
-        </xsl:for-each>
-
+        <xsl:apply-templates select="$facets" mode="ldh:ResetFacet"/>
         <xsl:apply-templates select="$facets" mode="ldh:UpdateFacetPill"/>
         <xsl:apply-templates select="$facets[1]" mode="ldh:FilterFacet"/>
     </xsl:template>
@@ -2591,28 +2710,30 @@ exclude-result-prefixes="#all"
     <xsl:template match="div[contains-token(@class, 'facet')]" mode="ldh:FilterFacet">
         <xsl:param name="container" select="ancestor::div[@typeof = '&ldh;View'][1]" as="element()"/>
         <xsl:param name="cache" select="ldh:view-cache($container)" as="item()"/>
+        <xsl:param name="var-name" select="button[contains-token(@class, 'facet-pill')]/input[@name = 'object']/@value" as="xs:string"/>
+        <!-- the view's query with this facet's filter put in its place: the values of the options that are on, unless the
+             facet filters some other way -->
+        <xsl:param name="select-xml" as="document-node()">
+            <!-- collect the values/types/datatypes/languages of the options that are on and build an array of maps -->
+            <xsl:variable name="options" select="child::div[contains-token(@class, 'facet-pop')]/div[contains-token(@class, 'facet-values')]/button[contains-token(@class, 'opt')][contains-token(@class, 'is-on')]" as="element()*"/>
+            <xsl:variable name="values" select="array { for $option in $options return map { 'value' : string($option/@data-value), 'type': string($option/@data-type), 'datatype': string($option/@data-datatype), 'lang': string($option/@data-lang) } }" as="array(map(xs:string, xs:string))"/>
+
+            <xsl:call-template name="ldh:ViewFilter">
+                <xsl:with-param name="select-xml" select="ixsl:get($cache, 'select-xml')"/>
+                <xsl:with-param name="var-name" select="$var-name"/>
+                <xsl:with-param name="values" select="$values"/>
+            </xsl:call-template>
+        </xsl:param>
         <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/*[contains-token(@class, 'mi')][contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($ldh:class-modes)]" as="xs:string"/>
         <xsl:variable name="active-mode" select="map:get($ldh:class-modes, $active-class)" as="xs:anyURI"/>
-        <xsl:variable name="var-name" select="button[contains-token(@class, 'facet-pill')]/input[@name = 'object']/@value" as="xs:string"/>
-        <!-- collect the values/types/datatypes/languages of the options that are on and build an array of maps -->
-        <xsl:variable name="options" select="child::div[contains-token(@class, 'facet-pop')]/div[contains-token(@class, 'facet-values')]/button[contains-token(@class, 'opt')][contains-token(@class, 'is-on')]" as="element()*"/>
-        <xsl:variable name="values" select="array { for $option in $options return map { 'value' : string($option/@data-value), 'type': string($option/@data-type), 'datatype': string($option/@data-datatype), 'lang': string($option/@data-lang) } }" as="array(map(xs:string, xs:string))"/>
 
         <xsl:apply-templates select="." mode="ldh:UpdateFacetPill"/>
         <xsl:variable name="select-string" select="ixsl:get($cache, 'select-string')" as="xs:string"/>
-        <xsl:variable name="select-xml" select="ixsl:get($cache, 'select-xml')" as="document-node()"/>
         <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
         <xsl:variable name="endpoint" select="ixsl:get($cache, 'endpoint')" as="xs:anyURI"/>
 
         <xsl:sequence select="ldh:busy-cursor()"/>
 
-        <xsl:variable name="select-xml" as="document-node()">
-            <xsl:call-template name="ldh:ViewFilter">
-                <xsl:with-param name="select-xml" select="$select-xml"/>
-                <xsl:with-param name="var-name" select="$var-name"/>
-                <xsl:with-param name="values" select="$values"/>
-            </xsl:call-template>
-        </xsl:variable>
         <!-- store the transformed query XML -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="$cache"/>
 
@@ -2634,6 +2755,38 @@ exclude-result-prefixes="#all"
                 ixsl:then(ldh:view-results-thunk#1) =>
                 ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure($container, 'results-not-loaded', ?)"/>
+    </xsl:template>
+
+    <!-- a text facet filters by the text it holds -->
+    <xsl:template match="div[contains-token(@class, 'facet')][div[contains-token(@class, 'facet-pop')]//input[@name = 'contains']]" mode="ldh:FilterFacet" priority="1">
+        <xsl:param name="container" select="ancestor::div[@typeof = '&ldh;View'][1]" as="element()"/>
+        <xsl:param name="cache" select="ldh:view-cache($container)" as="item()"/>
+        <xsl:variable name="var-name" select="button[contains-token(@class, 'facet-pill')]/input[@name = 'object']/@value" as="xs:string"/>
+
+        <xsl:next-match>
+            <xsl:with-param name="container" select="$container"/>
+            <xsl:with-param name="cache" select="$cache"/>
+            <xsl:with-param name="var-name" select="$var-name"/>
+            <xsl:with-param name="select-xml" as="document-node()">
+                <xsl:call-template name="ldh:ViewFilterText">
+                    <xsl:with-param name="select-xml" select="ixsl:get($cache, 'select-xml')"/>
+                    <xsl:with-param name="var-name" select="$var-name"/>
+                    <xsl:with-param name="text" select="ldh:facet-text(.)"/>
+                </xsl:call-template>
+            </xsl:with-param>
+        </xsl:next-match>
+    </xsl:template>
+
+    <!-- facet text entered (Enter, or leaving the field): kept on @value, where the facet's state is read back from, and
+         the view re-filtered. Text the facet already holds asks for nothing -->
+    <xsl:template match="div[@typeof = '&ldh;View']//div[contains-token(@class, 'facet')]/div[contains-token(@class, 'facet-pop')]//input[@name = 'contains']" mode="ixsl:onchange">
+        <xsl:variable name="text" select="replace(ixsl:get(., 'value'), '^\s+|\s+$', '')" as="xs:string"/>
+
+        <xsl:if test="$text ne string(@value)">
+            <ixsl:set-attribute name="value" select="$text"/>
+
+            <xsl:apply-templates select="ancestor::div[contains-token(@class, 'facet')][1]" mode="ldh:FilterFacet"/>
+        </xsl:if>
     </xsl:template>
 
     <!-- parallax onclick -->

@@ -964,6 +964,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="category-id" select="'category'" as="xs:string"/>
         <xsl:param name="series-id" select="'series'" as="xs:string"/>
         <xsl:param name="show-save" select="true()" as="xs:boolean"/>
+        <!-- the id of the pager host of a chart that pages its rows (a SELECT chart drawn as a Table); none by default -->
+        <xsl:param name="pager-id" as="xs:string?"/>
         <!-- whether the controls ship collapsed. A BLOCK collapses them: it has a card header, and so
              an ldh:ControlsToggle to clear the token with. A document or a resource card rendered in
              ChartMode is not a block - it has no such header, and the controls are the whole of the
@@ -1000,6 +1002,12 @@ exclude-result-prefixes="#all"
                 <xsl:attribute name="class" select="$canvas-class"/>
             </xsl:if>
         </div>
+
+        <!-- the view's pager host (ldh:RenderViewResults), in the same place: right after the rows, outside the canvas
+             every draw replaces, ahead of the footer -->
+        <xsl:if test="$pager-id">
+            <div id="{$pager-id}" class="ldh-pager" role="navigation" aria-label="{ac:label(key('resources', 'pagination', ldh:translations()))}"></div>
+        </xsl:if>
 
         <xsl:sequence select="$form-actions"/>
     </xsl:template>
