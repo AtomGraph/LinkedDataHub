@@ -76,13 +76,16 @@ public class URLValidator
 
     /**
      * Validates a URI another service of the deployment is to call on the platform's behalf, refusing loopback
-     * addresses as well.
+     * addresses as well, and refusing internal addresses whether or not the deployment allows them elsewhere.
      * <p>
      * The triplestore executes a query's <code>SERVICE</code> clauses, and its JVM is itself what loopback names
      * there, so a loopback target would read a sibling dataset of the same server without the proxy that keeps it to
      * public addresses. The platform's own addresses that loopback stands for in local deployments - its dataspaces -
-     * are matched and authorized before a target reaches this check
-     * ({@link ServiceRewriter}), so what is left on loopback is internal.
+     * are matched and authorized before a target reaches this check ({@link ServiceRewriter}), so what is left on
+     * loopback is internal. {@code ALLOW_INTERNAL_URLS} does not open this: it lets the platform dereference its own
+     * documents and WebIDs on an internal address, and a query's targets that are the platform's own are matched as
+     * dataspaces, never validated here, so an internal target here is a store or another service of the deployment,
+     * which no deployment mode may read past the ACL.
      *
      * @param uri the URI to validate
      * @return the validated URI
@@ -91,10 +94,15 @@ public class URLValidator
      */
     public URI validateRemote(URI uri)
     {
-        return validate(uri, true);
+        return validate(uri, true, false);
     }
 
     private URI validate(URI uri, boolean refuseLoopback)
+    {
+        return validate(uri, refuseLoopback, allowInternal);
+    }
+
+    private URI validate(URI uri, boolean refuseLoopback, boolean allowInternal)
     {
         if (uri == null) throw new IllegalArgumentException("URI cannot be null");
 

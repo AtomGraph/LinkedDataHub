@@ -142,8 +142,11 @@ public class URLValidatorTest
     }
 
     @Test
-    public void testAllowInternalRemoteLoopbackAllowed()
+    public void testRemoteInternalBlockedEvenWhenInternalAllowed()
     {
-        new URLValidator(true).validateRemote(URI.create("http://127.0.0.1:3030/admin/"));
+        // ALLOW_INTERNAL_URLS lets the platform dereference itself on an internal address; a target another service
+        // calls on its behalf is a store or a service of the deployment, refused in every mode
+        assertThrows(InternalURLException.class, () -> new URLValidator(true).validateRemote(URI.create("http://127.0.0.1:3030/admin/")));
+        assertThrows(InternalURLException.class, () -> new URLValidator(true).validateRemote(URI.create("http://10.0.0.1:3030/admin/")));
     }
 }

@@ -54,8 +54,8 @@ import org.slf4j.LoggerFactory;
  *   <li>a dataspace named by anything but its SPARQL endpoint is refused with <code>400</code>: documents are read
  *       through the endpoint's query, not reached by <code>SERVICE</code>;</li>
  *   <li>any other target is validated as a remote address ({@link URLValidator#validateRemote(URI)}): an internal or
- *       loopback address is refused with <code>400</code>, a public one is left as it is and the store calls it
- *       through its egress proxy, as before;</li>
+ *       loopback address is refused with <code>400</code>, whether or not the deployment allows internal URLs
+ *       elsewhere, a public one is left as it is and the store calls it through its egress proxy, as before;</li>
  *   <li>a target that is a variable is refused with <code>400</code>: it cannot be authorized before the query runs.</li>
  * </ul>
  * <code>SILENT</code> is kept: it suppresses a failure of the call, not the decision whether the call may be made.
