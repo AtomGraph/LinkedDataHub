@@ -16,21 +16,17 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.request;
 
-import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
-import com.atomgraph.linkeddatahub.client.SesameProtocolClient;
 import com.atomgraph.linkeddatahub.server.exception.auth.AuthorizationException;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.server.security.AccessModes;
 import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
-import com.atomgraph.linkeddatahub.server.util.AuthorizationParams;
+import com.atomgraph.linkeddatahub.server.security.DataspaceAuthorization;
 import com.atomgraph.linkeddatahub.server.util.DocumentContext;
 import com.atomgraph.linkeddatahub.server.util.UploadRecords;
 import com.atomgraph.linkeddatahub.server.model.impl.DocumentHierarchyGraphStoreImpl;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.DH;
 import com.atomgraph.linkeddatahub.vocabulary.Default;
-import com.atomgraph.spinrdf.vocabulary.SPIN;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
@@ -49,12 +45,10 @@ import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.container.PreMatching;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.PathSegment;
-import jakarta.ws.rs.core.Response;
 import org.apache.jena.irix.IRIx;
 import java.util.Set;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.QuerySolutionMap;
-import org.apache.jena.query.ResultSet;
 import org.apache.jena.query.ResultSetRewindable;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
@@ -89,7 +83,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
     @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataspace>> app;
     @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataset>> dataset;
     
-    private ParameterizedSparqlString documentContextQuery, aclQuery;
+    private DataspaceAuthorization authorization;
 
     /**
      * Post-construct initialization.
@@ -97,8 +91,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
     @PostConstruct
     public void init()
     {
-        documentContextQuery = new ParameterizedSparqlString(system.getDocumentContextQuery().toString());
-        aclQuery = new ParameterizedSparqlString(getSystem().getACLQuery().toString());
+        authorization = new DataspaceAuthorization(getSystem());
     }
     
     @Override
@@ -243,13 +236,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
      */
     public Model authorize(Resource accessTo, DocumentContext context, Resource agent, Resource accessMode)
     {
-        ParameterizedSparqlString pss = new ParameterizedSparqlString(context.applyTo(getACLQuery().asQuery()).toString());
-        Model authorizations = loadModel(getAdminService(), pss, new AuthorizationParams(getAdminBase(), accessTo, agent, context.isOwner(agent)).get());
-
-        // access denied if the agent has no authorization to the requested document with the requested ACL mode
-        if (getAuthorizationByMode(authorizations, accessMode) == null) return null;
-
-        return authorizations;
+        return getAuthorization().authorize(getDataspace().get(), accessTo, context, agent, accessMode);
     }
 
     /**
@@ -260,18 +247,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
      */
     public DocumentContext getDocumentContext(Resource document)
     {
-        QuerySolutionMap qsm = new QuerySolutionMap();
-        qsm.add(SPIN.THIS_VAR_NAME, document);
-
-        ResultSetRewindable result = loadResultSet(getDataspace().get().getService(), getDocumentContextQuery(), qsm);
-        try
-        {
-            return new DocumentContext(result);
-        }
-        finally
-        {
-            result.close();
-        }
+        return getAuthorization().getDocumentContext(getDataspace().get(), document);
     }
     
     /**
@@ -305,10 +281,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
      */
     public Resource getAuthorizationByMode(Model authModel, Resource accessMode)
     {
-        return AccessModes.covering(accessMode).stream().
-            flatMap(mode -> authModel.listResourcesWithProperty(ACL.mode, mode).toList().stream()).
-            findFirst().
-            orElse(null);
+        return DataspaceAuthorization.getAuthorizationByMode(authModel, accessMode);
     }
     
     /**
@@ -322,26 +295,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
      */
     protected Model loadModel(com.atomgraph.linkeddatahub.model.Service service, ParameterizedSparqlString pss, QuerySolutionMap qsm)
     {
-        if (service == null) throw new IllegalArgumentException("Service cannot be null");
-        if (pss == null) throw new IllegalArgumentException("ParameterizedSparqlString cannot be null");
-        if (qsm == null) throw new IllegalArgumentException("QuerySolutionMap cannot be null");
-        
-        // send query bindings separately from the query if the service supports the Sesame protocol
-        com.atomgraph.linkeddatahub.model.ServiceContext serviceContext = getSystem().getServiceContext(service);
-        if (serviceContext.getSPARQLClient() instanceof SesameProtocolClient sesameProtocolClient)
-            try (Response cr = sesameProtocolClient.query(pss.asQuery(), Model.class, qsm)) // register(new CacheControlFilter(CacheControl.valueOf("no-cache"))). // add Cache-Control: no-cache to request
-            {
-                return cr.readEntity(Model.class);
-            }
-        else
-        {
-            pss.setParams(qsm);
-            try (Response cr = serviceContext.getSPARQLClient(). // register(new CacheControlFilter(CacheControl.valueOf("no-cache"))). // add Cache-Control: no-cache to request
-                query(pss.asQuery(), Model.class))
-            {
-                return cr.readEntity(Model.class);
-            }
-        }
+        return getAuthorization().loadModel(service, pss, qsm);
     }
     
     /**
@@ -355,28 +309,9 @@ public class AuthorizationFilter implements ContainerRequestFilter
      */
     protected ResultSetRewindable loadResultSet(com.atomgraph.linkeddatahub.model.Service service, ParameterizedSparqlString pss, QuerySolutionMap qsm)
     {
-        if (service == null) throw new IllegalArgumentException("Service cannot be null");
-        if (pss == null) throw new IllegalArgumentException("ParameterizedSparqlString cannot be null");
-        if (qsm == null) throw new IllegalArgumentException("QuerySolutionMap cannot be null");
-        
-        // send query bindings separately from the query if the service supports the Sesame protocol
-        com.atomgraph.linkeddatahub.model.ServiceContext serviceContext = getSystem().getServiceContext(service);
-        if (serviceContext.getSPARQLClient() instanceof SesameProtocolClient sesameProtocolClient)
-            try (Response cr = sesameProtocolClient.query(pss.asQuery(), ResultSet.class, qsm)) // register(new CacheControlFilter(CacheControl.valueOf("no-cache"))). // add Cache-Control: no-cache to request
-            {
-                return cr.readEntity(ResultSetRewindable.class);
-            }
-        else
-        {
-            pss.setParams(qsm);
-            try (Response cr = serviceContext.getSPARQLClient(). // register(new CacheControlFilter(CacheControl.valueOf("no-cache"))). // add Cache-Control: no-cache to request
-                query(pss.asQuery(), ResultSet.class))
-            {
-                return cr.readEntity(ResultSetRewindable.class);
-            }
-        }
+        return getAuthorization().loadResultSet(service, pss, qsm);
     }
-    
+
     /**
      * Returns the SPARQL service for agent data.
      *
@@ -384,9 +319,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
      */
     protected Service getAdminService()
     {
-        return getDataspace().get().canAs(EndUserDataspace.class) ?
-            getDataspace().get().as(EndUserDataspace.class).getAdminDataspace().getService() :
-            getDataspace().get().getService();
+        return DataspaceAuthorization.getAdminService(getDataspace().get());
     }
 
     /**
@@ -397,9 +330,17 @@ public class AuthorizationFilter implements ContainerRequestFilter
      */
     protected Resource getAdminBase()
     {
-        return getDataspace().get().canAs(EndUserDataspace.class) ?
-            getDataspace().get().as(EndUserDataspace.class).getAdminDataspace().getBase() :
-            getDataspace().get().getBase();
+        return DataspaceAuthorization.getAdminBase(getDataspace().get());
+    }
+
+    /**
+     * Returns the access control decision this filter makes for the request's dataspace.
+     *
+     * @return authorization
+     */
+    public DataspaceAuthorization getAuthorization()
+    {
+        return authorization;
     }
     
     /**
@@ -439,18 +380,18 @@ public class AuthorizationFilter implements ContainerRequestFilter
      */
     public ParameterizedSparqlString getDocumentContextQuery()
     {
-        return documentContextQuery.copy();
+        return getAuthorization().getDocumentContextQuery();
     }
-    
+
     /**
      * Returns authorization query.
      * Used on the documents of either dataspace.
-     * 
+     *
      * @return SPARQL string
      */
     public ParameterizedSparqlString getACLQuery()
     {
-        return aclQuery.copy();
+        return getAuthorization().getACLQuery();
     }
     
 }

@@ -137,13 +137,17 @@ services:
       - egress
     environment:
       - JAVA_OPTIONS=-Xmx2304m -Xms2304m # the former heaps combined: 768m admin + 1536m end-user
-      # every outbound request (SPARQL SERVICE, LOAD) goes through egress, which only lets it reach public addresses.
-      # JAVA_TOOL_OPTIONS rather than JAVA_OPTIONS, which an override setting the heap would replace. The empty
-      # nonProxyHosts is load-bearing: by default the JVM bypasses the proxy for localhost, and
-      # SERVICE <http://localhost:3030/other-dataset/> would read a sibling dataset in this same server.
+      # every outbound request (SPARQL SERVICE, LOAD) goes through egress, which only lets it reach public addresses,
+      # except one to this server itself: a query federating to another dataspace of the deployment reaches that
+      # dataspace's dataset here, under the address the platform rewrote its SERVICE clause to after authorizing the
+      # agent for the dataspace's endpoint (ServiceRewriter). The platform is the only client that sends queries here
+      # and refuses every other internal SERVICE target - localhost included, which the JVM would otherwise exempt
+      # from the proxy, and with ALLOW_INTERNAL_URLS too - before a query goes out, so the exception reads no dataset
+      # the agent may not read.
+      # JAVA_TOOL_OPTIONS rather than JAVA_OPTIONS, which an override setting the heap would replace.
       # ExitOnOutOfMemoryError: a query that exhausts the heap kills the JVM and restart: on-failure brings it back in
       # seconds - the query timeout bounds time, not memory, and a JVM past an OutOfMemoryError keeps running broken
-      - JAVA_TOOL_OPTIONS=-Dhttp.proxyHost=${EGRESS_PROXY_HOST:-egress} -Dhttp.proxyPort=3128 -Dhttps.proxyHost=${EGRESS_PROXY_HOST:-egress} -Dhttps.proxyPort=3128 -Dhttp.nonProxyHosts= -XX:+ExitOnOutOfMemoryError
+      - JAVA_TOOL_OPTIONS=-Dhttp.proxyHost=${EGRESS_PROXY_HOST:-egress} -Dhttp.proxyPort=3128 -Dhttps.proxyHost=${EGRESS_PROXY_HOST:-egress} -Dhttps.proxyPort=3128 -Dhttp.nonProxyHosts=fuseki -XX:+ExitOnOutOfMemoryError
     expose:
       - 3030
     volumes:

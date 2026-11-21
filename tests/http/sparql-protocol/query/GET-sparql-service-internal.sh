@@ -13,21 +13,18 @@ clear_ontology
 # executes it, so an internal target would hand the agent data the ACL never grants, such as the admin store's agents
 # and authorizations. Targets: the admin store, the admin store through its backend cache, and a store over loopback,
 # which the JVM would otherwise exempt from an outbound proxy.
-# SERVICE SILENT turns a refused call into a single empty solution, so the results are checked for data rather than
-# the response for a status code: a target that answered binds ?g
+# The platform refuses the query before it goes out, with 400: a dataspace of the deployment is federated through its
+# public endpoint (GET-sparql-service-dataspace.sh), anything else internal is not reached. SILENT does not help: it
+# suppresses a failed call, not the decision whether the call may be made
 
 for endpoint in "http://fuseki:3030/admin/" "http://varnish-admin/admin/" "http://localhost:3030/admin/"
 do
-    results=$(curl -k -f -s -G \
+    status=$(curl -k -w "%{http_code}" -o /dev/null -s -G \
       -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
       -H "Accept: application/sparql-results+xml" \
       "${END_USER_BASE_URL}sparql" \
       --data-urlencode "query=SELECT ?g { SERVICE SILENT <${endpoint}> { GRAPH ?g { ?s ?p ?o } } } LIMIT 1")
 
-    echo "DEBUG: SERVICE <${endpoint}> results: ${results}"
-
-    if grep -q '<binding name="g">' <<< "$results"; then
-        echo "SERVICE <${endpoint}> returned data"
-        exit 1
-    fi
+    echo "DEBUG: SERVICE <${endpoint}> Expected: $STATUS_BAD_REQUEST Got: $status"
+    [ "$status" = "$STATUS_BAD_REQUEST" ] || exit 1
 done
