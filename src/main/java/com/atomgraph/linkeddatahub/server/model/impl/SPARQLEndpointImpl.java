@@ -21,11 +21,15 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.util.ModelUtils;
 import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.model.Service;
+import com.atomgraph.linkeddatahub.model.auth.Agent;
+import com.atomgraph.linkeddatahub.server.security.DataspaceAuthorization;
+import com.atomgraph.linkeddatahub.server.util.ServiceRewriter;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.FormParam;
 import jakarta.ws.rs.HttpMethod;
@@ -37,6 +41,7 @@ import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
+import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.update.UpdateRequest;
@@ -44,11 +49,16 @@ import org.apache.jena.update.UpdateRequest;
 /**
  * LinkedDataHub SPARQL endpoint implementation.
  * We need to subclass the Core class because we're injecting an optional <code>Service</code>.
+ * A query's <code>SERVICE</code> clauses are decided for the agent before the store runs it
+ * ({@link ServiceRewriter}): the dataspaces of this deployment it names are authorized and reached at their stores,
+ * other targets are validated as remote.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public class SPARQLEndpointImpl extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
 {
+
+    private final ServiceRewriter serviceRewriter;
 
     /**
      * Constructs endpoint.
@@ -58,15 +68,57 @@ public class SPARQLEndpointImpl extends com.atomgraph.core.model.impl.SPARQLEndp
      * @param uriInfo current request URI information
      * @param service SPARQL service
      * @param mediaTypes registry of readable/writable media types
+     * @param securityContext security context, holding the agent if authenticated
      * @param system system application
      */
     @Inject
     public SPARQLEndpointImpl(@Context Request request, @Context HttpHeaders httpHeaders, @Context UriInfo uriInfo, Optional<Service> service, MediaTypes mediaTypes,
-            com.atomgraph.linkeddatahub.Application system)
+            @Context SecurityContext securityContext, com.atomgraph.linkeddatahub.Application system)
     {
         super(request, httpHeaders, uriInfo, system.getServiceContext(service.get()).getQueryEndpointAccessor(system.getMaxQueryResponseLength()), mediaTypes);
+        this.serviceRewriter = new ServiceRewriter(uri -> dataspaceOf(system, uri), new DataspaceAuthorization(system), system.getURLValidator(),
+            securityContext.getUserPrincipal() instanceof Agent agent ? agent : null);
     }
-    
+
+    /**
+     * Returns the dataspace of this deployment a URI belongs to, or <code>null</code> if none does.
+     *
+     * @param system system application
+     * @param uri URI
+     * @return dataspace or null
+     */
+    protected static com.atomgraph.linkeddatahub.dataspaces.model.Dataspace dataspaceOf(com.atomgraph.linkeddatahub.Application system, URI uri)
+    {
+        Resource app = system.matchApp(uri);
+        if (app == null || !app.canAs(com.atomgraph.linkeddatahub.dataspaces.model.Dataspace.class)) return null;
+
+        return app.as(com.atomgraph.linkeddatahub.dataspaces.model.Dataspace.class);
+    }
+
+    /**
+     * Runs the query with its <code>SERVICE</code> targets decided for the agent.
+     *
+     * @param query query as the client sent it
+     * @param defaultGraphUris default graph URIs
+     * @param namedGraphUris named graph URIs
+     * @return response builder
+     */
+    @Override
+    public Response.ResponseBuilder getResponseBuilder(Query query, List<URI> defaultGraphUris, List<URI> namedGraphUris)
+    {
+        return super.getResponseBuilder(getServiceRewriter().rewrite(query), defaultGraphUris, namedGraphUris);
+    }
+
+    /**
+     * Returns the rewriter of the query's <code>SERVICE</code> clauses.
+     *
+     * @return rewriter
+     */
+    public ServiceRewriter getServiceRewriter()
+    {
+        return serviceRewriter;
+    }
+
     /**
      * Returns the query languages this endpoint supports.
      * Only queries are advertised: writes go through the Graph Store Protocol.

@@ -71,6 +71,31 @@ public class URLValidator
      */
     public URI validate(URI uri)
     {
+        return validate(uri, false);
+    }
+
+    /**
+     * Validates a URI another service of the deployment is to call on the platform's behalf, refusing loopback
+     * addresses as well.
+     * <p>
+     * The triplestore executes a query's <code>SERVICE</code> clauses, and its JVM is itself what loopback names
+     * there, so a loopback target would read a sibling dataset of the same server without the proxy that keeps it to
+     * public addresses. The platform's own addresses that loopback stands for in local deployments - its dataspaces -
+     * are matched and authorized before a target reaches this check
+     * ({@link ServiceRewriter}), so what is left on loopback is internal.
+     *
+     * @param uri the URI to validate
+     * @return the validated URI
+     * @throws IllegalArgumentException if the URI is null or its host is null
+     * @throws InternalURLException if the URI resolves to an internal or a loopback IP address
+     */
+    public URI validateRemote(URI uri)
+    {
+        return validate(uri, true);
+    }
+
+    private URI validate(URI uri, boolean refuseLoopback)
+    {
         if (uri == null) throw new IllegalArgumentException("URI cannot be null");
 
         if (!allowInternal)
@@ -78,7 +103,7 @@ public class URLValidator
             String host = uri.getHost();
             if (host == null) throw new IllegalArgumentException("URI host cannot be null");
 
-            // Resolve hostname to all IPs and reject if any is wildcard/private/internal (loopback intentionally allowed)
+            // Resolve hostname to all IPs and reject if any is wildcard/private/internal (loopback allowed unless asked)
             try
             {
                 for (InetAddress address : InetAddress.getAllByName(host))
@@ -88,6 +113,8 @@ public class URLValidator
                     if (address.isLinkLocalAddress())
                         throw new InternalURLException(uri, address.getHostAddress());
                     if (address.isSiteLocalAddress())
+                        throw new InternalURLException(uri, address.getHostAddress());
+                    if (refuseLoopback && address.isLoopbackAddress())
                         throw new InternalURLException(uri, address.getHostAddress());
                 }
             }
