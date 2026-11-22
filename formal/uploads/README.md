@@ -71,7 +71,7 @@ the model.
 | `Records`, `recordOne`, `record`, `respondR` | `UploadRecords.record`, as `commitFiles` calls it with the request's document |
 | `describe` | web.xml `fileQuery` (`DESCRIBE $this`), as `Item.describe()` runs it |
 | `uploadContext` | web.xml `documentContextQuery`: the `acl:accessTo` branch and the `nfo:FileDataObject` one |
-| `uploadReadable` | `AuthorizationFilter.authorize` (the decision itself is `DataspaceAuthorization.authorize`, `server/security/`, since the federation of dataspaces; the filter's part and the model are unchanged by the move), then `authorizeUpload` for a read that the upload's own context does not grant |
+| `uploadReadable` | `AuthorizationFilter.authorize`, then `authorizeUpload` for a read that the upload's own context does not grant |
 | `serve`, `addressTag`, `recordedFormat` | `Item.getResponseBuilder`, `Item.getEntityTag`, `Item.getMediaType` |
 | `describedTag`, `describedFormat` | `Item.getEntityTag` and `Item.getMediaType` before this model: `getRequiredProperty(FOAF.sha1)`, `getPropertyResourceValue(DCTerms.format)` |
 | `select`, `Spec` | `ByteRange.parse` |

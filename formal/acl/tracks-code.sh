@@ -21,7 +21,6 @@ sources=(
   src/main/java/com/atomgraph/linkeddatahub/server/util/DocumentContext.java
   src/main/java/com/atomgraph/linkeddatahub/server/util/AuthorizationParams.java
   src/main/java/com/atomgraph/linkeddatahub/server/filter/request/AuthorizationFilter.java
-  src/main/java/com/atomgraph/linkeddatahub/server/security/DataspaceAuthorization.java
   src/main/java/com/atomgraph/linkeddatahub/server/mapper/auth/AuthorizationExceptionMapper.java
   src/main/resources/com/atomgraph/linkeddatahub/app/admin/adm.ttl
   platform/namespace-ontology.trig.template

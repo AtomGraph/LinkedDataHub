@@ -1,11 +1,6 @@
 ## [Unreleased]
-### Added
-- A query federates across the dataspaces of one deployment: `SERVICE <https://people.example/sparql>` names another dataspace by its public endpoint, the platform authorizes the agent for that endpoint as a `GET` of it would be (public read, or `acl:Read` in that dataspace's admin store) and rewrites the clause to the dataspace's store, where the triplestore reaches it directly (`ServiceRewriter`); a dataspace the agent may not read fails the whole query with `403`, a dataspace named by anything but its endpoint, a variable target, or any other internal or loopback address with `400`. Public `SERVICE` targets go through the egress proxy as before
-
 ### Changed
-- A `SERVICE` clause naming an internal address answers `400` instead of the empty result `SILENT` gave it: the platform decides before the query goes out, and `ALLOW_INTERNAL_URLS` does not open it (the platform's own addresses are matched as dataspaces first; what is left is a store or a service of the deployment)
-- The access control decision is `DataspaceAuthorization`, made for any dataspace of the deployment; `AuthorizationFilter` makes it for the request's
-- Fuseki's JVM bypasses the egress proxy for the host `fuseki` alone (`http.nonProxyHosts`), so a rewritten `SERVICE` reaches a sibling dataset; every other internal target is refused by the platform first
+- A `SERVICE` clause naming an internal or loopback address, or a variable, answers `400` before the query goes out, instead of the empty result `SILENT` gave a refused call; `ALLOW_INTERNAL_URLS` does not open it, since a query's targets that are the platform's own are its dataspaces' endpoints, left to those endpoints to guard (`ServiceTargets`). Carrying the asking agent's identity through the store to another dataspace's endpoint - federation between dataspaces, and between deployments - is designed, not built (#568)
 
 ## [6.5.2] - 2026-11-12
 ### Fixed

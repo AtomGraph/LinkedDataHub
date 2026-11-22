@@ -21,15 +21,12 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.util.ModelUtils;
 import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.model.auth.Agent;
-import com.atomgraph.linkeddatahub.server.security.DataspaceAuthorization;
-import com.atomgraph.linkeddatahub.server.util.ServiceRewriter;
+import com.atomgraph.linkeddatahub.server.util.ServiceTargets;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.HttpHeaders;
-import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.FormParam;
 import jakarta.ws.rs.HttpMethod;
@@ -49,16 +46,15 @@ import org.apache.jena.update.UpdateRequest;
 /**
  * LinkedDataHub SPARQL endpoint implementation.
  * We need to subclass the Core class because we're injecting an optional <code>Service</code>.
- * A query's <code>SERVICE</code> clauses are decided for the agent before the store runs it
- * ({@link ServiceRewriter}): the dataspaces of this deployment it names are authorized and reached at their stores,
- * other targets are validated as remote.
+ * A query's <code>SERVICE</code> targets are decided before the store runs it ({@link ServiceTargets}): an internal
+ * address is refused, a dataspace's endpoint is left to that dataspace's door.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public class SPARQLEndpointImpl extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
 {
 
-    private final ServiceRewriter serviceRewriter;
+    private final ServiceTargets serviceTargets;
 
     /**
      * Constructs endpoint.
@@ -68,16 +64,14 @@ public class SPARQLEndpointImpl extends com.atomgraph.core.model.impl.SPARQLEndp
      * @param uriInfo current request URI information
      * @param service SPARQL service
      * @param mediaTypes registry of readable/writable media types
-     * @param securityContext security context, holding the agent if authenticated
      * @param system system application
      */
     @Inject
     public SPARQLEndpointImpl(@Context Request request, @Context HttpHeaders httpHeaders, @Context UriInfo uriInfo, Optional<Service> service, MediaTypes mediaTypes,
-            @Context SecurityContext securityContext, com.atomgraph.linkeddatahub.Application system)
+            com.atomgraph.linkeddatahub.Application system)
     {
         super(request, httpHeaders, uriInfo, system.getServiceContext(service.get()).getQueryEndpointAccessor(system.getMaxQueryResponseLength()), mediaTypes);
-        this.serviceRewriter = new ServiceRewriter(uri -> dataspaceOf(system, uri), new DataspaceAuthorization(system), system.getURLValidator(),
-            securityContext.getUserPrincipal() instanceof Agent agent ? agent : null);
+        this.serviceTargets = new ServiceTargets(uri -> dataspaceOf(system, uri), system.getURLValidator());
     }
 
     /**
@@ -96,7 +90,7 @@ public class SPARQLEndpointImpl extends com.atomgraph.core.model.impl.SPARQLEndp
     }
 
     /**
-     * Runs the query with its <code>SERVICE</code> targets decided for the agent.
+     * Runs the query once its <code>SERVICE</code> targets are decided.
      *
      * @param query query as the client sent it
      * @param defaultGraphUris default graph URIs
@@ -106,17 +100,17 @@ public class SPARQLEndpointImpl extends com.atomgraph.core.model.impl.SPARQLEndp
     @Override
     public Response.ResponseBuilder getResponseBuilder(Query query, List<URI> defaultGraphUris, List<URI> namedGraphUris)
     {
-        return super.getResponseBuilder(getServiceRewriter().rewrite(query), defaultGraphUris, namedGraphUris);
+        return super.getResponseBuilder(getServiceTargets().check(query), defaultGraphUris, namedGraphUris);
     }
 
     /**
-     * Returns the rewriter of the query's <code>SERVICE</code> clauses.
+     * Returns the decision over the query's <code>SERVICE</code> targets.
      *
-     * @return rewriter
+     * @return decision
      */
-    public ServiceRewriter getServiceRewriter()
+    public ServiceTargets getServiceTargets()
     {
-        return serviceRewriter;
+        return serviceTargets;
     }
 
     /**
