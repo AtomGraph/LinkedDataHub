@@ -101,6 +101,10 @@ services:
       - 3030:3030
     volumes:
       - ./tests/http/config/fuseki/config.ttl:/fuseki/config.ttl:ro # adds the second instance's datasets
+      # the suite's secretary and server certificate, as the platform and web-algebra have them here: the store's
+      # LinkedDataHub module makes a SERVICE call as that secretary, trusting that server
+      - ./tests/http/ssl/secretary:/var/linkeddatahub/ssl/secretary:ro
+      - ./tests/http/ssl/server:/var/linkeddatahub/ssl/server:ro
     #volumes:
     #  - ./tests/http/data:/fuseki/databases
 configs:
