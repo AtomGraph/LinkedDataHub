@@ -30,6 +30,12 @@ COPY src /usr/src/platform/src
 COPY AGENTS.md /usr/src/platform/AGENTS.md
 
 RUN mvn -Pstandalone clean install
+
+# LinkedDataHub's Fuseki module (fuseki/): the jar the fuseki stage below puts beside the server. Built and tested here,
+# after the platform, so a change to it does not rebuild the platform's layers
+COPY fuseki /usr/src/fuseki
+
+RUN mvn -B -f /usr/src/fuseki/pom.xml clean package
 # ==============================
 
 # SEF compiler: composes each dataspace's client stylesheet with its imported package
@@ -71,6 +77,21 @@ HEALTHCHECK --start-period=10s --retries=3 \
     CMD wget -q -O- http://localhost:8080/health || exit 1
 
 CMD [ "node", "/opt/sef-compiler/server.js" ]
+
+
+# ==============================
+
+# The triplestore: the generic Fuseki image with LinkedDataHub's module beside the server. The module makes a SERVICE
+# call the platform marked with the asking agent (ServiceTargets) as the secretary on that agent's behalf, where the
+# target asks for a client certificate (fuseki/README.md). The image's own entrypoint starts the server with -jar,
+# which reads no other jar, so this one names the server's main class with the module on the classpath; the Host
+# header is let through for the calls that reach this deployment's origins through nginx under their own name.
+
+FROM atomgraph/fuseki:6.1.0 AS fuseki
+
+COPY --from=maven /usr/src/fuseki/target/linkeddatahub-fuseki.jar /fuseki/extra/linkeddatahub-fuseki.jar
+
+ENTRYPOINT [ "sh", "-c", "exec \"$JAVA_HOME/bin/java\" $JAVA_OPTIONS -Djdk.httpclient.allowRestrictedHeaders=host -cp \"$FUSEKI_DIR/$FUSEKI_JAR:/fuseki/extra/*\" org.apache.jena.fuseki.main.cmds.FusekiServerCmd \"$@\"", "--" ]
 
 
 # ==============================

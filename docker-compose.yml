@@ -70,6 +70,10 @@ services:
       - MAX_UPLOAD_LENGTH=${MAX_UPLOAD_LENGTH:-} # file uploads (multipart bodies); MAX_CONTENT_LENGTH unless set
       - MAX_QUERY_RESPONSE_LENGTH=${MAX_QUERY_RESPONSE_LENGTH:-} # 5 MiB unless set (Application.DEFAULT_MAX_QUERY_RESPONSE_LENGTH)
       - ALLOW_INTERNAL_URLS=${ALLOW_INTERNAL_URLS:-}
+      # a query's SERVICE calls are marked with the asking agent, for the triplestore (the fuseki image, with LinkedDataHub's
+      # module) to make on their behalf where the target asks for a client certificate. Off with a stock Fuseki, which
+      # would send the marker on as it is
+      - SERVICE_DELEGATION=${SERVICE_DELEGATION:-true}
       - ENABLE_SITEMAP=${ENABLE_SITEMAP:-} # opt-in: /sitemap.xml queries every public document of the dataspace
       - COMPOSE_PROFILES=${COMPOSE_PROFILES:-} # the "assistant" profile also makes the UI offer the assistant (entrypoint.sh)
       - EGRESS_PROXY=${EGRESS_PROXY:-egress:3128} # the platform's own SPARQL SERVICE (PATCH, imports) goes through egress too
@@ -129,13 +133,29 @@ services:
     expose:
       - 8080 # internal only - the platform is the sole client
   fuseki: # one server; every dataspace role is its own dataset in config/fuseki/config.ttl, stored under ./fuseki/<dataset>
-    image: atomgraph/fuseki:6.1.0
+    # the generic Fuseki with LinkedDataHub's module (Dockerfile, the fuseki stage): a SERVICE call the platform marked
+    # with the asking agent is made as the secretary on that agent's behalf, where the target asks for a client
+    # certificate - this deployment's dataspaces and another LinkedDataHub's - and anonymously anywhere else
+    build:
+      context: .
+      target: fuseki
     user: root # otherwise fuseki user does not have permissions to the mounted folder which is owner by root
     mem_limit: 4608m # the former fuseki-admin (1536m) and fuseki-end-user (3072m) combined
     restart: on-failure
     depends_on:
       - egress
+    secrets:
+      - secretary_cert_password
     environment:
+      # the secretary's key answers a server that asks for a client certificate and its certificate checks the
+      # platform's markers; this deployment's origins are reached through nginx's client-certificate listener under
+      # their own name, trusting the deployment's server certificate, as the platform reaches them
+      - LDH_DELEGATION_KEYSTORE=/var/linkeddatahub/ssl/secretary/keystore.p12
+      - LDH_DELEGATION_KEYSTORE_PASSWORD_FILE=/run/secrets/secretary_cert_password
+      - LDH_DELEGATION_TRUSTSTORE=/var/linkeddatahub/ssl/server/server.crt
+      - LDH_DELEGATION_HOST=${HOST}
+      - LDH_DELEGATION_PROXY_HOST=nginx
+      - LDH_DELEGATION_PROXY_PORT=9443
       - JAVA_OPTIONS=-Xmx2304m -Xms2304m # the former heaps combined: 768m admin + 1536m end-user
       # every outbound request (SPARQL SERVICE, LOAD) goes through egress, which only lets it reach public addresses.
       # JAVA_TOOL_OPTIONS rather than JAVA_OPTIONS, which an override setting the heap would replace. The empty
@@ -150,6 +170,8 @@ services:
       - ./config/fuseki/config.ttl:/fuseki/config.ttl:ro
       - ./fuseki:/fuseki/databases
       - ./fuseki/run:/fuseki/run # datasets created at runtime: their configuration and data
+      - ./ssl/secretary:/var/linkeddatahub/ssl/secretary:ro
+      - ./ssl/server:/var/linkeddatahub/ssl/server:ro
     configs:
       - source: fuseki_shiro
         target: /fuseki/shiro.ini

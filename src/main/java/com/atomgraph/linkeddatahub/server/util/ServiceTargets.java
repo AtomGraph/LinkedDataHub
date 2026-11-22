@@ -19,8 +19,12 @@ package com.atomgraph.linkeddatahub.server.util;
 import com.atomgraph.linkeddatahub.dataspaces.model.Dataspace;
 import jakarta.ws.rs.BadRequestException;
 import java.net.URI;
+import java.security.PrivateKey;
+import java.time.Clock;
+import java.time.Duration;
 import java.util.function.Function;
 import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.query.Query;
 import org.apache.jena.sparql.syntax.Element;
 import org.apache.jena.sparql.syntax.ElementService;
@@ -30,22 +34,25 @@ import org.apache.jena.sparql.syntax.syntaxtransform.ExprTransformApplyElementTr
 import org.apache.jena.sparql.syntax.syntaxtransform.QueryTransformOps;
 
 /**
- * Decides, before the store runs a query, which <code>SERVICE</code> targets it may call at all.
+ * Decides, before the store runs a query, which <code>SERVICE</code> targets it may call, and marks each with the
+ * agent who asked so the call can be made on their behalf.
  * <p>
- * The store executes <code>SERVICE</code> as an anonymous client, so a target on the deployment's own network - a
- * dataset of the store itself, the admin store through its cache, anything on loopback, which is the store's own
- * JVM there - would read what the ACL never granted. The platform refuses such a target with <code>400</code> before
- * the query goes out, <code>SILENT</code> or not (<code>SILENT</code> suppresses a failed call, not whether the call may
- * be made), and whether or not the deployment allows internal URLs elsewhere ({@link URLValidator#validateRemote(URI)}).
- * A target that is a variable is refused too: it cannot be decided before the query runs.
- * <p>
- * A target that is one of this deployment's dataspaces, named by its SPARQL endpoint (<code>&lt;base&gt;sparql</code>),
- * is the platform's own door and is left to it: that door authenticates the caller and applies the dataspace's ACL,
- * as to any request. A dataspace named by anything else is <code>400</code>, since documents are read through the
- * endpoint's query. Today the call arrives there anonymous, so it succeeds only where the dataspace allows public
- * read; carrying the asking agent's identity through the store to that door, and to a dataspace of another
- * deployment, is designed and not built (OpsGraph, "federated dataspaces"). Any other target is left as it is and the
- * store calls it through its egress proxy. Sub-queries and <code>EXISTS</code> patterns are walked too.
+ * The store executes <code>SERVICE</code> itself, and knows nobody. So the platform:
+ * <ul>
+ *   <li>refuses a target on the deployment's own network - a dataset of the store, the admin store through its cache,
+ *       anything on loopback, which is the store's own JVM there - with <code>400</code>, <code>SILENT</code> or not,
+ *       whether or not the deployment allows internal URLs elsewhere ({@link URLValidator#validateRemote(URI)}), since
+ *       the store would read it past every ACL; and a target that is a variable, which cannot be decided before the query
+ *       runs; a dataspace of this deployment is called through its SPARQL endpoint (<code>&lt;base&gt;sparql</code>),
+ *       the door that guards it, and named any other way is <code>400</code>;</li>
+ *   <li>removes any marker a query author wrote ({@link ServiceDelegation#strip}), and, with delegation on and an agent
+ *       authenticated, writes its own on every <code>https</code> target ({@link ServiceDelegation#mark}): the agent's
+ *       WebID, an expiry and the secretary's signature. The store's Fuseki module checks it and, where the target asks
+ *       for a client certificate, calls it as the secretary with <code>On-Behalf-Of</code> naming the agent - so the
+ *       target's own access control decides, as it does for a direct request; where it does not ask, the call stays
+ *       anonymous. The same holds for a dataspace of another deployment.</li>
+ * </ul>
+ * Sub-queries and <code>EXISTS</code> patterns are rewritten too.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -54,34 +61,45 @@ public class ServiceTargets
 
     /** The path of a dataspace's SPARQL endpoint under its base */
     public static final String SPARQL_PATH = "sparql";
+    /** How long a marker holds: past the store's query timeout, which bounds every call a query makes */
+    public static final Duration MARKER_TTL = Duration.ofMinutes(5);
 
     private final Function<URI, Dataspace> dataspaces;
     private final URLValidator validator;
+    private final String agent;
+    private final PrivateKey key;
+    private final Clock clock;
 
     /**
-     * Constructs the decision.
+     * Constructs the decision for one query.
      *
      * @param dataspaces the dataspace of this deployment a URI belongs to, or <code>null</code> for none
      * @param validator the deployment's URL validator
+     * @param agent the WebID of the agent who asked, or <code>null</code> for an anonymous query or delegation off
+     * @param key the secretary's private key, or <code>null</code> for delegation off
+     * @param clock the clock the markers expire by
      */
-    public ServiceTargets(Function<URI, Dataspace> dataspaces, URLValidator validator)
+    public ServiceTargets(Function<URI, Dataspace> dataspaces, URLValidator validator, String agent, PrivateKey key, Clock clock)
     {
         if (dataspaces == null) throw new IllegalArgumentException("Dataspace lookup cannot be null");
         if (validator == null) throw new IllegalArgumentException("URLValidator cannot be null");
 
         this.dataspaces = dataspaces;
         this.validator = validator;
+        this.agent = agent;
+        this.key = key;
+        this.clock = clock;
     }
 
     /**
-     * Returns the query, every <code>SERVICE</code> target of it decided.
+     * Returns the query with every <code>SERVICE</code> target decided and marked.
      *
      * @param query query as the client sent it
-     * @return the same query
+     * @return the query the store runs
      * @throws BadRequestException if a target is a variable, or a dataspace not named by its endpoint
      * @throws com.atomgraph.linkeddatahub.server.exception.InternalURLException if a target is an internal address
      */
-    public Query check(Query query)
+    public Query rewrite(Query query)
     {
         if (query == null) throw new IllegalArgumentException("Query cannot be null");
 
@@ -91,35 +109,40 @@ public class ServiceTargets
             @Override
             public Element transform(ElementService el, Node service, Element subElt)
             {
-                check(service);
-                return el;
+                Node target = target(service);
+                if (target.equals(service) && subElt == el.getElement()) return el;
+                return new ElementService(target, subElt, el.getSilent());
             }
 
         };
 
-        QueryTransformOps.transform(query, transform, new ExprTransformApplyElementTransform(transform));
-        return query;
+        return QueryTransformOps.transform(query, transform, new ExprTransformApplyElementTransform(transform));
     }
 
     /**
-     * Decides one <code>SERVICE</code> target.
+     * Decides one <code>SERVICE</code> target and returns what the store is to call.
      *
      * @param service the target as the query names it
+     * @return the target without an author's marker, with the platform's when delegating
      */
-    public void check(Node service)
+    public Node target(Node service)
     {
         if (!service.isURI()) throw new BadRequestException("A SERVICE target must be an IRI: " + service + " cannot be decided before the query runs");
 
-        URI target = URI.create(service.getURI());
+        String stripped = ServiceDelegation.strip(service.getURI());
+        URI target = URI.create(stripped);
         Dataspace dataspace = getDataspaces().apply(target);
         if (dataspace != null)
         {
             URI endpoint = dataspace.getBaseURI().resolve(SPARQL_PATH);
-            if (!endpoint.equals(target)) throw new BadRequestException("A dataspace is federated through its SPARQL endpoint <" + endpoint + ">, not <" + target + ">");
-            return; // the platform's own door decides
+            URI withoutQuery = URI.create(target.getScheme() + "://" + target.getRawAuthority() + target.getRawPath());
+            if (!endpoint.equals(withoutQuery)) throw new BadRequestException("A dataspace is federated through its SPARQL endpoint <" + endpoint + ">, not <" + target + ">");
         }
+        else getValidator().validateRemote(target);
 
-        getValidator().validateRemote(target);
+        if (agent != null && key != null && "https".equalsIgnoreCase(target.getScheme()))
+            return NodeFactory.createURI(ServiceDelegation.mark(stripped, agent, clock.instant().plus(MARKER_TTL), key));
+        return stripped.equals(service.getURI()) ? service : NodeFactory.createURI(stripped);
     }
 
     /**

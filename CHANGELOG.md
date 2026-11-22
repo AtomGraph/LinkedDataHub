@@ -1,6 +1,13 @@
 ## [Unreleased]
+### Added
+- A query federates to another dataspace - of this deployment or of another LinkedDataHub - on behalf of the agent who asked: `SERVICE <https://people.example/sparql>` reaches that endpoint as the secretary with `On-Behalf-Of` naming the agent, and the endpoint's own access control decides, as for a write the Linked Data proxy sends. The platform marks each `https` `SERVICE` IRI with the agent and the secretary's signature (`ServiceTargets`, `SERVICE_DELEGATION`, on by default); the triplestore's new LinkedDataHub module (`fuseki/`) checks the marker and, where the target asks for a client certificate, makes the call on the agent's behalf, and anonymously anywhere else
+- `atomgraph/linkeddatahub-fuseki`: the triplestore image with that module, built from the `fuseki` stage of the `Dockerfile` and released with the platform; the compose file builds it in place of `atomgraph/fuseki`
+
 ### Changed
-- A `SERVICE` clause naming an internal or loopback address, or a variable, answers `400` before the query goes out, instead of the empty result `SILENT` gave a refused call; `ALLOW_INTERNAL_URLS` does not open it, since a query's targets that are the platform's own are its dataspaces' endpoints, left to those endpoints to guard (`ServiceTargets`). Carrying the asking agent's identity through the store to another dataspace's endpoint - federation between dataspaces, and between deployments - is designed, not built (#568)
+- A `SERVICE` clause naming an internal or loopback address, or a variable, answers `400` before the query goes out, instead of the empty result `SILENT` gave a refused call; `ALLOW_INTERNAL_URLS` does not open it, since a query's targets that are the platform's own are its dataspaces' endpoints, reached through their doors. A dataspace of this deployment named by anything but its endpoint is `400` too
+
+### Migration
+- A deployment that runs a stock Fuseki in place of the compose file's triplestore sets `SERVICE_DELEGATION=false`: a stock Fuseki would send the marker on to the target as it is
 
 ## [6.5.2] - 2026-11-12
 ### Fixed

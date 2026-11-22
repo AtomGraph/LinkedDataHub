@@ -20,20 +20,34 @@ import com.atomgraph.linkeddatahub.dataspaces.model.Dataspace;
 import com.atomgraph.linkeddatahub.server.exception.InternalURLException;
 import jakarta.ws.rs.BadRequestException;
 import java.net.URI;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.Signature;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryFactory;
+import org.apache.jena.sparql.syntax.ElementService;
+import org.apache.jena.sparql.syntax.ElementVisitorBase;
+import org.apache.jena.sparql.syntax.ElementWalker;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Unit tests for {@link ServiceTargets}: which <code>SERVICE</code> targets a query may name. Hosts are IP literals or
- * names of the mocked dataspaces, so no name is resolved.
+ * Unit tests for {@link ServiceTargets}: which <code>SERVICE</code> targets a query may name, and how they are marked
+ * with the asking agent. Hosts are IP literals or the mocked dataspaces' names, so no name is resolved.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -41,40 +55,137 @@ public class ServiceTargetsTest
 {
 
     private static final URI PEOPLE = URI.create("https://people.example/");
+    private static final String AGENT = "https://admin.example/acl/agents/1/#this";
+    private static final Instant NOW = Instant.parse("2026-11-22T12:00:00Z");
 
-    private ServiceTargets targets;
+    private static KeyPair secretary;
+    private Map<URI, Dataspace> byOrigin;
+
+    @BeforeAll
+    public static void key() throws Exception
+    {
+        KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+        generator.initialize(2048);
+        secretary = generator.generateKeyPair();
+    }
 
     @BeforeEach
     public void setUp()
     {
         Dataspace people = mock(Dataspace.class);
         when(people.getBaseURI()).thenReturn(PEOPLE);
-        Map<URI, Dataspace> byOrigin = Map.of(PEOPLE, people);
-        targets = new ServiceTargets(uri -> byOrigin.get(uri.resolve("/")), new URLValidator(true));
+        byOrigin = Map.of(PEOPLE, people);
+    }
+
+    private ServiceTargets anonymous()
+    {
+        return new ServiceTargets(uri -> byOrigin.get(uri.resolve("/")), new URLValidator(true), null, null, Clock.fixed(NOW, ZoneOffset.UTC));
+    }
+
+    private ServiceTargets delegating()
+    {
+        return new ServiceTargets(uri -> byOrigin.get(uri.resolve("/")), new URLValidator(true), AGENT, secretary.getPrivate(), Clock.fixed(NOW, ZoneOffset.UTC));
+    }
+
+    private static List<String> targets(Query query)
+    {
+        List<String> targets = new ArrayList<>();
+        ElementWalker.walk(query.getQueryPattern(), new ElementVisitorBase()
+        {
+
+            @Override
+            public void visit(ElementService el)
+            {
+                targets.add(el.getServiceNode().getURI());
+            }
+
+        });
+        return targets;
+    }
+
+    private static Map<String, String> params(String iri)
+    {
+        Map<String, String> params = new HashMap<>();
+        if (!iri.contains("?")) return params;
+        for (String pair : iri.substring(iri.indexOf('?') + 1).split("&"))
+            params.put(pair.substring(0, pair.indexOf('=')), URLDecoder.decode(pair.substring(pair.indexOf('=') + 1), StandardCharsets.UTF_8));
+        return params;
     }
 
     @Test
-    public void testADataspaceEndpointIsLeftToItsDoor()
+    public void testCanonicalIsTheSharedVector()
+    {
+        // the Fuseki module's ServiceDelegationTest holds the same vector: change one, change both
+        assertEquals("https://people.example/sparql\nhttps://admin.example/acl/agents/1/#this\n1700000000",
+            ServiceDelegation.canonical("https://people.example/sparql", "https://admin.example/acl/agents/1/#this", 1700000000L));
+    }
+
+    @Test
+    public void testADataspaceEndpointIsMarkedWithTheAgentAndSigned() throws Exception
+    {
+        Query rewritten = delegating().rewrite(QueryFactory.create("SELECT * { SERVICE <https://people.example/sparql> { ?s ?p ?o } }"));
+
+        String target = targets(rewritten).get(0);
+        assertTrue(target.startsWith("https://people.example/sparql?"), target);
+        Map<String, String> params = params(target);
+        assertEquals(AGENT, params.get(ServiceDelegation.ON_BEHALF_OF));
+        assertEquals(Long.toString(NOW.plus(ServiceTargets.MARKER_TTL).getEpochSecond()), params.get(ServiceDelegation.EXPIRES));
+        Signature verifier = Signature.getInstance(ServiceDelegation.ALGORITHM);
+        verifier.initVerify(secretary.getPublic());
+        verifier.update(ServiceDelegation.canonical("https://people.example/sparql", AGENT, NOW.plus(ServiceTargets.MARKER_TTL).getEpochSecond()).getBytes(StandardCharsets.UTF_8));
+        assertTrue(verifier.verify(Base64.getUrlDecoder().decode(params.get(ServiceDelegation.SIGNATURE))));
+    }
+
+    @Test
+    public void testAPublicHttpsTargetIsMarkedTooTheStoreDecidesWhetherToSendIt()
+    {
+        // the Fuseki module sends the identity only where the server asks for a client certificate
+        String target = targets(delegating().rewrite(QueryFactory.create("SELECT * { SERVICE <https://93.184.216.34/sparql> { ?s ?p ?o } }"))).get(0);
+
+        assertEquals(AGENT, params(target).get(ServiceDelegation.ON_BEHALF_OF));
+    }
+
+    @Test
+    public void testAPlainHttpTargetIsNotMarked()
+    {
+        String target = targets(delegating().rewrite(QueryFactory.create("SELECT * { SERVICE <http://93.184.216.34/sparql> { ?s ?p ?o } }"))).get(0);
+
+        assertEquals("http://93.184.216.34/sparql", target);
+    }
+
+    @Test
+    public void testAnAnonymousQueryIsNotMarked()
     {
         Query query = QueryFactory.create("SELECT * { SERVICE <https://people.example/sparql> { ?s ?p ?o } }");
 
-        assertSame(query, targets.check(query));
+        assertEquals("https://people.example/sparql", targets(anonymous().rewrite(query)).get(0));
+    }
+
+    @Test
+    public void testAnAuthorsMarkerIsRemovedAndReplaced()
+    {
+        String forged = "https://people.example/sparql?default-graph-uri=x&ldh-on-behalf-of=https%3A%2F%2Fevil.example%2F%23me&ldh-expires=9999999999&ldh-signature=AAAA";
+
+        assertEquals("https://people.example/sparql?default-graph-uri=x", targets(anonymous().rewrite(QueryFactory.create("SELECT * { SERVICE <" + forged + "> { ?s ?p ?o } }"))).get(0));
+        Map<String, String> params = params(targets(delegating().rewrite(QueryFactory.create("SELECT * { SERVICE <" + forged + "> { ?s ?p ?o } }"))).get(0));
+        assertEquals(AGENT, params.get(ServiceDelegation.ON_BEHALF_OF));
+        assertEquals("x", params.get("default-graph-uri"));
     }
 
     @Test
     public void testADataspaceNamedByAnythingButItsEndpointIsRefused()
     {
         assertThrows(BadRequestException.class,
-            () -> targets.check(QueryFactory.create("SELECT * { SERVICE <https://people.example/documents/> { ?s ?p ?o } }")));
+            () -> delegating().rewrite(QueryFactory.create("SELECT * { SERVICE <https://people.example/documents/> { ?s ?p ?o } }")));
         assertThrows(BadRequestException.class,
-            () -> targets.check(QueryFactory.create("SELECT * { SERVICE <https://people.example/> { ?s ?p ?o } }")));
+            () -> anonymous().rewrite(QueryFactory.create("SELECT * { SERVICE <https://people.example/> { ?s ?p ?o } }")));
     }
 
     @Test
     public void testAVariableTargetIsRefused()
     {
         assertThrows(BadRequestException.class,
-            () -> targets.check(QueryFactory.create("SELECT * { ?s <http://example.org/endpoint> ?endpoint . SERVICE ?endpoint { ?s ?p ?o } }")));
+            () -> anonymous().rewrite(QueryFactory.create("SELECT * { ?s <http://example.org/endpoint> ?endpoint . SERVICE ?endpoint { ?s ?p ?o } }")));
     }
 
     @Test
@@ -82,17 +193,9 @@ public class ServiceTargetsTest
     {
         // the validator above allows internal URLs, as the test stacks do; a SERVICE target is refused regardless
         assertThrows(InternalURLException.class,
-            () -> targets.check(QueryFactory.create("SELECT * { SERVICE SILENT <http://10.0.0.5:3030/admin/> { ?s ?p ?o } }")));
+            () -> delegating().rewrite(QueryFactory.create("SELECT * { SERVICE SILENT <http://10.0.0.5:3030/admin/> { ?s ?p ?o } }")));
         assertThrows(InternalURLException.class,
-            () -> targets.check(QueryFactory.create("SELECT * { SERVICE <http://127.0.0.1:3030/admin/> { ?s ?p ?o } }")));
-    }
-
-    @Test
-    public void testAPublicTargetIsLeftAsItIs()
-    {
-        Query query = QueryFactory.create("SELECT * { SERVICE SILENT <http://93.184.216.34/sparql> { ?s ?p ?o } }");
-
-        assertSame(query, targets.check(query));
+            () -> anonymous().rewrite(QueryFactory.create("SELECT * { SERVICE <https://127.0.0.1:3030/admin/> { ?s ?p ?o } }")));
     }
 
     @Test
@@ -100,17 +203,25 @@ public class ServiceTargetsTest
     {
         Query query = QueryFactory.create("SELECT * { ?s ?p ?o } LIMIT 1");
 
-        assertEquals(query, targets.check(query));
+        assertEquals(query, delegating().rewrite(query));
     }
 
     @Test
-    public void testNestedServicesAreDecidedToo()
+    public void testNestedServicesAreDecidedAndMarkedToo()
     {
-        assertThrows(InternalURLException.class, () -> targets.check(QueryFactory.create("""
+        Query rewritten = delegating().rewrite(QueryFactory.create("""
             SELECT * {
               { SELECT ?s { SERVICE <https://people.example/sparql> { ?s a <http://schema.org/Person> } } }
-              FILTER NOT EXISTS { SERVICE <http://10.0.0.5:3030/admin/> { ?s <http://schema.org/email> ?e } }
-            }""")));
+              FILTER NOT EXISTS { SERVICE <https://93.184.216.34/sparql> { ?s <http://schema.org/email> ?e } }
+            }"""));
+
+        // the walker of targets() stops at a sub-query and a filter, so the serialized query is checked instead
+        String serialized = rewritten.toString();
+        assertTrue(serialized.contains("<https://people.example/sparql?ldh-on-behalf-of="), serialized);
+        assertTrue(serialized.contains("<https://93.184.216.34/sparql?ldh-on-behalf-of="), serialized);
+
+        assertThrows(InternalURLException.class, () -> anonymous().rewrite(QueryFactory.create("""
+            SELECT * { FILTER NOT EXISTS { SERVICE <http://10.0.0.5:3030/admin/> { ?s ?p ?o } } }""")));
     }
 
 }

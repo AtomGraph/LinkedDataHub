@@ -21,7 +21,9 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.util.ModelUtils;
 import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.model.Service;
+import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.server.util.ServiceTargets;
+import java.time.Clock;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
@@ -37,6 +39,7 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriInfo;
 import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.Model;
@@ -47,7 +50,8 @@ import org.apache.jena.update.UpdateRequest;
  * LinkedDataHub SPARQL endpoint implementation.
  * We need to subclass the Core class because we're injecting an optional <code>Service</code>.
  * A query's <code>SERVICE</code> targets are decided before the store runs it ({@link ServiceTargets}): an internal
- * address is refused, a dataspace's endpoint is left to that dataspace's door.
+ * address is refused, and with delegation on each target is marked with the asking agent, for the store to call it on
+ * their behalf where it asks who is calling.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -64,14 +68,17 @@ public class SPARQLEndpointImpl extends com.atomgraph.core.model.impl.SPARQLEndp
      * @param uriInfo current request URI information
      * @param service SPARQL service
      * @param mediaTypes registry of readable/writable media types
+     * @param securityContext security context, holding the agent if authenticated
      * @param system system application
      */
     @Inject
     public SPARQLEndpointImpl(@Context Request request, @Context HttpHeaders httpHeaders, @Context UriInfo uriInfo, Optional<Service> service, MediaTypes mediaTypes,
-            com.atomgraph.linkeddatahub.Application system)
+            @Context SecurityContext securityContext, com.atomgraph.linkeddatahub.Application system)
     {
         super(request, httpHeaders, uriInfo, system.getServiceContext(service.get()).getQueryEndpointAccessor(system.getMaxQueryResponseLength()), mediaTypes);
-        this.serviceTargets = new ServiceTargets(uri -> dataspaceOf(system, uri), system.getURLValidator());
+        String agent = system.isServiceDelegation() && securityContext != null && securityContext.getUserPrincipal() instanceof Agent a ? a.getURI() : null;
+        this.serviceTargets = new ServiceTargets(uri -> dataspaceOf(system, uri), system.getURLValidator(), agent,
+            system.isServiceDelegation() ? system.getSecretaryPrivateKey() : null, Clock.systemUTC());
     }
 
     /**
@@ -90,7 +97,7 @@ public class SPARQLEndpointImpl extends com.atomgraph.core.model.impl.SPARQLEndp
     }
 
     /**
-     * Runs the query once its <code>SERVICE</code> targets are decided.
+     * Runs the query once its <code>SERVICE</code> targets are decided and marked.
      *
      * @param query query as the client sent it
      * @param defaultGraphUris default graph URIs
@@ -100,7 +107,7 @@ public class SPARQLEndpointImpl extends com.atomgraph.core.model.impl.SPARQLEndp
     @Override
     public Response.ResponseBuilder getResponseBuilder(Query query, List<URI> defaultGraphUris, List<URI> namedGraphUris)
     {
-        return super.getResponseBuilder(getServiceTargets().check(query), defaultGraphUris, namedGraphUris);
+        return super.getResponseBuilder(getServiceTargets().rewrite(query), defaultGraphUris, namedGraphUris);
     }
 
     /**
