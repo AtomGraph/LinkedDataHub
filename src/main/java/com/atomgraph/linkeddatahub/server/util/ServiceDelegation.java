@@ -32,7 +32,7 @@ import java.util.List;
  * agent who asked the query: {@value #ON_BEHALF_OF} (the agent's WebID), {@value #EXPIRES} (seconds since the epoch) and
  * {@value #SIGNATURE} (base64url, {@value #ALGORITHM} with the secretary's private key over {@link #canonical}).
  * <p>
- * The triplestore's side is LinkedDataHub's Fuseki module (<code>fuseki/</code>,
+ * The triplestore's side is LinkedDataHub's Fuseki module (<code>fuseki-module/</code>,
  * <code>com.atomgraph.linkeddatahub.fuseki.ServiceDelegation</code>), which checks the signature against the
  * secretary's certificate, removes the marker, and makes the call as the secretary with <code>On-Behalf-Of</code>
  * naming the agent - to an endpoint that asks for a client certificate, and anonymously to any other. The two sides
