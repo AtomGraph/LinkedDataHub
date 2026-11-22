@@ -66,6 +66,7 @@ public class ServiceTargets
 
     private final Function<URI, Dataspace> dataspaces;
     private final URLValidator validator;
+    private final String host;
     private final String agent;
     private final PrivateKey key;
     private final Clock clock;
@@ -75,17 +76,19 @@ public class ServiceTargets
      *
      * @param dataspaces the dataspace of this deployment a URI belongs to, or <code>null</code> for none
      * @param validator the deployment's URL validator
+     * @param host the deployment's host: a target on it or its subdomains is reached through the deployment's front door
      * @param agent the WebID of the agent who asked, or <code>null</code> for an anonymous query or delegation off
      * @param key the secretary's private key, or <code>null</code> for delegation off
      * @param clock the clock the markers expire by
      */
-    public ServiceTargets(Function<URI, Dataspace> dataspaces, URLValidator validator, String agent, PrivateKey key, Clock clock)
+    public ServiceTargets(Function<URI, Dataspace> dataspaces, URLValidator validator, String host, String agent, PrivateKey key, Clock clock)
     {
         if (dataspaces == null) throw new IllegalArgumentException("Dataspace lookup cannot be null");
         if (validator == null) throw new IllegalArgumentException("URLValidator cannot be null");
 
         this.dataspaces = dataspaces;
         this.validator = validator;
+        this.host = host;
         this.agent = agent;
         this.key = key;
         this.clock = clock;
@@ -138,11 +141,26 @@ public class ServiceTargets
             URI withoutQuery = URI.create(target.getScheme() + "://" + target.getRawAuthority() + target.getRawPath());
             if (!endpoint.equals(withoutQuery)) throw new BadRequestException("A dataspace is federated through its SPARQL endpoint <" + endpoint + ">, not <" + target + ">");
         }
-        else getValidator().validateRemote(target);
+        // an https target on the deployment's domain - its own origins, or another deployment under it - is reached through the
+        // front door, as the platform's own requests are (ClientUriRewriteFilter) and the store's module routes them, never at
+        // the address the name has on the internal network; a plain http one the store would call there itself
+        else if (!(isOnDomain(target) && "https".equalsIgnoreCase(target.getScheme()))) getValidator().validateRemote(target);
 
         if (agent != null && key != null && "https".equalsIgnoreCase(target.getScheme()))
             return NodeFactory.createURI(ServiceDelegation.mark(stripped, agent, clock.instant().plus(MARKER_TTL), key));
         return stripped.equals(service.getURI()) ? service : NodeFactory.createURI(stripped);
+    }
+
+    /**
+     * Returns true if the URI's host is the deployment's host or a subdomain of it.
+     *
+     * @param uri URI
+     * @return true if on the deployment's domain
+     */
+    protected boolean isOnDomain(URI uri)
+    {
+        if (host == null || uri.getHost() == null) return false;
+        return uri.getHost().equals(host) || uri.getHost().endsWith("." + host);
     }
 
     /**

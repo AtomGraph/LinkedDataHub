@@ -77,7 +77,7 @@ public class SPARQLEndpointImpl extends com.atomgraph.core.model.impl.SPARQLEndp
     {
         super(request, httpHeaders, uriInfo, system.getServiceContext(service.get()).getQueryEndpointAccessor(system.getMaxQueryResponseLength()), mediaTypes);
         String agent = system.isServiceDelegation() && securityContext != null && securityContext.getUserPrincipal() instanceof Agent a ? a.getURI() : null;
-        this.serviceTargets = new ServiceTargets(uri -> dataspaceOf(system, uri), system.getURLValidator(), agent,
+        this.serviceTargets = new ServiceTargets(uri -> dataspaceOf(system, uri), system.getURLValidator(), system.getBaseURI().getHost(), agent,
             system.isServiceDelegation() ? system.getSecretaryPrivateKey() : null, Clock.systemUTC());
     }
 

@@ -42,7 +42,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -57,6 +60,7 @@ public class ServiceTargetsTest
     private static final URI PEOPLE = URI.create("https://people.example/");
     private static final String AGENT = "https://admin.example/acl/agents/1/#this";
     private static final Instant NOW = Instant.parse("2026-11-22T12:00:00Z");
+    private static final String HOST = "example";
 
     private static KeyPair secretary;
     private Map<URI, Dataspace> byOrigin;
@@ -79,12 +83,12 @@ public class ServiceTargetsTest
 
     private ServiceTargets anonymous()
     {
-        return new ServiceTargets(uri -> byOrigin.get(uri.resolve("/")), new URLValidator(true), null, null, Clock.fixed(NOW, ZoneOffset.UTC));
+        return new ServiceTargets(uri -> byOrigin.get(uri.resolve("/")), new URLValidator(true), HOST, null, null, Clock.fixed(NOW, ZoneOffset.UTC));
     }
 
     private ServiceTargets delegating()
     {
-        return new ServiceTargets(uri -> byOrigin.get(uri.resolve("/")), new URLValidator(true), AGENT, secretary.getPrivate(), Clock.fixed(NOW, ZoneOffset.UTC));
+        return new ServiceTargets(uri -> byOrigin.get(uri.resolve("/")), new URLValidator(true), HOST, AGENT, secretary.getPrivate(), Clock.fixed(NOW, ZoneOffset.UTC));
     }
 
     private static List<String> targets(Query query)
@@ -196,6 +200,33 @@ public class ServiceTargetsTest
             () -> delegating().rewrite(QueryFactory.create("SELECT * { SERVICE SILENT <http://10.0.0.5:3030/admin/> { ?s ?p ?o } }")));
         assertThrows(InternalURLException.class,
             () -> anonymous().rewrite(QueryFactory.create("SELECT * { SERVICE <https://127.0.0.1:3030/admin/> { ?s ?p ?o } }")));
+    }
+
+    @Test
+    public void testAnHttpsTargetOnTheDeploymentsDomainIsNotCheckedByAddress()
+    {
+        // another deployment under this one's domain - remote.localhost on a local stack - resolves to an internal address
+        // here; the store reaches it through the deployment's front door, never at that address
+        URLValidator refusing = mock(URLValidator.class);
+        when(refusing.validateRemote(any())).thenThrow(new InternalURLException(URI.create("https://remote.example/"), "127.0.0.1"));
+        ServiceTargets targets = new ServiceTargets(uri -> byOrigin.get(uri.resolve("/")), refusing, HOST, AGENT, secretary.getPrivate(), Clock.fixed(NOW, ZoneOffset.UTC));
+
+        String target = targets(targets.rewrite(QueryFactory.create("SELECT * { SERVICE <https://remote.example:4443/sparql> { ?s ?p ?o } }"))).get(0);
+
+        assertEquals(AGENT, params(target).get(ServiceDelegation.ON_BEHALF_OF));
+        verify(refusing, never()).validateRemote(any());
+    }
+
+    @Test
+    public void testAPlainHttpTargetOnTheDeploymentsDomainIsCheckedByAddress()
+    {
+        // the store would call it itself, at whatever address the name has there
+        URLValidator refusing = mock(URLValidator.class);
+        when(refusing.validateRemote(any())).thenThrow(new InternalURLException(URI.create("http://admin.example:3030/"), "127.0.0.1"));
+        ServiceTargets targets = new ServiceTargets(uri -> byOrigin.get(uri.resolve("/")), refusing, HOST, AGENT, secretary.getPrivate(), Clock.fixed(NOW, ZoneOffset.UTC));
+
+        assertThrows(InternalURLException.class,
+            () -> targets.rewrite(QueryFactory.create("SELECT * { SERVICE <http://admin.example:3030/admin/> { ?s ?p ?o } }")));
     }
 
     @Test

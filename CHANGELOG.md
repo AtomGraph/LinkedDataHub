@@ -4,7 +4,7 @@
 - `atomgraph/linkeddatahub-fuseki`: the triplestore image with that module, built from the `fuseki` stage of the `Dockerfile` and released with the platform; the compose file builds it in place of `atomgraph/fuseki`
 
 ### Changed
-- A `SERVICE` clause naming an internal or loopback address, or a variable, answers `400` before the query goes out, instead of the empty result `SILENT` gave a refused call; `ALLOW_INTERNAL_URLS` does not open it, since a query's targets that are the platform's own are its dataspaces' endpoints, reached through their doors. A dataspace of this deployment named by anything but its endpoint is `400` too
+- A `SERVICE` clause naming an internal or loopback address, or a variable, answers `400` before the query goes out, instead of the empty result `SILENT` gave a refused call; `ALLOW_INTERNAL_URLS` does not open it, since a query's targets that are the platform's own are its dataspaces' endpoints, reached through their doors. A dataspace of this deployment named by anything but its endpoint is `400` too. An https target on the deployment's own domain (another deployment under it, such as `remote.localhost` on a local stack) is reached through the front door, not checked by the address its name has inside the network
 
 ### Migration
 - A deployment that runs a stock Fuseki in place of the compose file's triplestore sets `SERVICE_DELEGATION=false`: a stock Fuseki would send the marker on to the target as it is
