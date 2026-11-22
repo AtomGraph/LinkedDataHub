@@ -127,7 +127,7 @@ public class DelegationModule implements FusekiAutoModule
             }
             catch (IOException | GeneralSecurityException ex)
             {
-                throw new IllegalStateException("the secretary's keystore cannot be read: " + ex.getMessage(), ex);
+                throw new IllegalStateException("the secretary's keystore cannot be read: " + ex, ex); // the exception's class says which: a NoSuchFileException's message is only the path
             }
         }
 
