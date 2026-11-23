@@ -19,6 +19,7 @@
 - A container's children view lists its documents, not the things they are about: `ldh:SelectChildren` no longer selects each child's `foaf:primaryTopic`, and the list, grid and table modes render each result as itself instead of standing a document's topic in for it. A document's row carries no type tag, as its header carries no type chip. A page that lists things (a catalogue, a table of people) is a view over the things
 
 ### Fixed
+- A resource header's type chips are centred on its title, not set on its baseline, where they hung below the title's middle
 - A property's views show on the pages of every class its domain or range names through `owl:unionOf`: an `ldh:inverseView` of a property whose range is "a source or a service" appeared on neither, as the lookup matched the range itself, a blank node no page is typed with. The class a view's Create constructs is a named class or none, never that blank node
 - The settings dialog keeps a package import its catalog does not list, a package from another registry, as a checked row of its own: the save wrote back the catalog's checked rows as the dataspace's imports and nothing else, so an unlisted import was dropped by the next save of the title, and every import when the catalog could not be loaded
 - An empty concept scheme gets its first concept: the taxonomy package's Concepts in scheme shows when empty, and its Create no longer waits for rows to tell it where the concept's document goes
