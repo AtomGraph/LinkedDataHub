@@ -22,11 +22,14 @@ test.beforeEach(({}, testInfo) => {
     test.skip(testInfo.project.name !== 'owner', 'the admin dataspace, searched below for the regex, is the owner\'s to open');
 });
 
-// The query the search sends: the one SPARQL query POSTed after Enter
+// The query the search sends: the labelled-resource lookup, told from the page's own block queries
+// (which a slow runner is still issuing after goto returns) by the variable it projects. Not by the
+// text:query or the regex in it - those are what the tests assert, so a search that sent neither would
+// show here as a wait for its request rather than as another query captured in its place
 async function searched(page, text) {
     const query = page.waitForRequest(request => request.method() === 'POST'
         && (request.headers()['content-type'] ?? '').startsWith('application/sparql-query')
-        && (request.postData() ?? '').includes('SELECT'));
+        && /SELECT\s+DISTINCT\s+\?resource\b/.test(request.postData() ?? ''));
     await search(page).fill(text);
     await search(page).press('Enter');
     return (await query).postData();
