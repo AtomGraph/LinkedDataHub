@@ -101,6 +101,49 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="(if (exists($numbers)) then $numbers else $names)[not(. = $category)]"/>
     </xsl:function>
 
+    <!-- the cache of the chart block an element sits in, as ldh:RowHook keyed it: by the block's @about -->
+    <xsl:function name="ldh:chart-cache" as="item()?">
+        <xsl:param name="element" as="element()"/>
+        <xsl:variable name="contents" select="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
+        <xsl:variable name="key" select="$element/ancestor-or-self::div[contains-token(@class, 'block')][1]/@about ! ('`' || . || '`')" as="xs:string?"/>
+
+        <xsl:sequence select="$key[ixsl:contains($contents, .)] ! ixsl:get($contents, .)"/>
+    </xsl:function>
+
+    <!-- a page of a chart's rows, kept on the block's cache as a view keeps its own on its query: a LIMIT and an OFFSET,
+         in the shape the pager (ldh:RenderPager) and the paging transforms (ldh:ViewPage, ldh:ViewLimit) read them -->
+    <xsl:function name="ldh:chart-page" as="document-node()">
+        <xsl:param name="limit" as="xs:integer"/>
+        <xsl:param name="offset" as="xs:integer"/>
+
+        <xsl:document>
+            <json:map>
+                <json:number key="limit"><xsl:value-of select="$limit"/></json:number>
+                <json:number key="offset"><xsl:value-of select="$offset"/></json:number>
+            </json:map>
+        </xsl:document>
+    </xsl:function>
+
+    <!-- the rows of a result set that fall on a page: the result set with those rows alone, its head as it was -->
+    <xsl:function name="ldh:page-results" as="document-node()">
+        <xsl:param name="results" as="document-node()"/>
+        <xsl:param name="page" as="document-node()"/>
+        <xsl:variable name="limit" select="xs:integer(($page/json:map/json:number[@key = 'limit'], 0)[1])" as="xs:integer"/>
+        <xsl:variable name="offset" select="xs:integer(($page/json:map/json:number[@key = 'offset'], 0)[1])" as="xs:integer"/>
+
+        <xsl:document>
+            <xsl:for-each select="$results/srx:sparql">
+                <xsl:copy>
+                    <xsl:copy-of select="@* | srx:head"/>
+                    <srx:results>
+                        <xsl:copy-of select="srx:results/@*"/>
+                        <xsl:copy-of select="srx:results/srx:result[position() gt $offset][position() le $limit]"/>
+                    </srx:results>
+                </xsl:copy>
+            </xsl:for-each>
+        </xsl:document>
+    </xsl:function>
+
     <!-- TEMPLATES -->
 
     <!-- TO-DO: make 'data-table' configurable -->
@@ -214,6 +257,95 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
     
+    <!-- the pager of a chart drawn as a Table: the view's own (ldh:RenderPager), which shows for a table alone - every
+         other chart type plots the whole result set and empties it. The rows are all there, so the total is their
+         number, and a page is a slice of them -->
+    <xsl:template name="ldh:RenderChartPager">
+        <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="results" as="document-node()"/>
+        <xsl:param name="page" as="document-node()"/>
+        <xsl:param name="chart-type" as="xs:anyURI"/>
+        <xsl:variable name="total-count" select="count($results/srx:sparql/srx:results/srx:result)" as="xs:integer"/>
+        <xsl:variable name="limit" select="xs:integer(($page/json:map/json:number[@key = 'limit'], 0)[1])" as="xs:integer"/>
+        <xsl:variable name="offset" select="xs:integer(($page/json:map/json:number[@key = 'offset'], 0)[1])" as="xs:integer"/>
+
+        <xsl:call-template name="ldh:RenderPager">
+            <xsl:with-param name="container-id" select="$container-id"/>
+            <!-- the rows on this page: a full one, or what is left past the offset -->
+            <xsl:with-param name="result-count" select="max((0, min(($limit, $total-count - $offset))))"/>
+            <xsl:with-param name="select-xml" select="$page"/>
+            <xsl:with-param name="total-count" select="$total-count"/>
+            <!-- a Table pages as a view's table does -->
+            <xsl:with-param name="active-mode" select="if ($chart-type = '&ac;Table') then xs:anyURI('&ac;TableMode') else $chart-type"/>
+        </xsl:call-template>
+    </xsl:template>
+
+    <!-- a chart drawn over the rows the block holds: a Table draws the page the cache holds - the first until a pager
+         control says otherwise - and its pager; every other type draws all of them and leaves the pager host empty -->
+    <xsl:template name="ldh:DrawChartRows">
+        <xsl:param name="canvas" as="element()"/>
+        <xsl:param name="cache" as="item()"/>
+        <xsl:param name="chart-type" as="xs:anyURI"/>
+        <xsl:param name="category" as="xs:string?"/>
+        <xsl:param name="series" as="xs:string*"/>
+        <xsl:variable name="results" select="ixsl:get($cache, 'results')" as="document-node()"/>
+        <xsl:variable name="page" select="if (ixsl:contains($cache, 'chart-page')) then ixsl:get($cache, 'chart-page') else ldh:chart-page($ldh:page-size, 0)" as="document-node()"/>
+        <xsl:variable name="paged" select="$chart-type = '&ac;Table' and exists($results/srx:sparql)" as="xs:boolean"/>
+
+        <xsl:if test="$paged">
+            <ixsl:set-property name="chart-page" select="$page" object="$cache"/>
+        </xsl:if>
+
+        <xsl:apply-templates select="$canvas" mode="ldh:InitCanvas">
+            <xsl:with-param name="results" select="if ($paged) then ldh:page-results($results, $page) else $results" tunnel="yes"/>
+            <xsl:with-param name="cache" select="$cache" tunnel="yes"/>
+            <!-- the labels of the resources the results link to, where whoever loaded the results left them on the cache (ldh:RenderViewResults does) -->
+            <xsl:with-param name="object-metadata" select="if (ixsl:contains($cache, 'object-metadata')) then ixsl:get($cache, 'object-metadata') else ()" tunnel="yes"/>
+            <xsl:with-param name="chart-type" select="$chart-type" tunnel="yes"/>
+            <xsl:with-param name="category" select="$category" tunnel="yes"/>
+            <xsl:with-param name="series" select="$series" tunnel="yes"/>
+        </xsl:apply-templates>
+
+        <!-- a block's chart has a pager host (ldh:render-chart); a chart rendering the document does not -->
+        <xsl:if test="ixsl:contains($cache, 'pager-container-id')">
+            <xsl:call-template name="ldh:RenderChartPager">
+                <xsl:with-param name="container-id" select="ixsl:get($cache, 'pager-container-id')"/>
+                <xsl:with-param name="results" select="$results"/>
+                <xsl:with-param name="page" select="$page"/>
+                <xsl:with-param name="chart-type" select="$chart-type"/>
+            </xsl:call-template>
+        </xsl:if>
+    </xsl:template>
+
+    <!-- the chart drawn again from what its three controls say, over the rows the block holds -->
+    <xsl:template name="ldh:RedrawChart">
+        <xsl:param name="controls" as="element()"/>
+        <xsl:param name="cache" as="item()"/>
+        <xsl:variable name="chart-type" select="$controls//select[contains-token(@class, 'chart-type')]/ixsl:get(., 'value')" as="xs:anyURI"/>
+        <xsl:variable name="category" select="$controls//select[contains-token(@class, 'chart-category')]/ixsl:get(., 'value')" as="xs:string?"/>
+        <xsl:variable name="series" as="xs:string*">
+            <xsl:for-each select="$controls//select[contains-token(@class, 'chart-series')]">
+                <xsl:variable name="select" select="." as="element()"/>
+                <xsl:for-each select="0 to xs:integer(ixsl:get(., 'selectedOptions.length')) - 1">
+                    <xsl:sequence select="ixsl:get(ixsl:call(ixsl:get($select, 'selectedOptions'), 'item', [ . ]), 'value')"/>
+                </xsl:for-each>
+            </xsl:for-each>
+        </xsl:variable>
+        <xsl:variable name="results" select="ixsl:get($cache, 'results')" as="document-node()"/>
+
+        <xsl:if test="not($chart-type) or not($category or $results/rdf:RDF) or empty($series)">
+            <xsl:message terminate="yes">Chart control values missing</xsl:message>
+        </xsl:if>
+
+        <xsl:call-template name="ldh:DrawChartRows">
+            <xsl:with-param name="canvas" select="$controls/following-sibling::div[contains-token(@class, 'chart-canvas')][1]"/>
+            <xsl:with-param name="cache" select="$cache"/>
+            <xsl:with-param name="chart-type" select="$chart-type"/>
+            <xsl:with-param name="category" select="$category"/>
+            <xsl:with-param name="series" select="$series"/>
+        </xsl:call-template>
+    </xsl:template>
+
     <!-- render chart block -->
     
     <xsl:template match="*[@typeof = ('&ldh;ResultSetChart', '&ldh;GraphChart')][descendant::*[@property = '&spin;query'][@resource]][descendant::*[@property = '&ldh;chartType'][@resource]]" mode="ldh:RowHook" as="function(item()?) as map(*)">
@@ -232,6 +364,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="chart-type-id" select="'chart-type-' || generate-id()" as="xs:string"/>
         <xsl:param name="category-id" select="'category-' || generate-id()" as="xs:string"/>
         <xsl:param name="series-id" select="'series-' || generate-id()" as="xs:string"/>
+        <!-- what a SELECT chart's pager host is addressed by, as a view's is by its container id (ldh:RenderPager) -->
+        <xsl:param name="pager-container-id" select="generate-id() || '-chart'" as="xs:string"/>
         <xsl:variable name="query-uri" select="descendant::*[@property = '&spin;query']/@resource" as="xs:anyURI"/>
         <xsl:variable name="chart-type" select="descendant::*[@property = '&ldh;chartType']/@resource" as="xs:anyURI?"/>
         <xsl:variable name="category" select="descendant::*[@property = '&ldh;categoryProperty']/@resource | descendant::*[@property = '&ldh;categoryVarName']/text()[normalize-space()]" as="xs:string?"/>
@@ -261,6 +395,7 @@ exclude-result-prefixes="#all"
             'chart-type-id': $chart-type-id,
             'category-id': $category-id,
             'series-id': $series-id,
+            'pager-container-id': $pager-container-id,
             'query-uri': $query-uri,
             'chart-type': $chart-type,
             'category': $category,
@@ -348,6 +483,8 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="canvas-id" select="$canvas-id"/>
                     <xsl:with-param name="canvas-class" select="$canvas-class"/>
                     <xsl:with-param name="show-save" select="$acl-modes = '&acl;Write'"/>
+                    <!-- a SELECT chart can page its rows (ldh:RenderChartPager); a graph is drawn whole -->
+                    <xsl:with-param name="pager-id" select="($context('pager-container-id') || '-pager')[tokenize($container/@typeof) = '&ldh;ResultSetChart']"/>
                 </xsl:apply-templates>
             </xsl:result-document>
         </xsl:for-each>
@@ -358,39 +495,78 @@ exclude-result-prefixes="#all"
     <!-- EVENT LISTENERS -->
     
     <!-- a chart control changed: the chart is drawn again from what all three controls now say, over the results
-         the block holds -->
+         the block holds. A chart type picked anew starts a Table from its first page -->
     <xsl:template match="select[ancestor::div[contains-token(@class, 'chart-controls')]][tokenize(@class) = ('chart-type', 'chart-category', 'chart-series')]" mode="ixsl:onchange">
         <xsl:variable name="controls" select="ancestor::div[contains-token(@class, 'chart-controls')][1]" as="element()"/>
-        <xsl:variable name="chart-type" select="$controls//select[contains-token(@class, 'chart-type')]/ixsl:get(., 'value')" as="xs:anyURI"/>
-        <xsl:variable name="category" select="$controls//select[contains-token(@class, 'chart-category')]/ixsl:get(., 'value')" as="xs:string?"/>
-        <xsl:variable name="series" as="xs:string*">
-            <xsl:for-each select="$controls//select[contains-token(@class, 'chart-series')]">
-                <xsl:variable name="select" select="." as="element()"/>
-                <xsl:for-each select="0 to xs:integer(ixsl:get(., 'selectedOptions.length')) - 1">
-                    <xsl:sequence select="ixsl:get(ixsl:call(ixsl:get($select, 'selectedOptions'), 'item', [ . ]), 'value')"/>
-                </xsl:for-each>
-            </xsl:for-each>
-        </xsl:variable>
         <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()?"/>
         <xsl:variable name="block-id" select="$block/ldh:block-id(.)" as="xs:string?"/>
         <!-- if there is no block, the chart is rendering the current document -->
         <xsl:variable name="block-uri" select="if ($block/@about) then $block/@about else (if ($block-id) then xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $block-id) else ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/>
         <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
-        <xsl:variable name="results" select="ixsl:get($cache, 'results')" as="document-node()"/>
 
-        <xsl:if test="not($chart-type) or not($category or $results/rdf:RDF) or empty($series)">
-            <xsl:message terminate="yes">Chart control values missing for content '<xsl:value-of select="$block-id"/>'</xsl:message>
+        <xsl:if test="contains-token(@class, 'chart-type')">
+            <ixsl:remove-property name="chart-page" object="$cache"/>
         </xsl:if>
 
-        <xsl:apply-templates select="$controls/following-sibling::div[contains-token(@class, 'chart-canvas')][1]" mode="ldh:InitCanvas">
-            <xsl:with-param name="results" select="$results" tunnel="yes"/>
-            <xsl:with-param name="cache" select="$cache" tunnel="yes"/>
-            <!-- the labels of the resources the results link to, where whoever loaded the results left them on the cache (ldh:RenderViewResults does) -->
-            <xsl:with-param name="object-metadata" select="if (ixsl:contains($cache, 'object-metadata')) then ixsl:get($cache, 'object-metadata') else ()" tunnel="yes"/>
-            <xsl:with-param name="chart-type" select="$chart-type" tunnel="yes"/>
-            <xsl:with-param name="category" select="$category" tunnel="yes"/>
-            <xsl:with-param name="series" select="$series" tunnel="yes"/>
-        </xsl:apply-templates>
+        <xsl:call-template name="ldh:RedrawChart">
+            <xsl:with-param name="controls" select="$controls"/>
+            <xsl:with-param name="cache" select="$cache"/>
+        </xsl:call-template>
+    </xsl:template>
+
+    <!-- chart pagination - previous page. The same pager as a view's, so the same paging transforms, over the page the
+         cache holds; the handlers are the chart's own because the rows are drawn from the cache, not asked for again -->
+    <xsl:template match="div[@typeof = '&ldh;ResultSetChart']//div[contains-token(@class, 'ldh-pager')]//button[contains-token(@class, 'pager-prev')]" mode="ixsl:onclick">
+        <xsl:variable name="cache" select="ldh:chart-cache(.)" as="item()"/>
+        <xsl:variable name="page" as="document-node()">
+            <xsl:call-template name="ldh:ViewPage">
+                <xsl:with-param name="select-xml" select="ixsl:get($cache, 'chart-page')"/>
+                <xsl:with-param name="direction" select="'previous'"/>
+            </xsl:call-template>
+        </xsl:variable>
+
+        <ixsl:set-property name="chart-page" select="$page" object="$cache"/>
+
+        <xsl:call-template name="ldh:RedrawChart">
+            <xsl:with-param name="controls" select="(ancestor::div[@typeof = '&ldh;ResultSetChart'][1]//div[contains-token(@class, 'chart-controls')])[1]"/>
+            <xsl:with-param name="cache" select="$cache"/>
+        </xsl:call-template>
+    </xsl:template>
+
+    <!-- chart pagination - next page -->
+    <xsl:template match="div[@typeof = '&ldh;ResultSetChart']//div[contains-token(@class, 'ldh-pager')]//button[contains-token(@class, 'pager-next')]" mode="ixsl:onclick">
+        <xsl:variable name="cache" select="ldh:chart-cache(.)" as="item()"/>
+        <xsl:variable name="page" as="document-node()">
+            <xsl:call-template name="ldh:ViewPage">
+                <xsl:with-param name="select-xml" select="ixsl:get($cache, 'chart-page')"/>
+                <xsl:with-param name="direction" select="'next'"/>
+            </xsl:call-template>
+        </xsl:variable>
+
+        <ixsl:set-property name="chart-page" select="$page" object="$cache"/>
+
+        <xsl:call-template name="ldh:RedrawChart">
+            <xsl:with-param name="controls" select="(ancestor::div[@typeof = '&ldh;ResultSetChart'][1]//div[contains-token(@class, 'chart-controls')])[1]"/>
+            <xsl:with-param name="cache" select="$cache"/>
+        </xsl:call-template>
+    </xsl:template>
+
+    <!-- chart page size - rows per page, from the first page again -->
+    <xsl:template match="div[@typeof = '&ldh;ResultSetChart']//select[contains-token(@class, 'pager-size')]" mode="ixsl:onchange">
+        <xsl:variable name="cache" select="ldh:chart-cache(.)" as="item()"/>
+        <xsl:variable name="page" as="document-node()">
+            <xsl:call-template name="ldh:ViewLimit">
+                <xsl:with-param name="select-xml" select="ixsl:get($cache, 'chart-page')"/>
+                <xsl:with-param name="limit" select="xs:integer(ixsl:get(., 'value'))"/>
+            </xsl:call-template>
+        </xsl:variable>
+
+        <ixsl:set-property name="chart-page" select="$page" object="$cache"/>
+
+        <xsl:call-template name="ldh:RedrawChart">
+            <xsl:with-param name="controls" select="(ancestor::div[@typeof = '&ldh;ResultSetChart'][1]//div[contains-token(@class, 'chart-controls')])[1]"/>
+            <xsl:with-param name="cache" select="$cache"/>
+        </xsl:call-template>
     </xsl:template>
 
     <!-- CANVAS -->
@@ -634,6 +810,12 @@ exclude-result-prefixes="#all"
                         <xsl:variable name="endpoint" select="ldh:query-endpoint($service, $block)" as="xs:anyURI"/>
                         <xsl:variable name="request-uri" select="ldh:href($endpoint, map{})" as="xs:anyURI"/>
 
+                        <!-- where a Table's pager is drawn (ldh:DrawChartRows), and a load's rows start from the first page -->
+                        <xsl:for-each select="$context('pager-container-id')">
+                            <ixsl:set-property name="pager-container-id" select="." object="$context('cache')"/>
+                        </xsl:for-each>
+                        <ixsl:remove-property name="chart-page" object="$context('cache')"/>
+
                         <!-- Mark query response as complete -->
                         <xsl:sequence select="ldh:update-progress-counter($context('cache'), $context, 'complete', ())"/>
 
@@ -718,13 +900,13 @@ exclude-result-prefixes="#all"
 
                         <!-- Store results in cache -->
                         <ixsl:set-property name="results" select="$results" object="$context('cache')"/>
-                        <xsl:apply-templates select="id($chart-canvas-id, ixsl:page())" mode="ldh:InitCanvas">
-                            <xsl:with-param name="results" select="$results" tunnel="yes"/>
-                            <xsl:with-param name="cache" select="$context('cache')" tunnel="yes"/>
-                            <xsl:with-param name="chart-type" select="$chart-type" tunnel="yes"/>
-                            <xsl:with-param name="category" select="$category" tunnel="yes"/>
-                            <xsl:with-param name="series" select="$series" tunnel="yes"/>
-                        </xsl:apply-templates>
+                        <xsl:call-template name="ldh:DrawChartRows">
+                            <xsl:with-param name="canvas" select="id($chart-canvas-id, ixsl:page())"/>
+                            <xsl:with-param name="cache" select="$context('cache')"/>
+                            <xsl:with-param name="chart-type" select="$chart-type"/>
+                            <xsl:with-param name="category" select="$category"/>
+                            <xsl:with-param name="series" select="$series"/>
+                        </xsl:call-template>
 
                         <!-- Mark results response as complete -->
                         <xsl:sequence select="ldh:update-progress-counter($context('cache'), $context, 'complete', ())"/>

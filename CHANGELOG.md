@@ -8,6 +8,10 @@
 - `PATCH /settings` refuses to change a dataspace's wiring (`422`): `lds:origin` and `lds:service` are the deployment's, set when the dataspace is made. An owner of one dataspace could otherwise point it at another's SPARQL service, or take another's origin, through their own settings
 - `PATCH /settings` refuses to change `lds:versioningRepository` too: an owner could otherwise have their dataspace commit, with the deployment's credentials, over another dataspace's versions
 
+### Added
+- A SELECT chart drawn as a Table pages its rows in the browser, with the view's pager: every chart type draws the same result set, and a view is what pages a query at the endpoint (#219)
+- A view's facet on a property whose range is a string is a text input: it keeps the results whose value contains the text, in any case, and clears as the other facets do (#99)
+
 ### Changed
 - A resource a document describes may be left without a type: `PATCH` refuses only to leave the document itself untyped, which it already did, as the document must keep a document hierarchy class. Imported data often describes entities without a type, and a resource that had one could not be given the same shape (#308 held every resource to keeping one)
 - The `ldh` plugin's skills show how to check which property views a type gets without a browser, with the page's own lookup query against the installed ontology: `ldh get --accept text/html` returns the page before the browser renders its blocks and property views
@@ -33,6 +37,7 @@
 - The assistant waits for a plan that takes longer than two minutes to write: nginx cut the plan service's answer at 120 s, measured as a 10-30 s model call when the limit was set, and the card then reported that the endpoint could not be reached. A plan against a large ontology takes 40-130 s, longer when the service repairs the model's SPARQL; the wait is bounded at 10 minutes
 - An empty write through the Linked Data proxy keeps its `Content-Type`, so an empty append is answered `204` as it is directly instead of `400`
 - A `502` for an upstream failure (a SPARQL result the Varnish store cut short, a result that could not be read) carries a description with the failure's message, not Tomcat's HTML error page
+- A view whose query has a subquery with a LIMIT or OFFSET of its own keeps them when it is paged, counted or mapped: only the query's own were meant to be replaced
 
 ## [6.5.2] - 2026-11-12
 ### Fixed
