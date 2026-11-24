@@ -130,11 +130,16 @@ exclude-result-prefixes="#all"
     <!-- combined forward + inverse view-block lookup; substitutes VALUES ?type { ... } from the resource's rdf:types.
          Besides ?block, binds the attachment ?property, the ?inverse direction flag, the ?forClass to construct
          (property range for forward views, domain for inverse ones) and the view's ldh:showWhenEmpty.
+         A domain or range that is a class expression of owl:unionOf names each of its member classes: a property that
+         points at "a source or a service" gets its views on the pages of both. ?forClass is a named class or nothing,
+         as a blank node class cannot be constructed.
          No container: where a view creates into is a property of its results rather than of its declaration,
          so it is determined per view by ldh:ViewContainer in block/view.xsl. -->
     <xsl:variable name="ldh:ontology-view-query" as="xs:string">
         <![CDATA[
             PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            PREFIX  owl:  <http://www.w3.org/2002/07/owl#>
             PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
 
             SELECT DISTINCT ?block ?property ?inverse ?forClass ?showWhenEmpty
@@ -144,11 +149,16 @@ exclude-result-prefixes="#all"
                   { ?property  rdfs:domain  ?type }
                 UNION
                   { ?property  rdfs:subPropertyOf+/rdfs:domain  ?type }
+                UNION
+                  { ?property  rdfs:subPropertyOf*/rdfs:domain/owl:unionOf/rdf:rest*/rdf:first  ?type }
                 BIND(false AS ?inverse)
                 OPTIONAL {
                     { ?property  rdfs:range  ?forClass }
                   UNION
                     { ?property  rdfs:subPropertyOf+/rdfs:range  ?forClass }
+                  UNION
+                    { ?property  rdfs:subPropertyOf*/rdfs:range/owl:unionOf/rdf:rest*/rdf:first  ?forClass }
+                  FILTER isIRI(?forClass)
                 }
               }
               UNION
@@ -157,11 +167,16 @@ exclude-result-prefixes="#all"
                   { ?property  rdfs:range  ?type }
                 UNION
                   { ?property  rdfs:subPropertyOf+/rdfs:range  ?type }
+                UNION
+                  { ?property  rdfs:subPropertyOf*/rdfs:range/owl:unionOf/rdf:rest*/rdf:first  ?type }
                 BIND(true AS ?inverse)
                 OPTIONAL {
                     { ?property  rdfs:domain  ?forClass }
                   UNION
                     { ?property  rdfs:subPropertyOf+/rdfs:domain  ?forClass }
+                  UNION
+                    { ?property  rdfs:subPropertyOf*/rdfs:domain/owl:unionOf/rdf:rest*/rdf:first  ?forClass }
+                  FILTER isIRI(?forClass)
                 }
               }
               OPTIONAL { ?block  ldh:showWhenEmpty  ?showWhenEmpty }
@@ -753,7 +768,7 @@ exclude-result-prefixes="#all"
 
     <!-- BLOCK CREATION -->
 
-    <!-- Creates a block of $forClass after $block, reusing the document-level create-instance chain from
+    <!-- Creates a block of $for-class after $block, reusing the document-level create-instance chain from
          form.xsl wholesale: the class's SPIN constructor is fetched and instantiated exactly as it is for
          the action-bar Create button, so a chart or view picks up ldh:TitleConstructor and
          ldh:DescriptionConstructor (def.ttl) rather than hand-rolling a dct:title slot. The only thing this
@@ -764,7 +779,7 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:CreateBlock">
         <xsl:context-item as="element()" use="required"/>
         <xsl:param name="block" as="element()"/> <!-- the block the new one is inserted after -->
-        <xsl:param name="forClass" as="xs:anyURI"/>
+        <xsl:param name="for-class" as="xs:anyURI"/>
         <xsl:param name="properties" as="element()*"/> <!-- RDF/XML property elements for the new instance -->
 
         <xsl:sequence select="ldh:busy-cursor()"/>
@@ -779,7 +794,7 @@ exclude-result-prefixes="#all"
 
         <xsl:variable name="context" as="map(*)" select="map{
             'method': 'post',
-            'forClass': $forClass,
+            'for-class': $for-class,
             'doc-uri': $doc-uri,
             'base-uri': $doc-uri,
             'this': xs:anyURI($doc-uri || '#' || $id),
@@ -813,7 +828,7 @@ exclude-result-prefixes="#all"
             on-failure="ldh:promise-failure(($anchor//div[contains-token(@class, 'main')])[1], 'form-not-loaded', ?)"/>
     </xsl:template>
 
-    <!-- folds context('properties') into the constructor prototype for context('forClass'), between the
+    <!-- folds context('properties') into the constructor prototype for context('for-class'), between the
          constructor fetch and its instantiation, so the added triples go through ldh:SetResourceID with
          the rest and end up on the same subject -->
     <xsl:function name="ldh:add-constructed-properties" as="map(*)" ixsl:updating="yes">
@@ -828,7 +843,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="constructed-doc" as="document-node()">
                     <xsl:document>
                         <xsl:apply-templates select="$context('constructed-doc')" mode="ldh:AddConstructedProperties">
-                            <xsl:with-param name="forClass" select="$context('forClass')" tunnel="yes"/>
+                            <xsl:with-param name="for-class" select="$context('for-class')" tunnel="yes"/>
                             <xsl:with-param name="properties" select="$properties" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:document>
@@ -846,7 +861,7 @@ exclude-result-prefixes="#all"
         </xsl:copy>
     </xsl:template>
 
-    <!-- The prototype carries rdf:type $forClass; the tunnelled class cannot go in the match pattern, hence
+    <!-- The prototype carries rdf:type $for-class; the tunnelled class cannot go in the match pattern, hence
          the test inside. A caller's value takes over the constructor's slot for the same predicate rather
          than being appended beside it - the row form renders one control per slot, so appending shows the
          predicate twice, once empty. Predicates the caller says nothing about keep their constructor slot,
@@ -855,11 +870,11 @@ exclude-result-prefixes="#all"
          (a blank node carrying nothing but rdf:type) declares that predicate's range, so a literal value
          inherits the marker's datatype. Nothing here knows which predicates it is handling. -->
     <xsl:template match="rdf:Description[rdf:type/@rdf:resource]" mode="ldh:AddConstructedProperties" priority="1">
-        <xsl:param name="forClass" as="xs:anyURI" tunnel="yes"/>
+        <xsl:param name="for-class" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="properties" as="element()*" tunnel="yes"/>
 
         <xsl:choose>
-            <xsl:when test="rdf:type/@rdf:resource = $forClass">
+            <xsl:when test="rdf:type/@rdf:resource = $for-class">
                 <xsl:variable name="prototype" select="." as="element()"/>
                 <!-- A property the caller left blank carries no value to hand over, so it does not displace
                      anything: the constructor's slot stays and renders as the empty control it is for. Taking

@@ -73,7 +73,8 @@ extension-element-prefixes="ixsl"
         </xsl:copy>
     </xsl:template>
 
-    <xsl:template match="json:number[@key = 'limit']" mode="ldh:replace-limit" priority="1"/>
+    <!-- the query's own LIMIT: a subquery's slices its own rows and stays -->
+    <xsl:template match="/json:map/json:number[@key = 'limit']" mode="ldh:replace-limit" priority="1"/>
     
     <!-- replace OFFSET -->
     
@@ -98,7 +99,8 @@ extension-element-prefixes="ixsl"
         </xsl:copy>
     </xsl:template>
 
-    <xsl:template match="json:number[@key = 'offset']" mode="ldh:replace-offset" priority="1"/>
+    <!-- the query's own OFFSET: a subquery's slices its own rows and stays -->
+    <xsl:template match="/json:map/json:number[@key = 'offset']" mode="ldh:replace-offset" priority="1"/>
 
     <!-- The name of a SELECT's first projected variable, without the '?': a plain ?x, which SPARQL.js gives as the
          string "?x", or the alias of an expression, (expr AS ?x), which it gives as a map with a "variable". A view
@@ -861,7 +863,82 @@ extension-element-prefixes="ixsl"
             </xsl:choose>
         </xsl:copy>
     </xsl:template>
-    
+
+    <!-- text FILTER: FILTER(isLiteral(?varName) && CONTAINS(LCASE(STR(?varName)), LCASE("text"))) - a case-insensitive
+         substring match over a facet's literal values. The text goes between the quotes as typed: the generator escapes
+         quotes, backslashes and line breaks when it writes the literal -->
+
+    <!-- identity transform -->
+    <xsl:template match="@* | node()" mode="ldh:filter-contains">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+
+    <!-- append the variable's text FILTER to the query's WHERE, unless there is no text -->
+    <xsl:template match="/json:map/json:array[@key = 'where']" mode="ldh:filter-contains" priority="1">
+        <xsl:param name="var-name" as="xs:string" tunnel="yes"/>
+        <xsl:param name="text" as="xs:string?" tunnel="yes"/>
+
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+
+            <xsl:if test="$text">
+                <json:map>
+                    <json:string key="type">filter</json:string>
+                    <json:map key="expression">
+                        <json:string key="type">operation</json:string>
+                        <json:string key="operator">&amp;&amp;</json:string>
+                        <json:array key="args">
+                            <json:map>
+                                <json:string key="type">operation</json:string>
+                                <json:string key="operator">isliteral</json:string>
+                                <json:array key="args">
+                                    <json:string><xsl:text>?</xsl:text><xsl:value-of select="$var-name"/></json:string>
+                                </json:array>
+                            </json:map>
+                            <json:map>
+                                <json:string key="type">operation</json:string>
+                                <json:string key="operator">contains</json:string>
+                                <json:array key="args">
+                                    <json:map>
+                                        <json:string key="type">operation</json:string>
+                                        <json:string key="operator">lcase</json:string>
+                                        <json:array key="args">
+                                            <json:map>
+                                                <json:string key="type">operation</json:string>
+                                                <json:string key="operator">str</json:string>
+                                                <json:array key="args">
+                                                    <json:string><xsl:text>?</xsl:text><xsl:value-of select="$var-name"/></json:string>
+                                                </json:array>
+                                            </json:map>
+                                        </json:array>
+                                    </json:map>
+                                    <json:map>
+                                        <json:string key="type">operation</json:string>
+                                        <json:string key="operator">lcase</json:string>
+                                        <json:array key="args">
+                                            <json:string><xsl:text>&quot;</xsl:text><xsl:value-of select="$text"/><xsl:text>&quot;</xsl:text></json:string>
+                                        </json:array>
+                                    </json:map>
+                                </json:array>
+                            </json:map>
+                        </json:array>
+                    </json:map>
+                </json:map>
+            </xsl:if>
+        </xsl:copy>
+    </xsl:template>
+
+    <!-- the variable's previous text FILTER goes: replaced by the one appended above, or removed with the text -->
+    <xsl:template match="/json:map/json:array[@key = 'where']/json:map[json:string[@key = 'type'] = 'filter'][json:map[@key = 'expression'][json:string[@key = 'operator'] = '&amp;&amp;']/json:array[@key = 'args']/json:map[json:string[@key = 'operator'] = 'isliteral']]" mode="ldh:filter-contains" priority="1">
+        <xsl:param name="var-name" as="xs:string" tunnel="yes"/>
+
+        <xsl:if test="not(json:map[@key = 'expression']/json:array[@key = 'args']/json:map[json:string[@key = 'operator'] = 'isliteral']/json:array[@key = 'args']/json:string = '?' || $var-name)">
+            <xsl:next-match/>
+        </xsl:if>
+    </xsl:template>
+
     <!-- A SELECT whose first projection is an expression - (?s AS ?resource), (YEAR(NOW()) AS ?year) - binds that
          variable in its projection alone, so a rewrite that projects something else or appends patterns to its WHERE
          sees the variable unbound there: a COUNT counts nothing, and a pattern joined on it matches every triple in the
@@ -1130,6 +1207,41 @@ extension-element-prefixes="ixsl"
                     </json:array>
                 </json:map>
             </json:map>
+        </xsl:copy>
+    </xsl:template>
+
+    <!-- ?var text:query "lucene": the text index asked for the resources, where the dataspace's service declares one -->
+
+    <!-- identity transform -->
+    <xsl:template match="@* | node()" mode="ldh:add-text-query">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+
+    <!-- prepend the text:query pattern to WHERE: first, so the index answers before the label patterns run, and never
+         inside their GRAPH ?graph, where a property function is evaluated once per named graph - one per document.
+         The query is a plain literal, which jena-text takes as the query over the index's default field, so no list
+         argument has to round-trip through the SPARQL.js generator -->
+    <xsl:template match="json:array[@key = 'where']" mode="ldh:add-text-query" priority="1">
+        <xsl:param name="var-name" as="xs:string" tunnel="yes"/>
+        <xsl:param name="query" as="xs:string" tunnel="yes"/>
+
+        <xsl:copy>
+            <xsl:apply-templates select="@*" mode="#current"/>
+
+            <json:map>
+                <json:string key="type">bgp</json:string>
+                <json:array key="triples">
+                    <json:map>
+                        <json:string key="subject">?<xsl:value-of select="$var-name"/></json:string>
+                        <json:string key="predicate">http://jena.apache.org/text#query</json:string>
+                        <json:string key="object">"<xsl:value-of select="replace(replace($query, '\\', '\\\\'), '&quot;', '\\&quot;')"/>"</json:string>
+                    </json:map>
+                </json:array>
+            </json:map>
+
+            <xsl:apply-templates select="node()" mode="#current"/>
         </xsl:copy>
     </xsl:template>
 

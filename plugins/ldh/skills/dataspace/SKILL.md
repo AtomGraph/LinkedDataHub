@@ -95,11 +95,28 @@ Add a `fuseki:Service` and a `tdb2:DatasetTDB2` per role, copying an existing pa
     fuseki:endpoint [ fuseki:operation fuseki:gsp-rw ] ;
     fuseki:dataset <#inventory.end-user-dataset> .
 
-<#inventory.end-user-dataset> a tdb2:DatasetTDB2 ;
+<#inventory.end-user-dataset> a text:TextDataset ;
+    text:dataset <#inventory.end-user-tdb> ;
+    text:index <#inventory.end-user-index> .
+
+<#inventory.end-user-tdb> a tdb2:DatasetTDB2 ;
     tdb2:location "/fuseki/databases/inventory.end-user/DB2" .
+
+<#inventory.end-user-index> a text:TextIndexLucene ;
+    text:directory <file:/fuseki/databases/inventory.end-user/lucene> ;
+    text:storeValues false ;
+    text:entityMap <#inventory.end-user-entity-map> .
+
+<#inventory.end-user-entity-map> a text:EntityMap ;
+    ...   # copy the root end-user dataset's entity map as it is: the labels the search reads
 ```
 
-and the same for `inventory.admin`.
+and the same for `inventory.admin`, whose dataset stays a plain `tdb2:DatasetTDB2`: the admin app searches by
+regex. The end-user dataset's text index is what the search box asks once the dataspace's service declares it
+(step 3); without the index and the declaration the search runs a regex over every label, which takes 30 s on a
+large dataspace. Name the parts as the root `<#end-user-dataset>` names its own (`-tdb`, `-index`,
+`-entity-map`): jena-text's assemblers read a part's URI, and a blank node stops Fuseki from starting.
+`make reindex DATASET=inventory.end-user` rebuilds the index from the data after a bulk load.
 
 ### 3. `config/system.trig` — internal wiring
 

@@ -438,7 +438,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="uuid" select="ac:uuid()" as="xs:string"/>
 
                     <xsl:call-template name="ldh:Combobox">
-                        <xsl:with-param name="forClass" select="xs:anyURI('&rdf;Property')"/>
+                        <xsl:with-param name="for-class" select="xs:anyURI('&rdf;Property')"/>
                         <xsl:with-param name="class" select="'property-combobox combobox'"/>
                         <xsl:with-param name="id" select="'input-' || $uuid"/>
                         <xsl:with-param name="list-class" select="'property-combobox combobox ac-cb-panel'"/>
@@ -690,7 +690,7 @@ exclude-result-prefixes="#all"
          button reopening the lookup. A row whose range is undeclared gets rdfs:Resource rather than an empty
          slot - the idiom the platform's own constructors write for an object that is any resource
          (owl:imports on owl:Ontology, sd:endpoint, ac:mode, foaf:primaryTopic), and the one client/form.xsl
-         reads as "no type filter" when it is the only forClass. Defaulting here rather than in the save path
+         reads as "no type filter" when it is the only for-class. Defaulting here rather than in the save path
          keeps a value in the slot, so nothing downstream needs a notion of a range left open:
          ldh:constructor-valid-rows still asks for a control and still finds one. -->
     <xsl:template name="ldh:ConstructorResourceObject">
@@ -703,14 +703,14 @@ exclude-result-prefixes="#all"
         <!-- ontologies are served without inference, so owl:Class subjects do not carry the rdfs:Class type.
              The chip carries the scope its lookup was made with, which is what the edit button reopens with -
              ldh:ComboboxChip puts it on @data-for-class. -->
-        <xsl:variable name="forClass" select="(xs:anyURI('&rdfs;Class'), xs:anyURI('&owl;Class'))" as="xs:anyURI*"/>
+        <xsl:variable name="for-class" select="(xs:anyURI('&rdfs;Class'), xs:anyURI('&owl;Class'))" as="xs:anyURI*"/>
         <xsl:variable name="resource" select="key('resources', $range, document($request-uri))[*][@rdf:about or @rdf:nodeID]" as="element()?"/>
 
         <xsl:choose>
             <xsl:when test="exists($resource)">
                 <xsl:apply-templates select="$resource" mode="ldh:ComboboxChip">
                     <xsl:with-param name="class" select="'cb-chip-btn add-combobox add-class-combobox'"/>
-                    <xsl:with-param name="forClass" select="$forClass"/>
+                    <xsl:with-param name="for-class" select="$for-class"/>
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:otherwise>
@@ -734,7 +734,7 @@ exclude-result-prefixes="#all"
 
                 <xsl:apply-templates select="$synthetic/rdf:RDF/rdf:Description" mode="ldh:ComboboxChip">
                     <xsl:with-param name="class" select="'cb-chip-btn add-combobox add-class-combobox'"/>
-                    <xsl:with-param name="forClass" select="$forClass"/>
+                    <xsl:with-param name="for-class" select="$for-class"/>
                 </xsl:apply-templates>
             </xsl:otherwise>
         </xsl:choose>
