@@ -8,6 +8,10 @@
 - `PATCH /settings` refuses to change a dataspace's wiring (`422`): `lds:origin` and `lds:service` are the deployment's, set when the dataspace is made. An owner of one dataspace could otherwise point it at another's SPARQL service, or take another's origin, through their own settings
 - `PATCH /settings` refuses to change `lds:versioningRepository` too: an owner could otherwise have their dataspace commit, with the deployment's credentials, over another dataspace's versions
 
+### Added
+- A SELECT chart drawn as a Table pages its rows in the browser, with the view's pager: every chart type draws the same result set, and a view is what pages a query at the endpoint (#219)
+- A view's facet on a property whose range is a string is a text input: it keeps the results whose value contains the text, in any case, and clears as the other facets do (#99)
+
 ### Changed
 - The browser parses and generates SPARQL with Traqula instead of SPARQL.js 2.x, and the stylesheets read and rewrite queries in Traqula's AST, with typed terms instead of SPARQL.js's term strings (#429)
 - A resource a document describes may be left without a type: `PATCH` refuses only to leave the document itself untyped, which it already did, as the document must keep a document hierarchy class. Imported data often describes entities without a type, and a resource that had one could not be given the same shape (#308 held every resource to keeping one)
@@ -16,6 +20,7 @@
 - A container's children view lists its documents, not the things they are about: `ldh:SelectChildren` no longer selects each child's `foaf:primaryTopic`, and the list, grid and table modes render each result as itself instead of standing a document's topic in for it. A document's row carries no type tag, as its header carries no type chip. A page that lists things (a catalogue, a table of people) is a view over the things
 
 ### Fixed
+- A property's views show on the pages of every class its domain or range names through `owl:unionOf`: an `ldh:inverseView` of a property whose range is "a source or a service" appeared on neither, as the lookup matched the range itself, a blank node no page is typed with. The class a view's Create constructs is a named class or none, never that blank node
 - The settings dialog keeps a package import its catalog does not list, a package from another registry, as a checked row of its own: the save wrote back the catalog's checked rows as the dataspace's imports and nothing else, so an unlisted import was dropped by the next save of the title, and every import when the catalog could not be loaded
 - An empty concept scheme gets its first concept: the taxonomy package's Concepts in scheme shows when empty, and its Create no longer waits for rows to tell it where the concept's document goes
 - A save a view's Create form is refused keeps the whole form, the document's half and what was typed into it included: the re-render read the violating resource off the response, which describes that resource alone
@@ -33,6 +38,7 @@
 - The assistant waits for a plan that takes longer than two minutes to write: nginx cut the plan service's answer at 120 s, measured as a 10-30 s model call when the limit was set, and the card then reported that the endpoint could not be reached. A plan against a large ontology takes 40-130 s, longer when the service repairs the model's SPARQL; the wait is bounded at 10 minutes
 - An empty write through the Linked Data proxy keeps its `Content-Type`, so an empty append is answered `204` as it is directly instead of `400`
 - A `502` for an upstream failure (a SPARQL result the Varnish store cut short, a result that could not be read) carries a description with the failure's message, not Tomcat's HTML error page
+- A view whose query has a subquery with a LIMIT or OFFSET of its own keeps them when it is paged, counted or mapped: only the query's own were meant to be replaced
 
 ## [6.5.2] - 2026-11-12
 ### Fixed

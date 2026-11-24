@@ -59,7 +59,8 @@ extension-element-prefixes="ixsl"
         </xsl:copy>
     </xsl:template>
     
-    <xsl:template match="json:map[@key = 'solutionModifiers']" mode="ldh:replace-limit" priority="1">
+    <!-- the query's own LIMIT: a subquery's slices its own rows and stays -->
+    <xsl:template match="/json:map/json:map[@key = 'solutionModifiers']" mode="ldh:replace-limit" priority="1">
         <xsl:param name="limit" as="xs:integer?" tunnel="yes"/>
         <xsl:copy>
             <xsl:apply-templates select="@* | node()[not(self::json:map[@key = 'limitOffset'])]" mode="#current"/>
@@ -81,7 +82,8 @@ extension-element-prefixes="ixsl"
         </xsl:copy>
     </xsl:template>
     
-    <xsl:template match="json:map[@key = 'solutionModifiers']" mode="ldh:replace-offset" priority="1">
+    <!-- the query's own OFFSET: a subquery's slices its own rows and stays -->
+    <xsl:template match="/json:map/json:map[@key = 'solutionModifiers']" mode="ldh:replace-offset" priority="1">
         <xsl:param name="offset" as="xs:integer?" tunnel="yes"/>
         <xsl:copy>
             <xsl:apply-templates select="@* | node()[not(self::json:map[@key = 'limitOffset'])]" mode="#current"/>
@@ -989,7 +991,89 @@ extension-element-prefixes="ixsl"
             </xsl:choose>
         </xsl:copy>
     </xsl:template>
-    
+
+    <!-- text FILTER: FILTER(isLiteral(?varName) && CONTAINS(LCASE(STR(?varName)), LCASE("text"))) - a case-insensitive
+         substring match over a facet's literal values. The text is the literal's value as typed: the generator escapes
+         quotes, backslashes and line breaks when it writes the literal -->
+
+    <!-- identity transform -->
+    <xsl:template match="@* | node()" mode="ldh:filter-contains">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+
+    <!-- append the variable's text FILTER to the query's WHERE, unless there is no text -->
+    <xsl:template match="/json:map/json:map[@key = 'where']/json:array[@key = 'patterns']" mode="ldh:filter-contains" priority="1">
+        <xsl:param name="var-name" as="xs:string" tunnel="yes"/>
+        <xsl:param name="text" as="xs:string?" tunnel="yes"/>
+
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+
+            <xsl:if test="$text">
+                <json:map>
+                    <json:string key="type">pattern</json:string>
+                    <json:string key="subType">filter</json:string>
+                    <json:map key="expression">
+                        <json:string key="type">expression</json:string>
+                        <json:string key="subType">operation</json:string>
+                        <json:string key="operator">&amp;&amp;</json:string>
+                        <json:array key="args">
+                            <json:map>
+                                <json:string key="type">expression</json:string>
+                                <json:string key="subType">operation</json:string>
+                                <json:string key="operator">isliteral</json:string>
+                                <json:array key="args">
+                                    <xsl:sequence select="ldh:term-node('?' || $var-name)"/>
+                                </json:array>
+                            </json:map>
+                            <json:map>
+                                <json:string key="type">expression</json:string>
+                                <json:string key="subType">operation</json:string>
+                                <json:string key="operator">contains</json:string>
+                                <json:array key="args">
+                                    <json:map>
+                                        <json:string key="type">expression</json:string>
+                                        <json:string key="subType">operation</json:string>
+                                        <json:string key="operator">lcase</json:string>
+                                        <json:array key="args">
+                                            <json:map>
+                                                <json:string key="type">expression</json:string>
+                                                <json:string key="subType">operation</json:string>
+                                                <json:string key="operator">str</json:string>
+                                                <json:array key="args">
+                                                    <xsl:sequence select="ldh:term-node('?' || $var-name)"/>
+                                                </json:array>
+                                            </json:map>
+                                        </json:array>
+                                    </json:map>
+                                    <json:map>
+                                        <json:string key="type">expression</json:string>
+                                        <json:string key="subType">operation</json:string>
+                                        <json:string key="operator">lcase</json:string>
+                                        <json:array key="args">
+                                            <xsl:sequence select="ldh:typed-term-node('literal', $text, ())"/>
+                                        </json:array>
+                                    </json:map>
+                                </json:array>
+                            </json:map>
+                        </json:array>
+                    </json:map>
+                </json:map>
+            </xsl:if>
+        </xsl:copy>
+    </xsl:template>
+
+    <!-- the variable's previous text FILTER goes: replaced by the one appended above, or removed with the text -->
+    <xsl:template match="/json:map/json:map[@key = 'where']/json:array[@key = 'patterns']/json:map[json:string[@key = 'type'] = 'pattern'][json:string[@key = 'subType'] = 'filter'][json:map[@key = 'expression'][json:string[@key = 'operator'] = '&amp;&amp;']/json:array[@key = 'args']/json:map[json:string[@key = 'operator'] = 'isliteral']]" mode="ldh:filter-contains" priority="1">
+        <xsl:param name="var-name" as="xs:string" tunnel="yes"/>
+
+        <xsl:if test="not(json:map[@key = 'expression']/json:array[@key = 'args']/json:map[json:string[@key = 'operator'] = 'isliteral']/json:array[@key = 'args']/json:map[json:string[@key = 'subType'] = 'variable']/json:string[@key = 'value'] = $var-name)">
+            <xsl:next-match/>
+        </xsl:if>
+    </xsl:template>
+
     <!-- A SELECT whose first projection is an expression - (?s AS ?resource), (YEAR(NOW()) AS ?year) - binds that
          variable in its projection alone, so a rewrite that projects something else or appends patterns to its WHERE
          sees the variable unbound there: a COUNT counts nothing, and a pattern joined on it matches every triple in the
