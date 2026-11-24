@@ -1,5 +1,6 @@
 ## [Unreleased]
 ### Added
+- Every rewrite in `client/query-transforms.xsl` is tested on Saxon-JS over queries Traqula parses, comparing the SPARQL it generates; the `JS-tests` workflow runs them with the Traqula bundle's own tests, which no workflow ran before
 - A view's Create opens a form of both the resources it makes: the document's, on top, with the container it goes in, its title, description and primary topic, and the entity's below it. The container is the one the view's rows live in when they determine one, and a lookup when nothing does, as on a view with no rows yet; the document's address follows the container picked, and the title left empty is the entity's label. The button is offered whatever the rows say about the container
 - Create > Item names the container the item goes in, and Create > Container the parent, prefilled with the page the menu was opened on and the reader's to change: `dh:Item` and `dh:Container` gain the constructors for their one editable link (`ldh:ItemContainerConstructor`, `ldh:ContainerParentConstructor`), whose lookup offers containers and the dataspace root alike
 

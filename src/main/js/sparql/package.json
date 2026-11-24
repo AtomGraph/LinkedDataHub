@@ -12,6 +12,7 @@
     "@traqula/parser-sparql-1-1": "1.4.0"
   },
   "devDependencies": {
-    "esbuild": "0.25.10"
+    "esbuild": "0.25.10",
+    "xslt3-he": "3.0.0-beta2"
   }
 }
