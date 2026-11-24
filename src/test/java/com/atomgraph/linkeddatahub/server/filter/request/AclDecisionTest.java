@@ -17,18 +17,28 @@ package com.atomgraph.linkeddatahub.server.filter.request;
 
 import com.atomgraph.linkeddatahub.server.security.AccessModes;
 import com.atomgraph.linkeddatahub.server.util.AuthorizationParams;
+import com.atomgraph.linkeddatahub.server.util.Authorizer;
 import com.atomgraph.linkeddatahub.server.util.DocumentContext;
+import com.atomgraph.linkeddatahub.server.util.Grants;
+import com.atomgraph.linkeddatahub.server.util.ReadableGraphsTransform;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.LDHC;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
 import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.query.ParameterizedSparqlString;
+import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
+import org.apache.jena.query.QueryFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
@@ -38,7 +48,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
@@ -139,7 +151,6 @@ public class AclDecisionTest
     private boolean allowed(Resource agent, Resource mode, String document)
     {
         Dataset store = document.startsWith(ADMIN) ? admin : endUser;
-        Resource accessTo = ResourceFactory.createResource(document);
 
         ParameterizedSparqlString contextPss = new ParameterizedSparqlString(contextQuery);
         contextPss.setIri(SPIN.THIS_VAR_NAME, document);
@@ -150,12 +161,52 @@ public class AclDecisionTest
         }
 
         ParameterizedSparqlString aclPss = new ParameterizedSparqlString(context.applyTo(new ParameterizedSparqlString(aclQuery).asQuery()).toString());
-        aclPss.setParams(new AuthorizationParams(ResourceFactory.createResource(ADMIN), accessTo, agent, context.isOwner(agent)).get());
+        aclPss.setParams(new AuthorizationParams(ResourceFactory.createResource(ADMIN), agent, context.isOwner(agent)).get());
         try (QueryExecution qex = QueryExecution.create(aclPss.asQuery(), admin))
         {
             Model authorizations = qex.execDescribe();
             return AccessModes.covering(mode).stream().anyMatch(m -> authorizations.contains(null, ACL.mode, m));
         }
+    }
+
+    /** The grants of <code>Authorizer.getGrants()</code> in the dataspace the base names. */
+    private Grants grants(Resource agent, String base)
+    {
+        Query grantQuery = Authorizer.getGrantQuery(QueryFactory.create(aclQuery), ACL.Read);
+        List<Grants.Row> rows = grantRows(grantQuery, agent, false);
+        List<Grants.Row> ownerRows = agent != null ? grantRows(grantQuery, agent, true) : List.of();
+        return Grants.of(QueryFactory.create(contextQuery).getQueryPattern(), base, agent, rows, ownerRows);
+    }
+
+    private List<Grants.Row> grantRows(Query grantQuery, Resource agent, boolean owner)
+    {
+        ParameterizedSparqlString pss = new ParameterizedSparqlString(grantQuery.toString());
+        pss.setParams(new AuthorizationParams(ResourceFactory.createResource(ADMIN), agent, owner).get());
+        try (QueryExecution qex = QueryExecution.create(pss.asQuery(), admin))
+        {
+            return Grants.rows(qex.execSelect());
+        }
+    }
+
+    /** The graphs an agent reads through the endpoint: every graph name the rewritten query lists. */
+    private Set<String> queryable(Resource agent, String base, Dataset store, String query)
+    {
+        // the store receives the text, so the text is what is run
+        Query rewritten = QueryFactory.create(ReadableGraphsTransform.rewrite(QueryFactory.create(query), grants(agent, base), false, Set.of()).toString());
+        Set<String> graphs = new HashSet<>();
+        try (QueryExecution qex = QueryExecution.create(rewritten, store))
+        {
+            qex.execSelect().forEachRemaining(row -> graphs.add(row.getResource("g").getURI()));
+        }
+        return graphs;
+    }
+
+    /** The graphs the per-document decision lets an agent read. */
+    private Set<String> readable(Resource agent, Dataset store)
+    {
+        Set<String> graphs = new HashSet<>();
+        store.listNames().forEachRemaining(graph -> { if (allowed(agent, ACL.Read, graph)) graphs.add(graph); });
+        return graphs;
     }
 
     /** What <code>ldh admin make-public</code> writes. */
@@ -273,6 +324,108 @@ public class AclDecisionTest
             """, ADMIN, STRANGER, ITEM), ADMIN);
 
         assertFalse(allowed(STRANGER, ACL.Write, ITEM));
+    }
+
+    /**
+     * The rewritten query reads exactly the graphs the per-document decision lets the agent read, for every agent of
+     * the fixture, in both dataspaces, through each way a query can name a graph.
+     */
+    @Test
+    public void queriesReadWhatDocumentsAllow()
+    {
+        assertQueriesReadWhatDocumentsAllow();
+    }
+
+    @Test
+    public void queriesReadWhatDocumentsAllowOncePublic()
+    {
+        makePublic();
+        assertQueriesReadWhatDocumentsAllow();
+    }
+
+    private void assertQueriesReadWhatDocumentsAllow()
+    {
+        List<Resource> agents = new ArrayList<>(List.of(OWNER, WRITER, READER, DOCUMENT_OWNER, STRANGER));
+        agents.add(null);
+        for (Resource agent : agents)
+            for (String base : new String[] { END_USER, ADMIN })
+            {
+                Dataset store = base.equals(ADMIN) ? admin : endUser;
+                Set<String> expected = readable(agent, store);
+                assertEquals(expected, queryable(agent, base, store, "SELECT DISTINCT ?g { GRAPH ?g { ?s ?p ?o } }"), "GRAPH ?g, " + agent + " " + base);
+                assertEquals(expected, queryable(agent, base, store, "SELECT ?g { GRAPH ?g { } }"), "graph names, " + agent + " " + base);
+
+                store.listNames().forEachRemaining(graph ->
+                {
+                    String query = "SELECT DISTINCT ?g { BIND(<" + graph + "> AS ?g) GRAPH <" + graph + "> { ?s ?p ?o } }";
+                    assertEquals(expected.contains(graph) ? Set.of(graph) : Set.of(), queryable(agent, base, store, query), "GRAPH <" + graph + ">, " + agent);
+
+                    String exists = "SELECT DISTINCT ?g { BIND(<" + graph + "> AS ?g) FILTER EXISTS { GRAPH ?g { ?s ?p ?o } } }";
+                    assertEquals(expected.contains(graph) ? Set.of(graph) : Set.of(), queryable(agent, base, store, exists), "EXISTS, " + agent);
+                });
+            }
+    }
+
+    @Test
+    public void ownerReadsTheOwnedDocumentOnly()
+    {
+        Set<String> graphs = queryable(DOCUMENT_OWNER, END_USER, endUser, "SELECT DISTINCT ?g { GRAPH ?g { ?s ?p ?o } }");
+        assertEquals(Set.of(ITEM), graphs);
+    }
+
+    @Test
+    public void defaultGraphIsEmpty()
+    {
+        endUser.getDefaultModel().add(ResourceFactory.createResource(ITEM), org.apache.jena.vocabulary.RDF.type, ResourceFactory.createResource(END_USER + "Secret"));
+
+        Query rewritten = QueryFactory.create(ReadableGraphsTransform.rewrite(QueryFactory.create("SELECT ?s { ?s ?p ?o }"), grants(OWNER, END_USER), false, Set.of()).toString());
+        try (QueryExecution qex = QueryExecution.create(rewritten, endUser))
+        {
+            assertFalse(qex.execSelect().hasNext());
+        }
+    }
+
+    @Test
+    public void unionGraphIsRefused()
+    {
+        assertThrows(IllegalArgumentException.class, () -> ReadableGraphsTransform.rewrite(
+            QueryFactory.create("SELECT * { GRAPH <urn:x-arq:UnionGraph> { ?s ?p ?o } }"), grants(OWNER, END_USER), false, Set.of()));
+    }
+
+    @Test
+    public void propertyFeatureSubjectsAreDescribedInReadableGraphs()
+    {
+        // a stand-in for text:query: a declared property function, which reads an index rather than a graph. In memory
+        // it is an ordinary predicate of the default graph, standing in for the index's hits
+        String feature = END_USER + "ns#search";
+        endUser.getDefaultModel().add(ResourceFactory.createResource(ITEM), ResourceFactory.createProperty(feature), "x");
+        endUser.getDefaultModel().add(ResourceFactory.createResource(END_USER + "nowhere/"), ResourceFactory.createProperty(feature), "x");
+
+        for (String query : new String[] { "SELECT ?s { ?s <" + feature + "> \"x\" }", "SELECT ?s { (?s) <" + feature + "> \"x\" }" })
+        {
+            Set<String> found = new HashSet<>();
+            Query rewritten = QueryFactory.create(ReadableGraphsTransform.rewrite(QueryFactory.create(query), grants(READER, END_USER), false, Set.of(NodeFactory.createURI(feature))).toString());
+            try (QueryExecution qex = QueryExecution.create(rewritten, endUser))
+            {
+                qex.execSelect().forEachRemaining(row -> { if (row.contains("s") && row.get("s").isURIResource()) found.add(row.getResource("s").getURI()); });
+            }
+            if (query.contains("(?s)")) continue; // a list subject has no list triples in memory; only the rewrite is checked
+            assertEquals(Set.of(ITEM), found, rewritten.toString());
+
+            rewritten = QueryFactory.create(ReadableGraphsTransform.rewrite(QueryFactory.create(query), grants(STRANGER, END_USER), false, Set.of(NodeFactory.createURI(feature))).toString());
+            try (QueryExecution qex = QueryExecution.create(rewritten, endUser))
+            {
+                assertFalse(qex.execSelect().hasNext(), rewritten.toString());
+            }
+        }
+    }
+
+    @Test
+    public void queryVariablesAreNotCaptured()
+    {
+        // the context query's own variables (?Rel, ?Target, ?g, ?s, ?p, ?o) appear in the user's query too
+        Set<String> graphs = queryable(READER, END_USER, endUser, "SELECT DISTINCT ?g { GRAPH ?g { ?s ?p ?o } BIND(1 AS ?Rel) BIND(2 AS ?Target) }");
+        assertEquals(readable(READER, endUser), graphs);
     }
 
 }

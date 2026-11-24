@@ -27,6 +27,9 @@ PREFIX  sioc: <http://rdfs.org/sioc/ns#>
 #   acl:accessToClass  each type the document's own graph asserts; no other graph can add to them. An uploaded file has
 #                      no graph of its own, and is typed nfo:FileDataObject and nothing else
 #   acl:owner          its owner, as its own graph states it, which decides lacl:OwnerAgent
+# The SPARQL endpoint runs the same pattern the other way round, inside every query, with $this bound to the graph
+# the query reads (Grants.guard): $this may only appear where a variable may, and every branch reads it from $this
+# alone, never through a join with another branch
 SELECT DISTINCT ?Rel ?Target
 WHERE
   {   { BIND(acl:accessTo AS ?Rel)

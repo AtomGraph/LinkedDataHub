@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.server.filter.response;
 import com.atomgraph.linkeddatahub.dataspaces.model.AdminDataspace;
 import com.atomgraph.linkeddatahub.dataspaces.model.Dataspace;
 import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
+import com.atomgraph.linkeddatahub.server.model.impl.SPARQLEndpointImpl;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerResponseContext;
 import jakarta.ws.rs.core.MultivaluedHashMap;
@@ -30,6 +31,7 @@ import java.util.List;
 import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,6 +39,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
@@ -142,6 +145,31 @@ public class XkeyTaggingFilterTest
     public void testWriteNotTagged() throws IOException
     {
         when(request.getMethod()).thenReturn("PUT");
+
+        filter.filter(request, response);
+
+        assertNull(xkey());
+    }
+
+    /** A query sent by POST reads, and its result depends on the authorizations: it carries the access-control scope. */
+    @Test
+    public void testQueryPostTagged() throws IOException
+    {
+        when(request.getMethod()).thenReturn("POST");
+        when(uriInfo.getAbsolutePath()).thenReturn(URI.create("https://localhost:4443/sparql"));
+        when(uriInfo.getMatchedResources()).thenReturn(List.of(mock(SPARQLEndpointImpl.class)));
+
+        filter.filter(request, response);
+
+        assertTrue(xkey().contains(XkeyTaggingFilter.getAccessControlScope(dataspace)), xkey());
+    }
+
+    /** A POST to a document appends: it is not tagged. */
+    @Test
+    public void testAppendNotTagged() throws IOException
+    {
+        when(request.getMethod()).thenReturn("POST");
+        when(uriInfo.getMatchedResources()).thenReturn(List.of());
 
         filter.filter(request, response);
 

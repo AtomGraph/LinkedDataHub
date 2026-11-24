@@ -19,14 +19,11 @@ package com.atomgraph.linkeddatahub.resource.acl;
 import com.atomgraph.client.util.HTMLMediaTypePredicate;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.util.ModelUtils;
-import com.atomgraph.linkeddatahub.dataspaces.model.AdminDataspace;
 import com.atomgraph.linkeddatahub.dataspaces.model.Dataspace;
 import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
-import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
-import com.atomgraph.linkeddatahub.server.util.AuthorizationParams;
-import com.atomgraph.linkeddatahub.server.util.DocumentContext;
+import com.atomgraph.linkeddatahub.server.util.Authorizer;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
@@ -41,11 +38,7 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.List;
 import java.util.Optional;
-import org.apache.jena.query.ParameterizedSparqlString;
-import org.apache.jena.query.QuerySolutionMap;
-import org.apache.jena.query.ResultSetRewindable;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
@@ -69,7 +62,6 @@ public class Access
     private final MediaTypes mediaTypes;
     private final EndUserDataspace application;
     private final Optional<AgentContext> agentContext;
-    private final ParameterizedSparqlString documentContextQuery, aclQuery;
     private final com.atomgraph.linkeddatahub.Application system;
     
     /**
@@ -96,8 +88,6 @@ public class Access
         this.application = application.as(EndUserDataspace.class);
         this.agentContext = agentContext;
         this.system = system;
-        documentContextQuery = new ParameterizedSparqlString(system.getDocumentContextQuery().toString());
-        aclQuery = new ParameterizedSparqlString(system.getACLQuery().toString());
     }
 
     /**
@@ -117,26 +107,9 @@ public class Access
             Resource accessTo = ResourceFactory.createResource(new URI(getUriInfo().getQueryParameters().getFirst(SPIN.THIS_VAR_NAME)).toString()); // ?this query param needs to be passed
             if (log.isDebugEnabled()) log.debug("Loading current agent's authorizations for the <{}> document", accessTo);
             
-            QuerySolutionMap thisQsm = new QuerySolutionMap();
-            thisQsm.add(SPIN.THIS_VAR_NAME, accessTo);
-            ParameterizedSparqlString contextPss = getDocumentContextQuery();
-            contextPss.setParams(thisQsm);
-
             // the same decision as AuthorizationFilter's: the document's context from the end-user store, matched by the ACL query
-            final DocumentContext context;
-            ResultSetRewindable contextResult = getSystem().getServiceContext(getEndUserService()).getEndpointAccessor().select(contextPss.asQuery(), List.of(), List.of());
-            try
-            {
-                context = new DocumentContext(contextResult);
-            }
-            finally
-            {
-                contextResult.close();
-            }
-
-            final ParameterizedSparqlString authPss = new ParameterizedSparqlString(context.applyTo(getACLQuery().asQuery()).toString());
-            authPss.setParams(new AuthorizationParams(getDataspace().getAdminDataspace().getBase(), accessTo, agent, context.isOwner(agent)).get());
-            Model authModel = getSystem().getServiceContext(getDataspace().getAdminDataspace().getService()).getSPARQLClient().loadModel(authPss.asQuery());
+            Authorizer authorizer = new Authorizer(getSystem(), getDataspace());
+            Model authModel = authorizer.getAuthorizations(authorizer.getDocumentContext(accessTo), agent);
 
             // filter out authorizations with acl:accessToClass foaf:Agent - all agents already have that access
             ResIterator agentClassIter = authModel.listSubjectsWithProperty(ACL.agentClass, FOAF.Agent);
@@ -155,18 +128,6 @@ public class Access
         {
             throw new BadRequestException(ex);
         }
-    }
-    
-    /**
-     * Returns the SPARQL service for end-user data.
-     * 
-     * @return service resource
-     */
-    protected Service getEndUserService()
-    {
-        return getDataspace().canAs(AdminDataspace.class) ?
-            getDataspace().as(AdminDataspace.class).getEndUserDataspace().getService() :
-            getDataspace().getService();
     }
     
     /**
@@ -256,26 +217,6 @@ public class Access
     public Optional<AgentContext> getAgentContext()
     {
         return agentContext;
-    }
-    
-    /**
-     * Returns a query that loads what the dataspace's store says of a document.
-     * 
-     * @return SPARQL string
-     */
-    public ParameterizedSparqlString getDocumentContextQuery()
-    {
-        return documentContextQuery.copy();
-    }
-
-    /**
-     * Returns authorization query.
-     * 
-     * @return SPARQL string
-     */
-    public ParameterizedSparqlString getACLQuery()
-    {
-        return aclQuery.copy();
     }
     
 }

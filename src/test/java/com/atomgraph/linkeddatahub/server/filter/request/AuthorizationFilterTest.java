@@ -15,6 +15,7 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.request;
 
+import com.atomgraph.linkeddatahub.server.util.Authorizer;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import jakarta.ws.rs.HttpMethod;
 import org.apache.jena.rdf.model.Model;
@@ -26,9 +27,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
- * Unit tests for the pure authorization logic in {@link AuthorizationFilter}:
+ * Unit tests for the pure authorization logic in {@link AuthorizationFilter} and {@link Authorizer}:
  * the HTTP-method-to-access-mode contract, mode lookup over the ACL ontology's mode hierarchy, and the owner grant.
- * These methods do not touch the injected collaborators, so the filter is exercised directly.
+ * These methods do not touch the injected collaborators, so they are exercised directly.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -101,8 +102,8 @@ public class AuthorizationFilterTest
             addProperty(ACL.mode, ACL.Read).
             addProperty(ACL.mode, ACL.Append);
 
-        assertEquals(auth, new AuthorizationFilter().getAuthorizationByMode(model, ACL.Read));
-        assertEquals(auth, new AuthorizationFilter().getAuthorizationByMode(model, ACL.Append));
+        assertEquals(auth, Authorizer.getAuthorizationByMode(model, ACL.Read));
+        assertEquals(auth, Authorizer.getAuthorizationByMode(model, ACL.Append));
     }
 
     @Test
@@ -113,7 +114,7 @@ public class AuthorizationFilterTest
             addProperty(RDF.type, ACL.Authorization).
             addProperty(ACL.mode, ACL.Read);
 
-        assertNull(new AuthorizationFilter().getAuthorizationByMode(model, ACL.Write));
+        assertNull(Authorizer.getAuthorizationByMode(model, ACL.Write));
     }
 
     // getAuthorizationByMode follows the ACL ontology: acl:Append rdfs:subClassOf acl:Write
@@ -126,7 +127,7 @@ public class AuthorizationFilterTest
             addProperty(RDF.type, ACL.Authorization).
             addProperty(ACL.mode, ACL.Write);
 
-        assertEquals(auth, new AuthorizationFilter().getAuthorizationByMode(model, ACL.Append));
+        assertEquals(auth, Authorizer.getAuthorizationByMode(model, ACL.Append));
     }
 
     @Test
@@ -137,7 +138,7 @@ public class AuthorizationFilterTest
             addProperty(RDF.type, ACL.Authorization).
             addProperty(ACL.mode, ACL.Append);
 
-        assertNull(new AuthorizationFilter().getAuthorizationByMode(model, ACL.Write));
+        assertNull(Authorizer.getAuthorizationByMode(model, ACL.Write));
     }
 
     @Test
@@ -148,8 +149,8 @@ public class AuthorizationFilterTest
             addProperty(RDF.type, ACL.Authorization).
             addProperty(ACL.mode, ACL.Read);
 
-        assertNull(new AuthorizationFilter().getAuthorizationByMode(model, ACL.Append));
-        assertNull(new AuthorizationFilter().getAuthorizationByMode(model, ACL.Write));
+        assertNull(Authorizer.getAuthorizationByMode(model, ACL.Append));
+        assertNull(Authorizer.getAuthorizationByMode(model, ACL.Write));
     }
 
     @Test
@@ -160,10 +161,10 @@ public class AuthorizationFilterTest
             addProperty(RDF.type, ACL.Authorization).
             addProperty(ACL.mode, ACL.Access);
 
-        assertNull(new AuthorizationFilter().getAuthorizationByMode(model, ACL.Read));
-        assertNull(new AuthorizationFilter().getAuthorizationByMode(model, ACL.Append));
-        assertNull(new AuthorizationFilter().getAuthorizationByMode(model, ACL.Write));
-        assertNull(new AuthorizationFilter().getAuthorizationByMode(model, ACL.Control));
+        assertNull(Authorizer.getAuthorizationByMode(model, ACL.Read));
+        assertNull(Authorizer.getAuthorizationByMode(model, ACL.Append));
+        assertNull(Authorizer.getAuthorizationByMode(model, ACL.Write));
+        assertNull(Authorizer.getAuthorizationByMode(model, ACL.Control));
     }
 
 }

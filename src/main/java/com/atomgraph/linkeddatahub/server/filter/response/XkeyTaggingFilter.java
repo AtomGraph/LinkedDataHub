@@ -54,6 +54,22 @@ public class XkeyTaggingFilter implements ContainerResponseFilter
      */
     public static final String HEADER_NAME = "xkey";
 
+    /**
+     * Returns true if the request reads: a <code>GET</code> or <code>HEAD</code>, or a query sent by <code>POST</code> to
+     * a SPARQL endpoint, which the frontend caches on its body for anonymous agents. A query's result depends on the
+     * authorizations, which decide the graphs it reads, so it has to carry the access-control scope as a document does.
+     *
+     * @param request request
+     * @return true for a read
+     */
+    public static boolean isRead(ContainerRequestContext request)
+    {
+        if (HttpMethod.GET.equals(request.getMethod()) || HttpMethod.HEAD.equals(request.getMethod())) return true;
+
+        return HttpMethod.POST.equals(request.getMethod()) &&
+            request.getUriInfo().getMatchedResources().stream().anyMatch(com.atomgraph.core.model.SPARQLEndpoint.class::isInstance);
+    }
+
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject jakarta.inject.Provider<Optional<Dataspace>> app;
 
@@ -61,7 +77,7 @@ public class XkeyTaggingFilter implements ContainerResponseFilter
     public void filter(ContainerRequestContext request, ContainerResponseContext response) throws IOException
     {
         if (getSystem().getFrontendProxy() == null) return; // no frontend cache to index the tags
-        if (!HttpMethod.GET.equals(request.getMethod()) && !HttpMethod.HEAD.equals(request.getMethod())) return; // only reads are cached
+        if (!isRead(request)) return; // only reads are cached
 
         Optional<Dataspace> dataspace = getDataspace();
         if (dataspace == null || !dataspace.isPresent()) return;
