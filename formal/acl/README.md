@@ -72,7 +72,9 @@ formal/acl/tracks-code.sh origin/develop
 | `Auth.principal` | `aclQuery`'s agent branches, `AuthorizationParams.get` (`server/util/`) |
 | `Auth.matchRow`, `Auth.covers` | `aclQuery`'s target branches over the injected `VALUES (?Rel ?Target)` |
 | `Reader`, `authIn`, `memberIn` | `aclQuery`'s `?g foaf:primaryTopic ?auth` and `?groupG foaf:primaryTopic ?Group` |
-| `grant`, `allow` | `AuthorizationFilter.authorize`, including the `PUT` fallback to the parent |
+| `grant`, `allow` | `AuthorizationFilter.authorize` and `Authorizer.authorize` (`server/util/`), including the `PUT` fallback to the parent |
+| `grantRows` | `Authorizer.getGrantQuery`: `aclQuery`'s pattern with no document's rows, run without and with `$OwnerAgentClass` |
+| `guardWith`, `guard` | `Grants.of` and `Grants.guard` (`server/util/`): the context of a graph meets an unconditional row, or names the agent as owner and meets a row only the owner's run adds |
 | `allowRequest` | `AuthorizationFilter.filter`, `getAccessMode` |
 | `EndUserOnly` (class part) | the `adm:HierarchyClassAccess` constraint on `acl:Authorization` (`app/admin/adm.ttl`) |
 | `ownerAccess` | `acl/authorizations/owner-access/` (`platform/namespace-ontology.trig.template`) |
@@ -84,6 +86,13 @@ formal/acl/tracks-code.sh origin/develop
 | `HReq.method` (`LdhHttp.Answer`) | `getAccessMode`: a `PUT` with `If-None-Match: *` requires acl:Append |
 
 `AuthorizationFilter` lives in `server/filter/request/`, under `src/main/java/com/atomgraph/linkeddatahub/`.
+
+The guard is modelled as a decision on one graph. Two parts of the query rewrite around it are not: the guard also
+requires the graph to be under the dataspace's base, which the request's origin decides for a document, and
+`ReadableGraphsTransform` has to place the guard on every way a query reads a graph. The second is tested instead, in
+`ReadableGraphsTransformTest` (the rewritten query over the store answers as the query over the readable graphs, for
+the client's query shapes) and `AclDecisionTest` (the graphs every fixture agent reads through a query are the
+documents it may read).
 
 ## Results
 
@@ -111,6 +120,7 @@ Proven with no `sorry`, using only the axioms `propext`, `Quot.sound` and, throu
 | `ownerAccess_endUser` | Owner access matches an end-user document exactly when the agent owns it, as the owner grant before 6.0 did |
 | `ownerAccess_admin` | Owner access opens nothing in the admin dataspace, where the owner grant before 6.0 applied too |
 | `Anc_iff_reachB` | Reachability over an edge list with each edge used once is the transitive closure, with fuel the number of edges |
+| `guardWith_iff`, `guard_iff` | The guard a query places on a graph holds exactly when `grant` lets the agent have the mode on that document: the endpoint reads what the document decision allows |
 | `allowRequest_iff` | `allowRequestB`, a `Bool` over a finite store and admin dataset, is `allowRequest` on the store and reader they denote |
 | `decide_forbidden_iff` | The server answers `403` exactly when the decision denies the request: a denied agent learns nothing a later check would say, not even whether the document exists |
 | `serve_refused` | A refused request leaves the store as it was |

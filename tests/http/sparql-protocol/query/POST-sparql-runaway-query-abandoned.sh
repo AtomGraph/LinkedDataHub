@@ -12,6 +12,14 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 # once the result outgrows it, which closes the backend connection and makes the triplestore abandon the query. That
 # failure is what is counted here: an allocator failure in the SPARQL store, the fetch having been cut where it was bounded
 
+# the agent reads every document: a query reads only the graphs its agent may read
+
+ldh admin add agent \
+  -c "$OWNER_CERT_KEYSTORE" \
+  -p "$OWNER_CERT_PWD" \
+  --agent "$AGENT_URI" \
+  "${ADMIN_BASE_URL}acl/groups/readers/"
+
 compose=(docker compose -f "$HTTP_TEST_ROOT/../../docker-compose.yml" -f "$HTTP_TEST_ROOT/docker-compose.http-tests.yml" --env-file "$HTTP_TEST_ROOT/.env")
 
 sparql_store_failures()

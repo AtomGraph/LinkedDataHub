@@ -19,7 +19,6 @@ package com.atomgraph.linkeddatahub.server.util;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.linkeddatahub.vocabulary.LDS;
-import com.atomgraph.spinrdf.vocabulary.SPIN;
 import java.util.function.Supplier;
 import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.rdf.model.Resource;
@@ -33,7 +32,7 @@ import org.apache.jena.vocabulary.RDFS;
 public class AuthorizationParams implements Supplier<QuerySolutionMap>
 {
 
-    private final Resource base, absolutePath, agent;
+    private final Resource base, agent;
     private final boolean owner;
     
     /**
@@ -41,14 +40,12 @@ public class AuthorizationParams implements Supplier<QuerySolutionMap>
      * <em>Does not set <samp>$mode</samp> value intentionally as we want to provide the {@link com.atomgraph.linkeddatahub.server.security.AuthorizationContext} with all of the agent's authorizations.</em>
      * 
      * @param base application's base URI
-     * @param absolutePath request URL without query string
      * @param agent agent resource or null
      * @param owner whether the agent owns the document the decision is about, which makes it a <code>lacl:OwnerAgent</code>
      */
-    public AuthorizationParams(Resource base, Resource absolutePath, Resource agent, boolean owner)
+    public AuthorizationParams(Resource base, Resource agent, boolean owner)
     {
         this.base = base;
-        this.absolutePath = absolutePath;
         this.agent = agent;
         this.owner = agent != null && owner;
     }
@@ -62,7 +59,6 @@ public class AuthorizationParams implements Supplier<QuerySolutionMap>
     public QuerySolutionMap get()
     {
         QuerySolutionMap qsm = new QuerySolutionMap();
-        qsm.add(SPIN.THIS_VAR_NAME, getAbsolutePath());
         qsm.add(LDS.base.getLocalName(), getBase());
         
         if (getAgent() != null)
@@ -88,16 +84,6 @@ public class AuthorizationParams implements Supplier<QuerySolutionMap>
     public Resource getBase()
     {
         return base;
-    }
-
-    /**
-     * Gets the absolute path resource for authorization.
-     * 
-     * @return the absolute path resource
-     */
-    public Resource getAbsolutePath()
-    {
-        return absolutePath;
     }
 
     /**

@@ -18,6 +18,14 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 # The triplestore writes faster than the platform reads (this stack logs the wire at DEBUG), so either happens in CI.
 # Either way the caller gets no more than the limit and a 502 with a description, which is what is asserted
 
+# the agent reads every document: a query reads only the graphs its agent may read
+
+ldh admin add agent \
+  -c "$OWNER_CERT_KEYSTORE" \
+  -p "$OWNER_CERT_PWD" \
+  --agent "$AGENT_URI" \
+  "${ADMIN_BASE_URL}acl/groups/readers/"
+
 query="SELECT * { GRAPH ?g1 { ?a ?b ?c } GRAPH ?g2 { ?d ?e ?f } GRAPH ?g3 { ?h ?i ?j } } LIMIT 100000"
 
 response=$(mktemp)

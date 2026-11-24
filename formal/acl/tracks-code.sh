@@ -20,6 +20,8 @@ sources=(
   src/main/resources/com/atomgraph/linkeddatahub/acl.rdf
   src/main/java/com/atomgraph/linkeddatahub/server/util/DocumentContext.java
   src/main/java/com/atomgraph/linkeddatahub/server/util/AuthorizationParams.java
+  src/main/java/com/atomgraph/linkeddatahub/server/util/Authorizer.java
+  src/main/java/com/atomgraph/linkeddatahub/server/util/Grants.java
   src/main/java/com/atomgraph/linkeddatahub/server/filter/request/AuthorizationFilter.java
   src/main/java/com/atomgraph/linkeddatahub/server/mapper/auth/AuthorizationExceptionMapper.java
   src/main/resources/com/atomgraph/linkeddatahub/app/admin/adm.ttl

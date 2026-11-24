@@ -20,11 +20,19 @@ import com.atomgraph.client.util.HTMLMediaTypePredicate;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.util.ModelUtils;
 import com.atomgraph.core.vocabulary.SD;
+import com.atomgraph.linkeddatahub.dataspaces.model.Dataspace;
 import com.atomgraph.linkeddatahub.model.Service;
+import com.atomgraph.linkeddatahub.server.security.AgentContext;
+import com.atomgraph.linkeddatahub.server.util.Authorizer;
+import com.atomgraph.linkeddatahub.server.util.Grants;
+import com.atomgraph.linkeddatahub.server.util.ReadableGraphsTransform;
+import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.FormParam;
@@ -37,6 +45,7 @@ import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
+import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.update.UpdateRequest;
@@ -45,6 +54,9 @@ import org.apache.jena.vocabulary.RDF;
 /**
  * LinkedDataHub SPARQL endpoint implementation.
  * We need to subclass the Core class because we're injecting an optional <code>Service</code>.
+ * A query is answered as if the store held only the documents the agent may read: {@link com.atomgraph.linkeddatahub.server.filter.request.AuthorizationFilter} decides
+ * only whether the agent may use the endpoint, so the query itself is rewritten to check each graph it reads
+ * ({@link ReadableGraphsTransform}).
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -52,6 +64,9 @@ public class SPARQLEndpointImpl extends com.atomgraph.core.model.impl.SPARQLEndp
 {
 
     private final Service service;
+    private final Dataspace dataspace;
+    private final Optional<AgentContext> agentContext;
+    private final com.atomgraph.linkeddatahub.Application system;
 
     /**
      * Constructs endpoint.
@@ -61,14 +76,64 @@ public class SPARQLEndpointImpl extends com.atomgraph.core.model.impl.SPARQLEndp
      * @param uriInfo current request URI information
      * @param service SPARQL service
      * @param mediaTypes registry of readable/writable media types
+     * @param dataspace current dataspace
+     * @param agentContext the authenticated agent, if any
      * @param system system application
      */
     @Inject
     public SPARQLEndpointImpl(@Context Request request, @Context HttpHeaders httpHeaders, @Context UriInfo uriInfo, Optional<Service> service, MediaTypes mediaTypes,
-            com.atomgraph.linkeddatahub.Application system)
+            Dataspace dataspace, Optional<AgentContext> agentContext, com.atomgraph.linkeddatahub.Application system)
     {
         super(request, httpHeaders, uriInfo, system.getServiceContext(service.get()).getQueryEndpointAccessor(system.getMaxQueryResponseLength()), mediaTypes);
         this.service = service.get();
+        this.dataspace = dataspace;
+        this.agentContext = agentContext;
+        this.system = system;
+    }
+
+    /**
+     * Answers the query over the documents the agent may read.
+     * The dataset description is decided first. The protocol's <code>default-graph-uri</code> and
+     * <code>named-graph-uri</code> replace the query's <code>FROM</code> and <code>FROM NAMED</code>, as the protocol
+     * specifies, so both are sent as protocol parameters and the query keeps neither. A default graph is kept only
+     * from the listed graphs the agent may read, since the patterns over it are not checked graph by graph; named
+     * graphs are checked where <code>GRAPH</code> reads them. Then the pattern is rewritten. A query that cannot be
+     * rewritten is refused with <code>400 Bad Request</code> and never sent as it was.
+     *
+     * @param query SPARQL query
+     * @param defaultGraphUris default graph URIs
+     * @param namedGraphUris named graph URIs
+     * @return response builder
+     */
+    @Override
+    public Response.ResponseBuilder getResponseBuilder(Query query, List<URI> defaultGraphUris, List<URI> namedGraphUris)
+    {
+        if (query == null) throw new BadRequestException("Query string not provided");
+
+        boolean protocolDataset = !defaultGraphUris.isEmpty() || !namedGraphUris.isEmpty();
+        List<URI> defaultGraphs = protocolDataset ? defaultGraphUris : query.getGraphURIs().stream().map(URI::create).toList();
+        List<URI> namedGraphs = protocolDataset ? namedGraphUris : query.getNamedGraphURIs().stream().map(URI::create).toList();
+
+        Authorizer authorizer = new Authorizer(getSystem(), getDataspace());
+        Grants grants = authorizer.getGrants(getAgentContext().map(AgentContext::getAgent).orElse(null), ACL.Read);
+        List<URI> readableDefaultGraphs = authorizer.readable(defaultGraphs, grants);
+
+        Query datasetless = query.cloneQuery();
+        datasetless.getGraphURIs().clear();
+        datasetless.getNamedGraphURIs().clear();
+
+        final Query rewritten;
+        try
+        {
+            rewritten = ReadableGraphsTransform.rewrite(datasetless, grants, !readableDefaultGraphs.isEmpty(),
+                getService().getPropertyFeatures().stream().map(Resource::asNode).collect(Collectors.toSet()));
+        }
+        catch (IllegalArgumentException ex)
+        {
+            throw new BadRequestException(ex.getMessage(), ex);
+        }
+
+        return super.getResponseBuilder(rewritten, readableDefaultGraphs, namedGraphs);
     }
 
     /**
@@ -109,6 +174,36 @@ public class SPARQLEndpointImpl extends com.atomgraph.core.model.impl.SPARQLEndp
     public Service getService()
     {
         return service;
+    }
+
+    /**
+     * Returns the dataspace this endpoint belongs to.
+     *
+     * @return dataspace
+     */
+    public Dataspace getDataspace()
+    {
+        return dataspace;
+    }
+
+    /**
+     * Returns the authenticated agent, if any.
+     *
+     * @return optional agent context
+     */
+    public Optional<AgentContext> getAgentContext()
+    {
+        return agentContext;
+    }
+
+    /**
+     * Returns the system application.
+     *
+     * @return system application
+     */
+    public com.atomgraph.linkeddatahub.Application getSystem()
+    {
+        return system;
     }
     
     /**
