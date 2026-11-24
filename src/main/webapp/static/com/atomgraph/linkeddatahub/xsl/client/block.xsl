@@ -130,11 +130,16 @@ exclude-result-prefixes="#all"
     <!-- combined forward + inverse view-block lookup; substitutes VALUES ?type { ... } from the resource's rdf:types.
          Besides ?block, binds the attachment ?property, the ?inverse direction flag, the ?forClass to construct
          (property range for forward views, domain for inverse ones) and the view's ldh:showWhenEmpty.
+         A domain or range that is a class expression of owl:unionOf names each of its member classes: a property that
+         points at "a source or a service" gets its views on the pages of both. ?forClass is a named class or nothing,
+         as a blank node class cannot be constructed.
          No container: where a view creates into is a property of its results rather than of its declaration,
          so it is determined per view by ldh:ViewContainer in block/view.xsl. -->
     <xsl:variable name="ldh:ontology-view-query" as="xs:string">
         <![CDATA[
             PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            PREFIX  owl:  <http://www.w3.org/2002/07/owl#>
             PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
 
             SELECT DISTINCT ?block ?property ?inverse ?forClass ?showWhenEmpty
@@ -144,11 +149,16 @@ exclude-result-prefixes="#all"
                   { ?property  rdfs:domain  ?type }
                 UNION
                   { ?property  rdfs:subPropertyOf+/rdfs:domain  ?type }
+                UNION
+                  { ?property  rdfs:subPropertyOf*/rdfs:domain/owl:unionOf/rdf:rest*/rdf:first  ?type }
                 BIND(false AS ?inverse)
                 OPTIONAL {
                     { ?property  rdfs:range  ?forClass }
                   UNION
                     { ?property  rdfs:subPropertyOf+/rdfs:range  ?forClass }
+                  UNION
+                    { ?property  rdfs:subPropertyOf*/rdfs:range/owl:unionOf/rdf:rest*/rdf:first  ?forClass }
+                  FILTER isIRI(?forClass)
                 }
               }
               UNION
@@ -157,11 +167,16 @@ exclude-result-prefixes="#all"
                   { ?property  rdfs:range  ?type }
                 UNION
                   { ?property  rdfs:subPropertyOf+/rdfs:range  ?type }
+                UNION
+                  { ?property  rdfs:subPropertyOf*/rdfs:range/owl:unionOf/rdf:rest*/rdf:first  ?type }
                 BIND(true AS ?inverse)
                 OPTIONAL {
                     { ?property  rdfs:domain  ?forClass }
                   UNION
                     { ?property  rdfs:subPropertyOf+/rdfs:domain  ?forClass }
+                  UNION
+                    { ?property  rdfs:subPropertyOf*/rdfs:domain/owl:unionOf/rdf:rest*/rdf:first  ?forClass }
+                  FILTER isIRI(?forClass)
                 }
               }
               OPTIONAL { ?block  ldh:showWhenEmpty  ?showWhenEmpty }
