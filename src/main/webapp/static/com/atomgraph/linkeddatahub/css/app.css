@@ -1444,9 +1444,6 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   flex-wrap: wrap; min-width: 0;
 }
 .ldh-res-titleline .ttl { margin: 0; }
-/* The chips are centred on the title, not set on its baseline: a 20px pill whose
-   small text sits on a large title's baseline hangs below the title's middle. */
-.ldh-res-titleline .ldh-types { align-self: center; }
 /* The lede. Capped so a summary stays a summary — the full text is still in
    the statement list when it exceeds the promotion limit. */
 .ldh-res-desc {
