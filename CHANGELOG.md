@@ -9,6 +9,7 @@
 - `client/webalgebra.xsl`: the executor client, shared by the assistant and the actions
 - An action takes arguments declared as a SPIN template's (`spin:constraint` with `spl:Argument`); the dialog asks for them before the dry run and binds each by its predicate's local name
 - The taxonomy package offers Move concept and Merge concepts, each with a concept argument
+- `ldh:DrawerSections`, an open, collecting mode: a package's own sections of the dataspace drawer, above the document tree, drawn for the pane's dataspace (`$base`) and the document it shows (`$href`), and drawn again after every in-page navigation, so a section marks its current entry by rendering alone
 
 ### Changed
 - `ldh:TreeChildrenLoad` returns the predicates that link a node to its children; the platform builds and runs the query
