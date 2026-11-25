@@ -62,6 +62,22 @@ exclude-result-prefixes="#all"
     <xsl:mode name="ldh:TreeChildrenLoad" on-no-match="deep-skip"/>
     <xsl:mode name="ldh:TreeParentsLoad" on-no-match="deep-skip"/>
 
+    <!-- A package's own sections of the dataspace drawer: what it makes of the dataspace, named before the
+         platform's generic axes (the document tree, the classes). ldh:DataspaceDrawer (client/navigation.xsl)
+         applies this mode to the pane the drawer is built in, above the document tree, and
+         ldh:NavigationUpdate applies it again after every in-page navigation and puts what it returns in
+         place of what was there - so a section that marks its current entry does so by rendering, and
+         needs nothing that runs. Two parameters:
+
+             $base  xs:anyURI    the pane's dataspace; a package that belongs in its own dataspace tests it
+             $href  xs:anyURI?   the document the pane shows, without its query
+
+         A rule returns its sections, each a div.sb-section with an h3.sb-heading, so that it takes the
+         drawer's dividers, headings and rows. The mode is collecting: every package's sections are wanted,
+         so a rule ends with xsl:next-match (PackageContract checks it). deep-skip: without a package the
+         drawer is the platform's three sections. -->
+    <xsl:mode name="ldh:DrawerSections" on-no-match="deep-skip" ldh:collecting="true"/>
+
     <!-- ldh:HydrationHook, the factories of deferred work for a rendered row, is not here and not open: a
          factory runs inside ixsl:promise, which is control flow a package does not get (a package has
          no ixsl: at all). The mode and the platform's own rules in it live in client/block.xsl, beside

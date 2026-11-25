@@ -94,6 +94,8 @@ ORDER BY DESC(?created)
         <xsl:param name="base" select="lds:base()" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'left-sidebar ldh-sidebar'" as="xs:string?"/>
+        <!-- the document the pane shows, as its body names it: what a package's section marks as current -->
+        <xsl:param name="href" select="(./div[contains-token(@class, 'document-body')]/@about)[1] ! xs:anyURI(.)" as="xs:anyURI?"/>
 
         <!-- the dataspace drawer (§19): it slides over the content and dismisses via its backdrop.
              Closed by default: inert takes its subtree out of the tab order and away from AT while
@@ -122,6 +124,16 @@ ORDER BY DESC(?created)
 
             <!-- one scroll box for all sections, so the search row stays pinned -->
             <div class="sb-scroll">
+                <!-- the packages' own sections, first (ldh:DrawerSections, client/hooks.xsl), in a box of their
+                     own that ldh:NavigationUpdate fills again; it keeps the pane's dataspace for that. The
+                     context is the pane the drawer is built in -->
+                <div class="sb-packages" data-base="{$base}">
+                    <xsl:apply-templates select="." mode="ldh:DrawerSections">
+                        <xsl:with-param name="base" select="$base"/>
+                        <xsl:with-param name="href" select="$href"/>
+                    </xsl:apply-templates>
+                </div>
+
                 <!-- document tree container: the containment axis -->
                 <div class="document-tree sb-section">
                     <h3 class="sb-heading">
@@ -224,6 +236,22 @@ ORDER BY DESC(?created)
                     <xsl:with-param name="container" select="."/>
                     <xsl:with-param name="endpoint" select="sd:endpoint()"/>
                 </xsl:call-template>
+            </xsl:for-each>
+
+            <!-- the packages' sections follow the navigation by being drawn again for the document now shown -->
+            <xsl:for-each select=".//div[contains-token(@class, 'sb-packages')]">
+                <xsl:variable name="pane" select="ancestor::div[contains-token(@class, 'ldh-pane')][1]" as="element()"/>
+                <xsl:variable name="base" select="xs:anyURI(@data-base)" as="xs:anyURI"/>
+                <!-- the document, without the query the page was opened with (its mode) and without a fragment -->
+                <xsl:variable name="href-string" select="string(ac:document-uri($href))" as="xs:string"/>
+                <xsl:variable name="document" select="xs:anyURI(if (contains($href-string, '?')) then substring-before($href-string, '?') else $href-string)" as="xs:anyURI"/>
+
+                <xsl:result-document href="?." method="ixsl:replace-content">
+                    <xsl:apply-templates select="$pane" mode="ldh:DrawerSections">
+                        <xsl:with-param name="base" select="$base"/>
+                        <xsl:with-param name="href" select="$document"/>
+                    </xsl:apply-templates>
+                </xsl:result-document>
             </xsl:for-each>
         </xsl:for-each>
     </xsl:template>

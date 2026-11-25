@@ -32,7 +32,7 @@ reports each breach with its line. The rules, by name:
 - **modes.** A template matches only in an open mode, never `#all`. The open modes are derived from the
   platform's stylesheets: every mode declared or matched in the modules at and below the composition marker
   (`hooks.xsl`, `client/hooks.xsl` and what they import), the unnamed mode included for the value leaves.
-  Today: `ldh:TreeNode`, `ac:PropertyEditor`, `ldh:ContentColumn`, `ldh:TreeChildrenLoad`, `ldh:TreeParentsLoad`,
+  Today: `ldh:TreeNode`, `ac:PropertyEditor`, `ldh:ContentColumn`, `ldh:DrawerSections`, `ldh:TreeChildrenLoad`, `ldh:TreeParentsLoad`,
   `ldh:DateTimePair`, `ldh:TypeControl`, the value leaves of `imports/values.xsl` and the unnamed mode.
 - **names.** A function, named template, variable, param, key, accumulator or mode is declared in the package's
   own namespace, not in `ldh:`, `ac:`, `lds:`, `xhtml:`, `svg:` or no namespace.
@@ -47,7 +47,7 @@ reports each breach with its line. The rules, by name:
 - **ids.** No literal `id` attribute and no constructed one: the platform finds its own elements by id, a
   package addresses its markup by class.
 - **collecting.** In a mode marked `ldh:collecting="true"`, a template ends with `xsl:next-match`, so every
-  package's contribution for a node runs. No open mode is collecting today; the drawer sections of #527 will be.
+  package's contribution for a node runs. `ldh:DrawerSections` is the one collecting mode today.
 
 Calls into the platform are free. A rule may call any platform function, named template or open mode:
 with no `ixsl:` and no I/O it can only compute with what they return.
@@ -59,6 +59,7 @@ What each open mode returns:
 | `ldh:TreeNode` | a resource in a tree | the node's `li` (decorate the fallback with `xsl:next-match`) |
 | `ac:PropertyEditor` | a resource or statement | its property list or row; empty hides |
 | `ldh:ContentColumn` | the document | markup for the column beside the content body |
+| `ldh:DrawerSections` | the pane a drawer is built in | the package's sections of the dataspace drawer, each a `div.sb-section`; drawn again after every in-page navigation, with the pane's dataspace (`$base`) and the document shown (`$href`) |
 | `ldh:TreeChildrenLoad` | a node's disclosure button | `map{ 'parent-properties': xs:anyURI*, 'child-properties': xs:anyURI* }` |
 | `ldh:TreeParentsLoad` | the `ul.ldh-tree` | the same map, for the climb |
 | the value leaves | a property, value or control | markup |
@@ -119,7 +120,7 @@ four actions: *Delete concept* (drop every link to the concept from the document
 its document), *Make top concept*, *Move concept* (argument: the concept to move under) and *Merge concepts*
 (argument: the concept to merge into, which takes over every link and keeps the label as `skos:altLabel`). Zero violations; the previous version had 49.
 
-**Messaging** (designed, not built): renders notes, threads and the inbox; contributes a drawer section (#527);
+**Messaging** (designed, not built): renders notes, threads and the inbox; contributes a drawer section (`ldh:DrawerSections`);
 offers *Accept messages*, *Archive* and *Mark read* as actions. *Send* needs the executor to delegate to another
 origin, which it does not today (it writes anonymously outside the trusted origin), so it waits on that.
 
