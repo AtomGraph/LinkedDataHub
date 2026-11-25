@@ -1,3 +1,7 @@
+## [Unreleased]
+### Fixed
+- A resource header's type chips are centred on its title, not set on its baseline, where they hung below the title's middle
+
 ## [6.5.2] - 2026-11-12
 ### Fixed
 - The `ldh` plugin's app skill holds no shell interpreter line, which the plugin directory reads as an inline shell snippet
