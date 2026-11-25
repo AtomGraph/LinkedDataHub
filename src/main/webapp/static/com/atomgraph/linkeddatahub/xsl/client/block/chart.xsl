@@ -118,8 +118,12 @@ exclude-result-prefixes="#all"
 
         <xsl:document>
             <json:map>
-                <json:number key="limit"><xsl:value-of select="$limit"/></json:number>
-                <json:number key="offset"><xsl:value-of select="$offset"/></json:number>
+                <json:map key="solutionModifiers">
+                    <json:map key="limitOffset">
+                        <json:number key="limit"><xsl:value-of select="$limit"/></json:number>
+                        <json:number key="offset"><xsl:value-of select="$offset"/></json:number>
+                    </json:map>
+                </json:map>
             </json:map>
         </xsl:document>
     </xsl:function>
@@ -128,8 +132,8 @@ exclude-result-prefixes="#all"
     <xsl:function name="ldh:page-results" as="document-node()">
         <xsl:param name="results" as="document-node()"/>
         <xsl:param name="page" as="document-node()"/>
-        <xsl:variable name="limit" select="xs:integer(($page/json:map/json:number[@key = 'limit'], 0)[1])" as="xs:integer"/>
-        <xsl:variable name="offset" select="xs:integer(($page/json:map/json:number[@key = 'offset'], 0)[1])" as="xs:integer"/>
+        <xsl:variable name="limit" select="(ldh:query-limit($page/json:map), 0)[1]" as="xs:integer"/>
+        <xsl:variable name="offset" select="(ldh:query-offset($page/json:map), 0)[1]" as="xs:integer"/>
 
         <xsl:document>
             <xsl:for-each select="$results/srx:sparql">
@@ -266,8 +270,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="page" as="document-node()"/>
         <xsl:param name="chart-type" as="xs:anyURI"/>
         <xsl:variable name="total-count" select="count($results/srx:sparql/srx:results/srx:result)" as="xs:integer"/>
-        <xsl:variable name="limit" select="xs:integer(($page/json:map/json:number[@key = 'limit'], 0)[1])" as="xs:integer"/>
-        <xsl:variable name="offset" select="xs:integer(($page/json:map/json:number[@key = 'offset'], 0)[1])" as="xs:integer"/>
+        <xsl:variable name="limit" select="(ldh:query-limit($page/json:map), 0)[1]" as="xs:integer"/>
+        <xsl:variable name="offset" select="(ldh:query-offset($page/json:map), 0)[1]" as="xs:integer"/>
 
         <xsl:call-template name="ldh:RenderPager">
             <xsl:with-param name="container-id" select="$container-id"/>
@@ -714,48 +718,33 @@ exclude-result-prefixes="#all"
         <!-- the controls' values, as the triples that replace the chart's stored ones -->
         <xsl:variable name="triples" as="element()*">
             <xsl:for-each select="$chart-type">
-                <json:map>
-                    <json:string key="subject"><xsl:value-of select="$about"/></json:string>
-                    <json:string key="predicate">&ldh;chartType</json:string>
-                    <json:string key="object"><xsl:value-of select="."/></json:string>
-                </json:map>
+                <xsl:sequence select="ldh:triple-node(ldh:typed-term-node('namedNode', string($about), ()), ldh:typed-term-node('namedNode', '&ldh;chartType', ()), ldh:typed-term-node('namedNode', string(.), ()))"/>
             </xsl:for-each>
             <xsl:for-each select="$category">
-                <json:map>
-                    <json:string key="subject"><xsl:value-of select="$about"/></json:string>
-                    <json:string key="predicate"><xsl:value-of select="if ($graph-chart) then '&ldh;categoryProperty' else '&ldh;categoryVarName'"/></json:string>
-                    <json:string key="object"><xsl:value-of select="if ($graph-chart) then . else '&quot;' || . || '&quot;'"/></json:string>
-                </json:map>
+                <xsl:sequence select="ldh:triple-node(ldh:typed-term-node('namedNode', string($about), ()), if ($graph-chart) then ldh:typed-term-node('namedNode', '&ldh;categoryProperty', ()) else ldh:typed-term-node('namedNode', '&ldh;categoryVarName', ()), if ($graph-chart) then ldh:typed-term-node('namedNode', string(.), ()) else ldh:typed-term-node('literal', string(.), ()))"/>
             </xsl:for-each>
             <xsl:for-each select="$series">
-                <json:map>
-                    <json:string key="subject"><xsl:value-of select="$about"/></json:string>
-                    <json:string key="predicate"><xsl:value-of select="if ($graph-chart) then '&ldh;seriesProperty' else '&ldh;seriesVarName'"/></json:string>
-                    <json:string key="object"><xsl:value-of select="if ($graph-chart) then . else '&quot;' || . || '&quot;'"/></json:string>
-                </json:map>
+                <xsl:sequence select="ldh:triple-node(ldh:typed-term-node('namedNode', string($about), ()), if ($graph-chart) then ldh:typed-term-node('namedNode', '&ldh;seriesProperty', ()) else ldh:typed-term-node('namedNode', '&ldh;seriesVarName', ()), if ($graph-chart) then ldh:typed-term-node('namedNode', string(.), ()) else ldh:typed-term-node('literal', string(.), ()))"/>
             </xsl:for-each>
         </xsl:variable>
         <!-- only the properties the controls own are replaced: the rest of the chart stays as the document stores it,
              whoever wrote it since the page was loaded -->
         <xsl:variable name="where-pattern" as="element()">
             <json:map>
-                <json:string key="type">optional</json:string>
+                <json:string key="type">pattern</json:string>
+                <json:string key="subType">optional</json:string>
                 <json:array key="patterns">
                     <xsl:sequence select="ldh:triples-to-bgp(ldh:uri-po-pattern($about))"/>
                     <json:map>
-                        <json:string key="type">filter</json:string>
+                        <json:string key="type">pattern</json:string>
+                        <json:string key="subType">filter</json:string>
                         <json:map key="expression">
-                            <json:string key="type">operation</json:string>
+                            <json:string key="type">expression</json:string>
+                            <json:string key="subType">operation</json:string>
                             <json:string key="operator">in</json:string>
                             <json:array key="args">
-                                <json:string>?p</json:string>
-                                <json:array>
-                                    <json:string>&ldh;chartType</json:string>
-                                    <json:string>&ldh;categoryVarName</json:string>
-                                    <json:string>&ldh;categoryProperty</json:string>
-                                    <json:string>&ldh;seriesVarName</json:string>
-                                    <json:string>&ldh;seriesProperty</json:string>
-                                </json:array>
+                                <xsl:sequence select="ldh:typed-term-node('variable', 'p', ())"/>
+                                <xsl:sequence select="('&ldh;chartType', '&ldh;categoryVarName', '&ldh;categoryProperty', '&ldh;seriesVarName', '&ldh;seriesProperty') ! ldh:typed-term-node('namedNode', ., ())"/>
                             </json:array>
                         </json:map>
                     </json:map>

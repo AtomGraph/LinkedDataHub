@@ -1,5 +1,6 @@
 ## [Unreleased]
 ### Added
+- Every rewrite in `client/query-transforms.xsl` is tested on Saxon-JS over queries Traqula parses, comparing the SPARQL it generates; the `JS-tests` workflow runs them with the Traqula bundle's own tests, which no workflow ran before
 - A view's Create opens a form of both the resources it makes: the document's, on top, with the container it goes in, its title, description and primary topic, and the entity's below it. The container is the one the view's rows live in when they determine one, and a lookup when nothing does, as on a view with no rows yet; the document's address follows the container picked, and the title left empty is the entity's label. The button is offered whatever the rows say about the container
 - Create > Item names the container the item goes in, and Create > Container the parent, prefilled with the page the menu was opened on and the reader's to change: `dh:Item` and `dh:Container` gain the constructors for their one editable link (`ldh:ItemContainerConstructor`, `ldh:ContainerParentConstructor`), whose lookup offers containers and the dataspace root alike
 
@@ -13,6 +14,7 @@
 - A view's facet on a property whose range is a string is a text input: it keeps the results whose value contains the text, in any case, and clears as the other facets do (#99)
 
 ### Changed
+- The browser parses and generates SPARQL with Traqula instead of SPARQL.js 2.x, and the stylesheets read and rewrite queries in Traqula's AST, with typed terms instead of SPARQL.js's term strings (#429)
 - A resource a document describes may be left without a type: `PATCH` refuses only to leave the document itself untyped, which it already did, as the document must keep a document hierarchy class. Imported data often describes entities without a type, and a resource that had one could not be given the same shape (#308 held every resource to keeping one)
 - The `ldh` plugin's skills show how to check which property views a type gets without a browser, with the page's own lookup query against the installed ontology: `ldh get --accept text/html` returns the page before the browser renders its blocks and property views
 - The stylesheets' `forClass` parameter, variable and context key are `for-class`, as every other name in them is spelled. A package stylesheet that passed `forClass` to a platform template passes `for-class`; `data-for-class` and the lookup query's `?forClass` are unchanged

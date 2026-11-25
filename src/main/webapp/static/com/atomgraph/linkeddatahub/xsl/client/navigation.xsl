@@ -649,7 +649,7 @@ ORDER BY DESC(?created)
         <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
         <xsl:variable name="query-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
         <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
-        <xsl:variable name="query-string" select="ixsl:call($ldh:sparql-generator, 'stringify', [ $query-json ])" as="xs:string"/>
+        <xsl:variable name="query-string" select="ixsl:call($ldh:sparql-generator, 'generate', [ $query-json ])" as="xs:string"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
@@ -878,7 +878,7 @@ ORDER BY DESC(?created)
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:document>
                 <xsl:apply-templates select="json-to-xml($select-json-string)" mode="ldh:append-values">
-                    <xsl:with-param name="values-map" select="map { '$type': $class-uri }" tunnel="yes"/>
+                    <xsl:with-param name="values-map" select="map { 'type': $class-uri }" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>

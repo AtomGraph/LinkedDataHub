@@ -495,11 +495,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="sequence-number" select="count($block/preceding-sibling::div[@about]) + 1" as="xs:integer"/>
         <xsl:variable name="sequence-property" select="xs:anyURI('&rdf;_' || $sequence-number)" as="xs:anyURI"/>
         <xsl:variable name="sequence-triple" as="element()">
-            <json:map>
-                <json:string key="subject"><xsl:sequence select="ac:absolute-path(ldh:base-uri(.))"/></json:string>
-                <json:string key="predicate"><xsl:sequence select="$sequence-property"/></json:string>
-                <json:string key="object"><xsl:sequence select="$block-uri"/></json:string>
-            </json:map>
+            <xsl:sequence select="ldh:triple-node(ldh:typed-term-node('namedNode', string(ac:absolute-path(ldh:base-uri(.))), ()), ldh:typed-term-node('namedNode', string($sequence-property), ()), ldh:typed-term-node('namedNode', string($block-uri), ()))"/>
         </xsl:variable>
         
         <xsl:next-match>
