@@ -1059,7 +1059,7 @@ exclude-result-prefixes="#all"
                         </xsl:variable>
                         <xsl:variable name="construct-json-string" select="xml-to-json($construct-xml)" as="xs:string"/>
                         <xsl:variable name="construct-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $construct-json-string ])"/>
-                        <xsl:variable name="construct-string" select="ixsl:call($ldh:sparql-generator, 'stringify', [ $construct-json ])" as="xs:string"/>
+                        <xsl:variable name="construct-string" select="ixsl:call($ldh:sparql-generator, 'generate', [ $construct-json ])" as="xs:string"/>
 
                         <!-- A constructor exists exactly when it templates at least one property: the first one
                              creates it, the last one removed deletes it, and one that never existed and still has

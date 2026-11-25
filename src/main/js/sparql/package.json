@@ -1,0 +1,17 @@
+{
+  "name": "ldh-traqula-browser",
+  "type": "module",
+  "private": true,
+  "description": "Traqula SPARQL 1.1 parser and generator bundle for LinkedDataHub",
+  "scripts": {
+    "build": "esbuild index.js --bundle --minify --format=iife --legal-comments=none --outfile=../../webapp/static/com/atomgraph/linkeddatahub/js/traqula.min.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@traqula/generator-sparql-1-1": "1.5.0-alpha.7",
+    "@traqula/parser-sparql-1-1": "1.5.0-alpha.7"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.10"
+  }
+}
