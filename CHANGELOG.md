@@ -1,5 +1,6 @@
 ## [6.6.0] - 2026-11-25
 ### Migration
+- A deployment that runs a stock Fuseki in place of the compose file's triplestore sets `SERVICE_DELEGATION=false`: a stock Fuseki would send the marker on to the target as it is
 - Package stylesheets pass `for-class` to platform templates, where they passed `forClass`
 - A running instance gets the indexed search by copying the end-user text index from `config/fuseki/config.ttl` and the `sd:propertyFeature` line from `config/system.trig`, restarting, and running `make reindex`
 
@@ -9,6 +10,8 @@
 - `PATCH /settings` refuses to change `lds:versioningRepository`
 
 ### Added
+- A query federates to another dataspace - of this deployment or of another LinkedDataHub - on behalf of the agent who asked: `SERVICE <https://people.example/sparql>` reaches that endpoint as the secretary with `On-Behalf-Of` naming the agent, and the endpoint's own access control decides, as for a write the Linked Data proxy sends. The platform marks each `https` `SERVICE` IRI with the agent and the secretary's signature (`ServiceTargets`, `SERVICE_DELEGATION`, on by default); the triplestore's new LinkedDataHub module (`fuseki-module/`) checks the marker and, where the target asks for a client certificate, makes the call on the agent's behalf, and anonymously anywhere else
+- `atomgraph/linkeddatahub-fuseki`: the triplestore image with that module, built from the `fuseki` stage of the `Dockerfile` and released with the platform; the compose file builds it in place of `atomgraph/fuseki`
 - The search box queries a text index where the dataspace's service declares `sd:propertyFeature text:query`, and a regex elsewhere (#549)
 - `make reindex` rebuilds a dataset's search index after a bulk load, and `make load` runs it
 - A view's Create opens one form for the new document (container, title, description) above the entity
@@ -17,6 +20,7 @@
 - A view's facet on a string-ranged property is a case-insensitive text input (#99)
 
 ### Changed
+- A `SERVICE` clause naming an internal or loopback address, or a variable, answers `400` before the query goes out, instead of the empty result `SILENT` gave a refused call; `ALLOW_INTERNAL_URLS` does not open it, since a query's targets that are the platform's own are its dataspaces' endpoints, reached through their doors. A dataspace of this deployment named by anything but its endpoint is `400` too. An https target on the deployment's own domain (another deployment under it, such as `remote.localhost` on a local stack) is reached through the front door, not checked by the address its name has inside the network
 - `PATCH` accepts leaving a resource the document describes untyped; the document itself still needs its type
 - A container's children view lists its documents themselves: `ldh:SelectChildren` no longer selects their `foaf:primaryTopic`
 - The stylesheets' `forClass` parameter, variable and context key are renamed `for-class`

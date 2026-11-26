@@ -163,6 +163,7 @@ import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
@@ -318,6 +319,9 @@ public class Application extends ResourceConfig
     private final Properties emailProperties = new Properties();
     private final KeyStore keyStore, trustStore;
     private final URI secretaryWebIDURI;
+    private final PrivateKey secretaryPrivateKey;
+    // opt-in: the triplestore delegates a marked SERVICE call only with LinkedDataHub's Fuseki module (the fuseki image)
+    private final boolean serviceDelegation = Boolean.getBoolean("com.atomgraph.linkeddatahub.serviceDelegation");
     private final List<Locale> supportedLanguages;
     private final ExpiringMap<String, UnionGraph> ontologyGraphs = ExpiringMap.builder().maxSize(1000).expirationPolicy(ExpirationPolicy.ACCESSED).expiration(1, TimeUnit.HOURS).build(); // assembled ontology imports-closure union graphs, keyed by ontology URI; evicted entries are transparently rebuilt by OntologyFilter on the next cache miss
     private final ExpiringMap<URI, Model> webIDmodelCache = ExpiringMap.builder().expiration(Long.parseLong(System.getProperty("com.atomgraph.linkeddatahub.webIDCacheExpiration", "86400")), TimeUnit.SECONDS).build(); // TTL (seconds) configurable via WEBID_CACHE_EXPIRATION; a lower value bounds how long a revoked WebID stays cached
@@ -845,6 +849,8 @@ public class Application extends ResourceConfig
             X509Certificate secretaryX509Cert = (X509Certificate)secretaryCert;
             secretaryX509Cert.checkValidity();// check if secretary WebID client certificate is valid
             secretaryWebIDURI = WebIDFilter.getWebIDURI(secretaryX509Cert);
+            // signs the markers that let the triplestore call a SERVICE on behalf of the asking agent (ServiceTargets)
+            secretaryPrivateKey = (PrivateKey)keyStore.getKey(secretaryCertAlias, clientKeyStorePassword.toCharArray());
             if (secretaryWebIDURI == null)
             {
                 if (log.isErrorEnabled()) log.error("Secretary certificate with alias {} is not a valid WebID sertificate (SNA URI is missing)", secretaryCertAlias);
@@ -2348,6 +2354,28 @@ public class Application extends ResourceConfig
     public URI getSecretaryWebIDURI()
     {
         return secretaryWebIDURI;
+    }
+
+    /**
+     * Returns the secretary's private key, which signs the markers that let the triplestore make a <code>SERVICE</code>
+     * call on behalf of the agent who asked the query.
+     *
+     * @return private key
+     */
+    public PrivateKey getSecretaryPrivateKey()
+    {
+        return secretaryPrivateKey;
+    }
+
+    /**
+     * Returns whether a query's <code>SERVICE</code> calls are marked with the asking agent, for the triplestore to make
+     * on their behalf (<code>SERVICE_DELEGATION</code>; needs the triplestore with LinkedDataHub's Fuseki module).
+     *
+     * @return true if delegation is on
+     */
+    public boolean isServiceDelegation()
+    {
+        return serviceDelegation;
     }
 
     /**

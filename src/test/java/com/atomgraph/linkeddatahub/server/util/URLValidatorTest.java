@@ -119,4 +119,34 @@ public class URLValidatorTest
         // When allowInternal=true, loopback addresses should pass through without exception (dev escape hatch)
         new URLValidator(true).validate(URI.create("http://127.0.0.1:3030/ds"));
     }
+
+    @Test
+    public void testRemoteLoopbackBlocked()
+    {
+        // a target another service calls on the platform's behalf (a SERVICE clause the triplestore executes) names
+        // that service itself by loopback, so loopback is internal there
+        assertThrows(InternalURLException.class, () -> new URLValidator(false).validateRemote(URI.create("http://127.0.0.1:3030/admin/")));
+        assertThrows(InternalURLException.class, () -> new URLValidator(false).validateRemote(URI.create("http://localhost:3030/admin/")));
+    }
+
+    @Test
+    public void testRemoteInternalBlocked()
+    {
+        assertThrows(InternalURLException.class, () -> new URLValidator(false).validateRemote(URI.create("http://10.0.0.1:3030/admin/")));
+    }
+
+    @Test
+    public void testRemoteExternalAllowed()
+    {
+        new URLValidator(false).validateRemote(URI.create("http://8.8.8.8:80/sparql"));
+    }
+
+    @Test
+    public void testRemoteInternalBlockedEvenWhenInternalAllowed()
+    {
+        // ALLOW_INTERNAL_URLS lets the platform dereference itself on an internal address; a target another service
+        // calls on its behalf is a store or a service of the deployment, refused in every mode
+        assertThrows(InternalURLException.class, () -> new URLValidator(true).validateRemote(URI.create("http://127.0.0.1:3030/admin/")));
+        assertThrows(InternalURLException.class, () -> new URLValidator(true).validateRemote(URI.create("http://10.0.0.1:3030/admin/")));
+    }
 }
