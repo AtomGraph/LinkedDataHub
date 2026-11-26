@@ -25,7 +25,12 @@ References:
   without one returns no rows, which looks like missing data but is not.
 - **One document per resource, so joins cross graphs.** Give each linked resource its own graph
   variable: `GRAPH ?o { ?order schema:customer ?c } GRAPH ?cg { ?c schema:name ?name }`.
-- Writes go to document URLs (`PUT`/`POST`/`PATCH`); `/sparql` is read-only. Use standard SPARQL 1.1.
+- Writes go to document URLs (`PUT`/`POST`/`PATCH`); `/sparql` is read-only.
+- **Use standard SPARQL 1.1 only**, in view, chart and constructor queries and in import and ETL mappings
+  alike: no engine extensions such as Jena's `apf:` property functions (`apf:strSplit`) or `afn:`
+  functions. `REGEX` and `REPLACE` take XPath regular expressions, so leave out what only Java's regex
+  engine has: `\b`, non-capturing `(?:…)`, inline flags like `(?U)`, lookarounds. A pattern that
+  matches the empty string is an error in `REPLACE`.
 - Setup: start every Bash command that runs `ldh` with
   `export LDH_BASE='${user_config.ldh_base}' LDH_CERT_FILE='${user_config.cert_file}';`, the plugin's
   settings (`/plugin` → ldh → configure); a variable set in one Bash command is gone by the next. `ldh` reads
@@ -303,7 +308,12 @@ Every source goes through four stages:
      `<{base}#key>`, types numbers and booleans, makes nested objects blank nodes and loses array
      order. Then a quad `CONSTRUCT { GRAPH ?graph { … } }` mapping, run by Jena's `arq` with `$base`
      substituted and the query `BASE` set to the base, maps that RDF to documents. This is the same
-     mapping shape as a CSV import (section 3), so one `.rq` serves both paths.
+     mapping shape as a CSV import (section 3), so one `.rq` serves both paths. `arq` has no
+     parameters, so substitute with `sed` (`s|\$base|<$LDH_BASE>|g`), matching only the names you
+     substitute: a `REPLACE` replacement such as `"$1"` must survive. csv2rdf names a column with
+     a space `<#source%20type>`, writes no triple for an empty cell, trims spaces and control
+     characters at the ends of a cell, and stops at cells over 4096 characters unless given
+     `--max-chars-per-column`.
    - **XML** takes one step. An XSLT 3 stylesheet on
      [`atomgraph/saxon`](https://github.com/AtomGraph/saxon-docker) emits the final RDF in the
      target vocabulary, with no follow-up `CONSTRUCT`. To keep one document per named graph, emit
@@ -316,7 +326,7 @@ Every source goes through four stages:
    docker run --rm -i -a stdin -a stdout -a stderr -v "$PWD/identity.rq":/tmp/identity.rq \
        atomgraph/csv2rdf /tmp/identity.rq "$LDH_BASE" < books.csv > books.nt
    docker run --rm -i -a stdin -a stdout -a stderr atomgraph/json2rdf "$LDH_BASE" < books.json > books.nt
-   # then: arq --data books.nt --query books.rq (with $base substituted) > books.trig
+   # then: arq --data books.nt --query books.rq (with $base substituted) --results=NQ > books.nq
 
    docker run --rm -v "$PWD":/work atomgraph/saxon -s:/work/books.xml -xsl:/work/books.xsl \
        base="$LDH_BASE" > books.trix
@@ -325,14 +335,92 @@ Every source goes through four stages:
 
    Because the platform does not see these writes, the output adds what the platform would
    otherwise add. Type each document `dh:Item` with `sioc:has_container <its container/>`, and give
-   it a `dct:created` from a top-level `BIND(NOW() AS ?now)`, or `current-dateTime()` in XSLT. The
-   containers themselves still come from the app (`ldh push`, ldh:app).
+   it a `dct:created`: a top-level `BIND(NOW() AS ?now)` for one run, or `current-dateTime()` in
+   XSLT. When the input is converted in chunks (below), each run's `NOW()` differs and a document
+   that several chunks write gets several `dct:created`, so substitute one `$created` constant
+   into every run instead. The containers themselves still come from the app (`ldh push`, ldh:app).
 3. **Validate** the TriG: `riot --validate`, then check that every graph carries `dct:title` and
    `foaf:primaryTopic` on the graph URI, then run SHACL shapes per entity type.
 4. **Load** it, as described below.
 
 Glue code the four stages need beyond these tools (reconciliation against Wikidata, scraping,
 geometry) is Python with rdflib.
+
+### A CSV too large for one `arq` run
+
+`arq` holds its input and its result in memory, and csv2rdf makes about one triple per non-empty cell,
+so a CSV of millions of rows is converted in chunks:
+
+```bash
+# chunks of 100k rows, each with the header, and a row number in a leading "row" column
+awk -v n=100000 'NR == 1 { h = "row," $0; next }
+    { if ((NR - 2) % n == 0) { if (f) close(f); f = sprintf("part-%05d.csv", (NR - 2) / n); print h > f }
+      print (NR - 1) "," $0 > f }' big.csv
+# then per chunk, in parallel (xargs -P): csv2rdf, then arq --results=NQ, gzipped
+```
+
+The `awk` split assumes no cell holds a line break; check that the line count is the row count plus
+one. The row number is for rows that have no natural key: csv2rdf makes each row a blank node with no
+position, and a URL minted from a hash of the cells merges identical rows.
+
+- **Each run deduplicates only its own output.** A document many chunks write, such as an entity or a
+  category, is repeated in every chunk's file. The store keeps one copy, so this is harmless, but it
+  adds to the file size: 16% of the quads in a 4.8M-row example.
+- **A mapping sees one row at a time.** It cannot keep the first value or merge values across rows. Every
+  value on a document (`dct:title`, label, types) must follow from the key its URL is minted from.
+  Where rows with the same key disagree, the document gets each of their values, such as two
+  `dct:title`s. Mint the key from what fixes the values, or settle them in a pre-pass (below).
+- **Alignment tables go in a small Turtle file**, passed as a second `--data` and joined with
+  `OPTIONAL`. Examples are a source type to a class, a phrase to a predicate, or a name to a taxonomy
+  ID. Bind the lookup key to `""` when its cell is missing, with `COALESCE(…, "")`. An `OPTIONAL` on
+  an unbound variable matches every entry of the table: the solutions multiply and pick up wrong
+  bindings, and the example ran more than 5× slower.
+- **A list in a cell is split without `apf:strSplit`**, by a `VALUES` index and a pattern built per
+  index. It is slow, because every call compiles its pattern. In the example it took most of the run
+  time. Apply it only to the columns that need it, or let a pre-pass put each item on a row of its
+  own (below):
+
+  ```sparql
+  BIND(concat(",", ?cell, ",") AS ?list)              # "a, b, c" -> ",a, b, c,"
+  VALUES ?i { 0 1 2 3 4 5 6 7 8 9 10 11 12 }          # 0 is the row itself; at most 12 items
+  BIND(IF(?i > 0, REPLACE(?list, concat("^,([^,]*,){", str(?i - 1), "}([^,]*),.*$"), "$2"), ?u) AS ?elem)
+  BIND(IF(?elem != ?list, ?elem, ?u) AS ?item)        # an unchanged string: no item at ?i
+  FILTER(?i = 0 || BOUND(?item))
+  BIND(REPLACE(?item, "^\\s+|\\s+$", "") AS ?value)  # " b" -> "b"
+  ```
+
+### Mapping, pre-pass or script
+
+Use the first of these that fits:
+
+1. **A `CONSTRUCT` mapping**, by default. The same `.rq` serves `ldh import csv`. It is declarative
+   and standard, and it can be reviewed without reading code. Expect about 1 ms per row on Jena 5.6
+   for a mapping of 20 columns with some 60 `BIND`s.
+2. **A pre-pass, then mappings**, when the rows need what a mapping cannot do, or does slowly. That
+   means settling values across rows, splitting lists, or writing a shared document (an entity, a
+   category) once rather than for every row that mentions it. A short script reshapes the CSV into
+   one CSV per kind of document: the rows with their keys settled, the distinct entities, one row
+   per list item. It mints no URL and maps no vocabulary; one `CONSTRUCT` per CSV still does that.
+   Keep every input row, even one the mapping skips, so the row numbers stay those of the input.
+3. **A one-pass script**, when run time matters more than keeping the mapping in SPARQL, or when
+   the logic does not fit per row even after a pre-pass. Such a script:
+   - streams the input and writes each document once;
+   - keeps the alignments as data, not code;
+   - writes its output as strings, because rdflib is too slow at 100M quads;
+   - follows the same document conventions.
+
+   Where a `.rq` exists too, compare the two outputs on a sample.
+
+Measured on a 4.8M-row CSV (110M distinct quads), with 6 workers for the mappings:
+
+| Pipeline | Wall time | CPU time |
+|---|---|---|
+| One mapping per row, splitting lists in SPARQL | 55 min | 7,700 s |
+| Pre-pass (50 s), then 5 mappings | 18 min | 2,900 s |
+| One-pass script | 2 min | 110 s |
+
+The outputs are the same, except for 32 rows whose cells csv2rdf trims of a control character. The
+single mapping also gives two titles to the 27 documents whose rows disagree, which the pre-pass settles.
 
 Keep the output **base-relative** so one dataset loads at any deployment base: serialize with riot's
 streaming TriG writer after prepending `@base <$LDH_BASE> .` (`riot --syntax=trig --output=trig`,
@@ -370,10 +458,19 @@ and is not only displayed side by side.
 
 - Jena's `shacl validate` ignores named graphs and always exits `0`. Merge the TriG to N-Triples
   first (`riot --merge`), and treat any report other than `Conforms` as a failure.
-- `arq` 6.x cannot write quad `CONSTRUCT` results (apache/jena#4091). Graphify with Jena 5.6, and
-  point `JENA_HOME` at it too: Jena's `bin/` scripts load their jars from `$JENA_HOME`, so 5.6's `arq`
-  run with `JENA_HOME` set to a 6.x install still fails with "No dataset writer for Turtle_pretty".
-- `arq` writes a quad `CONSTRUCT` as TriG by default and has no `--results=trig`; pass no `--results`.
+- `arq` 6.x before 6.3 (6.1 checked) cannot write quad `CONSTRUCT` results in any format (apache/jena#4091): it fails
+  with "No dataset writer for Turtle_pretty", and with "Unrecognized output format" when given
+  `--results`. Use Jena 6.3 or later, or 5.6. Point `JENA_HOME` at the same install: Jena's `bin/`
+  scripts load their jars from `$JENA_HOME`, so a working `arq` run with `JENA_HOME` set to a broken
+  install still fails. Set it explicitly, because a default such as `${JENA_HOME:-…}` keeps the one
+  already in the user's profile.
+- `arq` writes a quad `CONSTRUCT` as pretty TriG by default, which holds the whole result in memory
+  first. Pass `--results=NQ` to stream N-Quads, with absolute IRIs. To get base-relative TriG,
+  serialize them as described in section 4.
+- With many `docker run -i` conversions running in parallel, one can stall: its container idles, its
+  output stops growing, and Docker cannot remove it. Check that every chunk's output grows, and rerun a
+  stalled chunk with the jar instead (`java -jar csv2rdf-…-jar-with-dependencies.jar`, from a build of
+  CSV2RDF), which takes the same arguments.
 - `make load` restarts the Varnish caches right before `make public`, whose first request can meet them
   mid-restart and answer `500`. The load itself has succeeded by then; run `make public` again.
 
