@@ -369,7 +369,7 @@ position, and a URL minted from a hash of the cells merges identical rows.
 - **A mapping sees one row at a time.** It cannot keep the first value or merge values across rows. Every
   value on a document (`dct:title`, label, types) must follow from the key its URL is minted from.
   Where rows with the same key disagree, the document gets each of their values, such as two
-  `dct:title`s. Mint the key from what fixes the values, or settle them in a pre-pass.
+  `dct:title`s. Mint the key from what fixes the values, or settle them in a pre-pass (below).
 - **Alignment tables go in a small Turtle file**, passed as a second `--data` and joined with
   `OPTIONAL`. Examples are a source type to a class, a phrase to a predicate, or a name to a taxonomy
   ID. Bind the lookup key to `""` when its cell is missing, with `COALESCE(…, "")`. An `OPTIONAL` on
@@ -377,7 +377,8 @@ position, and a URL minted from a hash of the cells merges identical rows.
   bindings, and the example ran more than 5× slower.
 - **A list in a cell is split without `apf:strSplit`**, by a `VALUES` index and a pattern built per
   index. It is slow, because every call compiles its pattern. In the example it took most of the run
-  time, so apply it only to the columns that need it:
+  time. Apply it only to the columns that need it, or let a pre-pass put each item on a row of its
+  own (below):
 
   ```sparql
   BIND(concat(",", ?cell, ",") AS ?list)              # "a, b, c" -> ",a, b, c,"
@@ -388,10 +389,38 @@ position, and a URL minted from a hash of the cells merges identical rows.
   BIND(REPLACE(?item, "^\\s+|\\s+$", "") AS ?value)  # " b" -> "b"
   ```
 
-Expect about 1 ms per row on Jena 5.6 for a mapping of 20 columns with some 60 `BIND`s. In the
-example, 4.8M rows in 49 chunks took 55 minutes on 6 workers. A one-pass script that writes each
-document once, the way the glue code above is written, did the same rows in 2 minutes, with the same
-output apart from 146 of 110M quads. Choose the script when a `CONSTRUCT` mapping is not required.
+### Mapping, pre-pass or script
+
+Use the first of these that fits:
+
+1. **A `CONSTRUCT` mapping**, by default. The same `.rq` serves `ldh import csv`. It is declarative
+   and standard, and it can be reviewed without reading code. Expect about 1 ms per row on Jena 5.6
+   for a mapping of 20 columns with some 60 `BIND`s.
+2. **A pre-pass, then mappings**, when the rows need what a mapping cannot do, or does slowly. That
+   means settling values across rows, splitting lists, or writing a shared document (an entity, a
+   category) once rather than for every row that mentions it. A short script reshapes the CSV into
+   one CSV per kind of document: the rows with their keys settled, the distinct entities, one row
+   per list item. It mints no URL and maps no vocabulary; one `CONSTRUCT` per CSV still does that.
+   Keep every input row, even one the mapping skips, so the row numbers stay those of the input.
+3. **A one-pass script**, when run time matters more than keeping the mapping in SPARQL, or when
+   the logic does not fit per row even after a pre-pass. Such a script:
+   - streams the input and writes each document once;
+   - keeps the alignments as data, not code;
+   - writes its output as strings, because rdflib is too slow at 100M quads;
+   - follows the same document conventions.
+
+   Where a `.rq` exists too, compare the two outputs on a sample.
+
+Measured on a 4.8M-row CSV (110M distinct quads), with 6 workers for the mappings:
+
+| Pipeline | Wall time | CPU time |
+|---|---|---|
+| One mapping per row, splitting lists in SPARQL | 55 min | 7,700 s |
+| Pre-pass (50 s), then 5 mappings | 18 min | 2,900 s |
+| One-pass script | 2 min | 110 s |
+
+The outputs are the same, except for 32 rows whose cells csv2rdf trims of a control character. The
+single mapping also gives two titles to the 27 documents whose rows disagree, which the pre-pass settles.
 
 Keep the output **base-relative** so one dataset loads at any deployment base: serialize with riot's
 streaming TriG writer after prepending `@base <$LDH_BASE> .` (`riot --syntax=trig --output=trig`,
@@ -438,6 +467,10 @@ and is not only displayed side by side.
 - `arq` writes a quad `CONSTRUCT` as pretty TriG by default, which holds the whole result in memory
   first. Pass `--results=NQ` to stream N-Quads, with absolute IRIs. To get base-relative TriG,
   serialize them as described in section 4.
+- With many `docker run -i` conversions running in parallel, one can stall: its container idles, its
+  output stops growing, and Docker cannot remove it. Check that every chunk's output grows, and rerun a
+  stalled chunk with the jar instead (`java -jar csv2rdf-…-jar-with-dependencies.jar`, from a build of
+  CSV2RDF), which takes the same arguments.
 - `make load` restarts the Varnish caches right before `make public`, whose first request can meet them
   mid-restart and answer `500`. The load itself has succeeded by then; run `make public` again.
 

@@ -21,7 +21,7 @@
 - A container's children view lists its documents themselves: `ldh:SelectChildren` no longer selects their `foaf:primaryTopic`
 - The stylesheets' `forClass` parameter, variable and context key are renamed `for-class`
 - The `ldh` plugin's skills show how to check a type's property views without a browser
-- The `ldh` plugin's dataset skill builds a CSV of millions of rows in chunks, keeps mappings to standard SPARQL 1.1, and runs `arq` from Jena 6.3, which writes quad `CONSTRUCT` results again
+- The `ldh` plugin's dataset skill builds a CSV of millions of rows in chunks, keeps mappings to standard SPARQL 1.1, says when a pre-pass or a one-pass script takes over from the mapping, and runs `arq` from Jena 6.3, which writes quad `CONSTRUCT` results again
 
 ### Fixed
 - A resource header's type chips are centred on its title
