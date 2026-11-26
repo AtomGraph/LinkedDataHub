@@ -2,12 +2,12 @@
 # Shared helpers for the SPARQL load tests. Sourced by the tests/load/*.sh that drive query load
 # through the front door and watch what it does to the platform.
 #
-# The front door caps /sparql per client address and exempts RFC 1918 callers (its own self-calls).
-# A curl on the runner reaches nginx as the Docker bridge or Docker Desktop VM address, both of which
-# the caps skip - so the query load comes from the `loadgen` containers on the 100.64.0.0/24 network
-# (carrier-grade NAT, neither RFC 1918 nor site-local), each a distinct external client to nginx. The
-# containers are idle; these helpers drive them with `docker compose exec`. The site probe, measuring
-# what an ordinary visitor sees meanwhile, runs from the host (exempt, like real internal health checks).
+# The front door caps /sparql per client address, and exempts only the platform's own requests, which
+# carry its proxy secret in Rate-Limit-Exempt. A curl on the runner reaches nginx as the one Docker bridge or Docker Desktop
+# VM address - so the query load comes from the `loadgen` containers on the 100.64.0.0/24 network, each
+# a distinct client to nginx. The containers are idle; these helpers drive them with `docker compose
+# exec`. The site probe, measuring what an ordinary visitor sees meanwhile, runs from the host, once a
+# second - well inside the limits.
 
 set -uo pipefail
 

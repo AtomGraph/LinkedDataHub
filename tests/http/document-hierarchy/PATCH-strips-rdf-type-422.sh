@@ -19,9 +19,9 @@ ldh admin add agent \
 
 # Reproduce the document-edit modal PATCH that strips rdf:type along with most
 # user-editable properties (preserving only system properties + rdf:_N container
-# membership). The root document is a def:Root instance, and def:Root carries
-# the :MissingTitle SPIN constraint. After this PATCH the resource would be
-# left untyped and titleless, which must be rejected with 422.
+# membership). The root is a document, which must stay typed with a document
+# hierarchy class, so leaving it untyped is rejected with 422. A resource the
+# document describes may lose its type (PATCH-untypes-subresource.sh).
 
 update=$(cat <<EOF
 DELETE { <${END_USER_BASE_URL}> ?p ?o . }

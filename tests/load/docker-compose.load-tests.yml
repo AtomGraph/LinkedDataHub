@@ -39,11 +39,10 @@ services:
         aliases: [ nginx-exempt ]
       loadgen:
         aliases: [ nginx-limited ]
-  # Clients of the public internet, for the SPARQL tests. nginx caps /sparql per client address and exempts
-  # RFC 1918 ones as the platform's own calls - and a curl on the runner arrives from the Docker bridge
-  # (172.x) or Docker Desktop's VM (192.168.65.x), which the caps would never count. This network takes
-  # its addresses from 100.64.0.0/10 (carrier-grade NAT: neither RFC 1918 nor site-local), so each replica
-  # is a distinct external client. Idle; the tests drive it with `docker compose exec --index N`.
+  # Clients of the public internet, for the SPARQL tests. nginx caps /sparql per client address, so every
+  # curl on the runner would share the one bridge (172.x) or Docker Desktop VM (192.168.65.x) address it
+  # arrives from. This network takes its addresses from 100.64.0.0/10, so each replica is a distinct
+  # client. Idle; the tests drive it with `docker compose exec --index N`.
   loadgen:
     image: curlimages/curl:8.17.0
     command: [ "sleep", "infinity" ]
@@ -51,8 +50,8 @@ services:
       replicas: 6
     networks:
       - loadgen
-  # A browser for page-load.sh, on both networks: nginx exempts its address on the default network and
-  # limits the loadgen one like a visitor's, and measure.mjs alternates between them. Under a profile, so
+  # A browser for page-load.sh, on both networks: measure.mjs alternates between loads the limits do not
+  # count (the default network, with the platform's Rate-Limit-Exempt) and a visitor's (the loadgen one). Under a profile, so
   # `up` leaves it out; the test starts it with `run`. The image's Playwright matches page-load/package.json.
   pageload:
     image: mcr.microsoft.com/playwright:v1.61.1-noble
@@ -64,6 +63,8 @@ services:
       - ./tests/load/page-load:/work
       - ./tests/load/out:/out
     command: [ "sh", "-c", "npm ci --no-audit --no-fund --loglevel=error && node measure.mjs && node evaluate.mjs" ]
+    environment:
+      - PROXY_SECRET=${PROXY_SECRET:?set PROXY_SECRET in .env - make secrets generates it} # the exempt loads send it, as the platform's own requests do
     networks:
       default:
       loadgen:

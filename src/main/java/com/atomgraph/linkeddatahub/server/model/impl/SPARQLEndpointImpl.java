@@ -45,6 +45,7 @@ import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.update.UpdateRequest;
+import org.apache.jena.vocabulary.RDF;
 
 /**
  * LinkedDataHub SPARQL endpoint implementation.
@@ -58,6 +59,7 @@ import org.apache.jena.update.UpdateRequest;
 public class SPARQLEndpointImpl extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
 {
 
+    private final Service service;
     private final ServiceTargets serviceTargets;
 
     /**
@@ -76,6 +78,7 @@ public class SPARQLEndpointImpl extends com.atomgraph.core.model.impl.SPARQLEndp
             @Context SecurityContext securityContext, com.atomgraph.linkeddatahub.Application system)
     {
         super(request, httpHeaders, uriInfo, system.getServiceContext(service.get()).getQueryEndpointAccessor(system.getMaxQueryResponseLength()), mediaTypes);
+        this.service = service.get();
         String agent = system.isServiceDelegation() && securityContext != null && securityContext.getUserPrincipal() instanceof Agent a ? a.getURI() : null;
         this.serviceTargets = new ServiceTargets(uri -> dataspaceOf(system, uri), system.getURLValidator(), system.getBaseURI().getHost(), agent,
             system.isServiceDelegation() ? system.getSecretaryPrivateKey() : null, Clock.systemUTC());
@@ -123,13 +126,41 @@ public class SPARQLEndpointImpl extends com.atomgraph.core.model.impl.SPARQLEndp
     /**
      * Returns the query languages this endpoint supports.
      * Only queries are advertised: writes go through the Graph Store Protocol.
-     * 
+     *
      * @return list of <code>sd:Language</code> resources
      */
     @Override
     public List<Resource> getSupportedLanguages()
     {
         return List.of(SD.SPARQL11Query);
+    }
+
+    /**
+     * Describes the endpoint as Core does, plus the property functions the dataspace's service declares with
+     * <code>sd:propertyFeature</code> (a text index's <code>text:query</code>), which the page reads to decide how to search.
+     *
+     * @return service description model
+     */
+    @Override
+    public Model getServiceDescription()
+    {
+        Model model = super.getServiceDescription();
+
+        model.listSubjectsWithProperty(RDF.type, SD.Service).
+            forEachRemaining(endpoint -> getService().getPropertyFeatures().
+                forEach(feature -> endpoint.addProperty(com.atomgraph.linkeddatahub.vocabulary.SD.propertyFeature, feature)));
+
+        return model;
+    }
+
+    /**
+     * Returns the SPARQL service this endpoint proxies.
+     *
+     * @return service resource
+     */
+    public Service getService()
+    {
+        return service;
     }
     
     /**

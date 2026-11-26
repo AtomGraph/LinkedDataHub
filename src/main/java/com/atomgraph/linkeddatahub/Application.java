@@ -25,6 +25,7 @@ import com.atomgraph.linkeddatahub.server.util.FileContextPersistence;
 import com.atomgraph.linkeddatahub.server.util.GraphLocks;
 import com.atomgraph.linkeddatahub.server.util.OntologyRepository;
 import org.apache.jena.riot.RDFParser;
+import com.atomgraph.linkeddatahub.server.mapper.BadGatewayExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.HttpHostConnectExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.ResponseContentTooLargeExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.URISyntaxViolationExceptionMapper;
@@ -53,7 +54,6 @@ import com.atomgraph.core.io.QueryProvider;
 import com.atomgraph.core.io.ResultSetProvider;
 import com.atomgraph.core.io.SPARQLResultProvider;
 import com.atomgraph.core.io.UpdateRequestProvider;
-import com.atomgraph.core.mapper.BadGatewayExceptionMapper;
 import com.atomgraph.core.provider.QueryParamProvider;
 import com.atomgraph.linkeddatahub.writer.factory.SourceResolverFactory;
 import com.atomgraph.server.mapper.NotFoundExceptionMapper;
@@ -824,7 +824,9 @@ public class Application extends ResourceConfig
             
             if (proxyHostname != null)
             {
-                ClientRequestFilter rewriteFilter = new ClientUriRewriteFilter(baseURI.getHost(), proxyScheme, proxyHostname, proxyPort, selfRequestTimeout); // proxyPort can be null
+                byte[] proxySecret = ProxiedWebIDFilter.readProxySecret(System.getProperty(ProxiedWebIDFilter.PROXY_SECRET_FILE_PROPERTY)); // the one nginx sends the platform
+                ClientRequestFilter rewriteFilter = new ClientUriRewriteFilter(baseURI.getHost(), proxyScheme, proxyHostname, proxyPort, selfRequestTimeout, // proxyPort can be null
+                    proxySecret != null ? new String(proxySecret, StandardCharsets.UTF_8) : null);
 
                 client.register(rewriteFilter);
                 externalClient.register(rewriteFilter);
@@ -900,7 +902,7 @@ public class Application extends ResourceConfig
                 serviceIt.close();
             }
 
-            graphVersioningService = new com.atomgraph.linkeddatahub.server.util.GraphVersioningService(ctxUnion, verifiedClient);
+            graphVersioningService = new com.atomgraph.linkeddatahub.server.util.GraphVersioningService(this::getContextModel, verifiedClient); // the descriptions as they are when asked: a dataspace described later is versioned too
             servletConfig.getServletContext().setAttribute(com.atomgraph.linkeddatahub.server.util.GraphVersioningService.class.getName(), graphVersioningService); // used in GraphVersioningListener to shut down its executor
 
 

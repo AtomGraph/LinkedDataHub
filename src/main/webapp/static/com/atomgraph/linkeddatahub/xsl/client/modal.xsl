@@ -169,7 +169,7 @@ LIMIT   10
                                         <div class="val-main">
                                             <xsl:call-template name="ldh:Combobox">
                                                 <xsl:with-param name="id" select="'remote-rdf-doc'"/>
-                                                <xsl:with-param name="forClass" select="(xs:anyURI('&dh;Container'), xs:anyURI('&dh;Item'))"/>
+                                                <xsl:with-param name="for-class" select="(xs:anyURI('&dh;Container'), xs:anyURI('&dh;Item'))"/>
                                             </xsl:call-template>
 
                                             <xsl:apply-templates select="." mode="ac:AnnotationTag">
@@ -260,7 +260,7 @@ LIMIT   10
                                                     <div class="val-main">
                                                         <xsl:call-template name="ldh:Combobox">
                                                             <xsl:with-param name="id" select="'generate-containers-parent'"/>
-                                                            <xsl:with-param name="forClass" select="(xs:anyURI('&def;Root'), xs:anyURI('&dh;Container'))"/>
+                                                            <xsl:with-param name="for-class" select="(xs:anyURI('&def;Root'), xs:anyURI('&dh;Container'))"/>
                                                         </xsl:call-template>
 
                                                         <xsl:apply-templates select="." mode="ac:AnnotationTag">
@@ -316,7 +316,7 @@ LIMIT   10
                                                     <div class="val-main">
                                                         <xsl:call-template name="ldh:Combobox">
                                                             <xsl:with-param name="id" select="'source-service'"/>
-                                                            <xsl:with-param name="forClass" select="xs:anyURI('&sd;Service')"/>
+                                                            <xsl:with-param name="for-class" select="xs:anyURI('&sd;Service')"/>
                                                         </xsl:call-template>
 
                                                         <xsl:apply-templates select="." mode="ac:AnnotationTag">
@@ -783,24 +783,31 @@ LIMIT   10
          Reads context('constructed-doc') as the async-fetched SPIN-construction; the remaining
          sync document() calls for type-metadata/property-metadata/constraints are scope for a
          follow-up refactor. -->
-    <!-- Promise-chain step: after ldh:set-constructed-doc, extract the new resource (by $forClass) and compute the inputs the downstream type-metadata / property-metadata / constraints async pairs need. Pure-XSLT (no I/O). -->
+    <!-- Promise-chain step: after ldh:set-constructed-doc, extract the new resource (by $for-class) and compute the inputs the downstream type-metadata / property-metadata / constraints async pairs need. Pure-XSLT (no I/O). -->
     <xsl:function name="ldh:set-add-modal-form-resource" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-        <xsl:variable name="constructed-doc" select="$context('constructed-doc')" as="document-node()"/>
-        <xsl:variable name="forClass" select="$context('forClass')" as="xs:anyURI"/>
-        <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructed-doc)[not(key('predicates-by-object', @rdf:nodeID))]" as="element()"/>
+        <xsl:variable name="for-class" select="$context('for-class')" as="xs:anyURI"/>
+        <xsl:variable name="prototype" select="key('resources-by-type', $for-class, $context('constructed-doc'))[not(key('predicates-by-object', @rdf:nodeID))]" as="element()"/>
+        <!-- the document goes under the page the menu was opened on until the reader points it elsewhere: the page
+             is written into the constructor's containment marker, so the form shows it as a value and not a lookup -->
+        <xsl:variable name="containment" select="if ($for-class = '&dh;Container') then xs:anyURI('&sioc;has_parent') else xs:anyURI('&sioc;has_container')" as="xs:anyURI"/>
+        <xsl:variable name="constructed-doc" select="ldh:set-object($context('constructed-doc'), $prototype/@rdf:nodeID, $containment, $context('base-uri'))" as="document-node()"/>
+        <xsl:variable name="resource" select="key('resources-by-type', $for-class, $constructed-doc)[not(key('predicates-by-object', @rdf:nodeID))]" as="element()"/>
         <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
         <xsl:sequence select="map:merge(($context, map{
+            'constructed-doc': $constructed-doc,
+            'prototype-doc': $context('constructed-doc'),
             'resource': $resource,
             'types': $types,
-            'property-uris': distinct-values($resource/*/concat(namespace-uri(), local-name()))
+            'property-uris': distinct-values($resource/*/concat(namespace-uri(), local-name())),
+            'object-uris': $context('base-uri')
         }), map{ 'duplicates': 'use-last' })"/>
     </xsl:function>
 
     <xsl:function name="ldh:render-add-modal-form" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="content-body" select="$context('content-body')" as="element()"/>
-        <xsl:variable name="forClass" select="$context('forClass')" as="xs:anyURI"/>
+        <xsl:variable name="for-class" select="$context('for-class')" as="xs:anyURI"/>
         <xsl:variable name="doc-uri" select="$context('doc-uri')" as="xs:anyURI"/>
         <xsl:variable name="base-uri" select="$context('base-uri')" as="xs:anyURI"/>
         <xsl:variable name="constructed-doc" select="$context('constructed-doc')" as="document-node()"/>
@@ -820,12 +827,14 @@ LIMIT   10
                     <xsl:with-param name="classes" select="$classes"/>
                     <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                     <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
-                    <xsl:with-param name="constructor" select="$constructed-doc" tunnel="yes"/>
+                    <xsl:with-param name="object-metadata" select="$context('object-metadata')" tunnel="yes"/> <!-- the page's, so the prefilled containment renders as a chip -->
+                    <xsl:with-param name="constructor" select="$context('prototype-doc')" tunnel="yes"/> <!-- with its markers: the form reads a value's class off them -->
                     <xsl:with-param name="constructors" select="()" tunnel="yes"/> <!-- can be empty because modal form is only used to create Container/Item instances -->
                     <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
                     <xsl:with-param name="shapes" select="()" tunnel="yes"/> <!-- there will be no shapes as modal form is only used to create Container/Item instances -->
                     <xsl:with-param name="base-uri" select="$base-uri" tunnel="yes"/>
                     <xsl:with-param name="required" select="function($r as element()) as xs:boolean { $r/rdf:type/@rdf:resource = ('&dh;Container', '&dh;Item') }" tunnel="yes"/>
+                    <xsl:with-param name="containment-editable" select="true()" tunnel="yes"/> <!-- a document being made: where it goes is a field -->
                 </xsl:apply-templates>
             </xsl:variable>
 
@@ -833,11 +842,11 @@ LIMIT   10
             <!-- a modal takes over from the chrome that opened it: a drop-down the pick came from is dismissed here, once its own handler has run -->
             <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ac-menu-anchor')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseMenu"/>
             <xsl:result-document href="?." method="ixsl:append-content">
-                <div class="ac-backdrop pos-top modal modal-constructor" about="{$doc-uri}" typeof="{$forClass}"> <!-- @about identifies the new resource URL (uniform with edit/settings modals so submit handlers can read $block/@about without a fallback); $forClass used by ldh:ResourceUpdated in case of 4xx response -->
+                <div class="ac-backdrop pos-top modal modal-constructor" about="{$doc-uri}" typeof="{$for-class}"> <!-- @about identifies the new resource URL (uniform with edit/settings modals so submit handlers can read $block/@about without a fallback); $for-class used by ldh:ResourceUpdated in case of 4xx response -->
                     <xsl:apply-templates select="." mode="ldh:Modal">
                         <xsl:with-param name="title" as="item()*">
-                                    <xsl:try select="ac:object-label($forClass)">
-                                        <xsl:catch select="replace($forClass, '.*[#/]', '')"/>
+                                    <xsl:try select="ac:object-label($for-class)">
+                                        <xsl:catch select="replace($for-class, '.*[#/]', '')"/>
                                     </xsl:try>
                         </xsl:with-param>
                         <xsl:with-param name="body" as="item()*">
@@ -859,7 +868,7 @@ LIMIT   10
     <xsl:template match="div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'add-constructor')][@data-for-class]" mode="ixsl:onclick" priority="2">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:variable name="content-body" select="ancestor::div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
-        <xsl:variable name="forClass" select="xs:anyURI(@data-for-class)" as="xs:anyURI"/>
+        <xsl:variable name="for-class" select="xs:anyURI(@data-for-class)" as="xs:anyURI"/>
         <xsl:variable name="doc-uri" select="resolve-uri(ac:uuid() || '/', ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/> <!-- build a relative URI for the child document -->
         <xsl:variable name="this" select="$doc-uri" as="xs:anyURI"/>
         <xsl:variable name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
@@ -868,9 +877,10 @@ LIMIT   10
 
         <xsl:variable name="context" as="map(*)" select="map{
             'content-body': $content-body,
-            'forClass': $forClass,
+            'for-class': $for-class,
             'doc-uri': $doc-uri,
             'base-uri': $base-uri,
+            'endpoint': sd:endpoint(),
             'this': $this
         }"/>
 
@@ -882,8 +892,11 @@ LIMIT   10
             ixsl:then(ldh:fire-load-set-parallel(?, [
               [ ldh:load-type-metadata#1,     'type-metadata-request',     'type-metadata-response',     ldh:set-type-metadata#1 ],
               [ ldh:load-property-metadata#1, 'property-metadata-request', 'property-metadata-response', ldh:set-property-metadata#1 ],
-              [ ldh:load-constraints#1,       'constraints-request',       'constraints-response',       ldh:set-constraints#1 ]
+              [ ldh:load-constraints#1,       'constraints-request',       'constraints-response',       ldh:set-constraints#1 ],
+              [ ldh:load-object-metadata#1,   'metadata-request',          'metadata-response',          ldh:set-object-metadata#1 ],
+              [ ldh:load-object-metadata#1,   'ns-metadata-request',       'ns-metadata-response',       ldh:set-object-metadata-ns#1 ]
             ])) =>
+            ixsl:then(ldh:merge-object-metadata#1) =>
             ixsl:then(ldh:render-add-modal-form#1) =>
             ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure($content-body, 'form-not-loaded', ?)"/>
@@ -1223,8 +1236,20 @@ LIMIT   10
                 <xsl:apply-templates mode="ldh:Exception"/>
                 <xsl:apply-templates mode="#current"/>
 
-                <!-- package checkboxes serialize as RDF/POST ldh:import inputs, submitted by the same form -->
-                <xsl:apply-templates select="$package-catalog/rdf:RDF" mode="ldh:PackageList">
+                <!-- package checkboxes serialize as RDF/POST ldh:import inputs, submitted by the same form. The list is
+                     rendered even when the catalog could not be loaded: the imports the catalog does not describe are rows
+                     of their own, and a save has to carry every import, as ldh:import is not round-tripped as hidden inputs -->
+                <xsl:variable name="catalog" as="element()">
+                    <xsl:choose>
+                        <xsl:when test="$package-catalog/rdf:RDF">
+                            <xsl:sequence select="$package-catalog/rdf:RDF"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <rdf:RDF/>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:variable>
+                <xsl:apply-templates select="$catalog" mode="ldh:PackageList">
                     <xsl:with-param name="installed" select="for $import in */ldh:import/@rdf:resource return xs:anyURI($import)"/>
                 </xsl:apply-templates>
                 <xsl:if test="$package-catalog-error">
@@ -1610,22 +1635,52 @@ LIMIT   10
         " on-failure="ldh:promise-failure($form, 'form-not-submitted', ?)"/>
     </xsl:template>
 
+    <!-- The document a create form will PUT, minted again as $container || $slug || '/'. Everything the form names under
+         the old URI follows: the document's own su, an entity's su and old.su, a topic's ou, any value naming the entity,
+         then the form's action and the modal's @about and @data-instance, which the submit and its callbacks read; the
+         subject row's parent text is rewritten. One function for both things that move a document, the container
+         picked and the slug typed, so the two can never mint differently -->
+    <xsl:function name="ldh:remint-document" ixsl:updating="yes">
+        <xsl:param name="form" as="element()"/>
+        <xsl:param name="container" as="xs:string"/>
+        <xsl:param name="slug" as="xs:string"/>
+        <xsl:variable name="old-uri" select="string(ixsl:get($form, 'action'))" as="xs:string"/>
+        <xsl:variable name="new-uri" select="$container || encode-for-uri($slug) || '/'" as="xs:string"/>
+        <xsl:variable name="modal" select="$form/ancestor::div[contains-token(@class, 'modal-constructor')][1]" as="element()?"/>
+
+        <xsl:for-each select="$form//input[starts-with(string(ixsl:get(., 'value')), $old-uri)]">
+            <ixsl:set-property name="value" select="$new-uri || substring-after(string(ixsl:get(., 'value')), $old-uri)" object="."/>
+        </xsl:for-each>
+        <ixsl:set-attribute name="action" select="$new-uri" object="$form"/>
+        <xsl:for-each select="$modal">
+            <ixsl:set-attribute name="about" select="$new-uri" object="."/>
+            <xsl:if test="starts-with(@data-instance, $old-uri)">
+                <ixsl:set-attribute name="data-instance" select="$new-uri || substring-after(@data-instance, $old-uri)" object="."/>
+            </xsl:if>
+        </xsl:for-each>
+        <xsl:for-each select="$form//div[contains-token(@class, 'ldh-subject')]/label[contains-token(@class, 'create')]/span[contains-token(@class, 'parent')]">
+            <ixsl:set-property name="textContent" select="$container" object="."/>
+        </xsl:for-each>
+    </xsl:function>
+
+    <!-- the slug typed: the document keeps its container, read off the action it has now -->
     <xsl:template match="input[contains-token(@class, 'subject-slug')]" mode="ixsl:onkeyup" priority="1">
         <xsl:param name="slug" select="ixsl:get(., 'value')" as="xs:string?"/>
-        <xsl:param name="rdf-post-subj-input" select="preceding-sibling::input[@name = 'su']" as="element()"/>
-        <xsl:param name="form" select="ancestor::form" as="element()?"/>
-        <xsl:param name="modal" select="ancestor::div[contains-token(@class, 'modal-constructor')]" as="element()?"/>
-        <!-- URL-encode the slug value, resolve it against base URI and add trailing slash -->
-        <xsl:param name="new-uri" select="ac:absolute-path(ldh:base-uri(.)) || encode-for-uri($slug) || '/'" as="xs:string"/>
+        <xsl:param name="form" select="ancestor::form[1]" as="element()"/>
 
-        <!-- set it as the new subject URI ("su" input value) -->
-        <ixsl:set-attribute name="value" select="$new-uri" object="$rdf-post-subj-input"/>
-        <!-- also set it as the new form action value -->
-        <ixsl:set-attribute name="action" select="$new-uri" object="$form"/>
-        <!-- keep the modal wrapper @about in sync so the submit handler's $block/@about discriminator matches the resource the form will PUT to -->
-        <xsl:if test="exists($modal)">
-            <ixsl:set-attribute name="about" select="$new-uri" object="$modal"/>
-        </xsl:if>
+        <xsl:sequence select="ldh:remint-document($form, replace(string(ixsl:get($form, 'action')), '[^/]+/$', ''), $slug)"/>
+    </xsl:template>
+
+    <!-- a container (an item's) or parent (a container's) picked for a document being created: the generic pick commits
+         the chip, then the document and whatever the form names under it move there, the slug kept -->
+    <xsl:template match="div[contains-token(@class, 'modal-constructor')]//div[contains-token(@class, 'ldh-prop-group')][input[@name = 'pu'][@value = ('&sioc;has_container', '&sioc;has_parent')]]//*[contains-token(@class, 'ac-cb-panel')][contains-token(@class, 'combobox')]/li" mode="ixsl:onmousedown" priority="2">
+        <xsl:variable name="form" select="ancestor::form[1]" as="element()"/>
+        <xsl:variable name="container" select="string(input[@name = 'ou']/@value)" as="xs:string"/>
+        <xsl:variable name="slug" select="replace(string(ixsl:get($form, 'action')), '^.*/([^/]+)/$', '$1')" as="xs:string"/>
+
+        <xsl:next-match/>
+
+        <xsl:sequence select="ldh:remint-document($form, $container, $slug)"/>
     </xsl:template>
     
     <!-- CALLBACKS -->
@@ -1822,7 +1877,7 @@ LIMIT   10
         <xsl:variable name="resource-uri" select="$context('resource-uri')" as="xs:anyURI"/>
         <xsl:variable name="combobox" select="$context('combobox')" as="element()"/>
         <!-- data-for-class sits on the box; the committed chip carries it forward so the edit button's fresh lookup keeps the class scope -->
-        <xsl:variable name="forClass" select="$combobox/div[contains-token(@class, 'ac-cb-box')]/@data-for-class ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/>
+        <xsl:variable name="for-class" select="$combobox/div[contains-token(@class, 'ac-cb-box')]/@data-for-class ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/>
 
         <xsl:message>ldh:combobox-resource-response</xsl:message>
 
@@ -1836,7 +1891,7 @@ LIMIT   10
                 <xsl:for-each select="$combobox">
                     <xsl:variable name="combobox" as="element()">
                         <xsl:apply-templates select="$resource" mode="ldh:ComboboxChip">
-                            <xsl:with-param name="forClass" select="$forClass"/>
+                            <xsl:with-param name="for-class" select="$for-class"/>
                         </xsl:apply-templates>
                     </xsl:variable>
 
@@ -1853,7 +1908,7 @@ LIMIT   10
                             <xsl:with-param name="class" select="'resource-combobox combobox'"/>
                             <xsl:with-param name="list-class" select="'resource-combobox combobox ac-cb-panel'"/>
                             <xsl:with-param name="value" select="$resource-uri"/>
-                            <xsl:with-param name="forClass" select="$forClass"/>
+                            <xsl:with-param name="for-class" select="$for-class"/>
                         </xsl:call-template>
                     </xsl:result-document>
                 </xsl:for-each>
@@ -2351,7 +2406,7 @@ LIMIT   10
             map{
                 'body': $body,
                 'types': $types,
-                'forClass': $types,
+                'for-class': $types,
                 'endpoint': sd:endpoint(),
                 'property-uris': distinct-values($body/rdf:RDF/*[@rdf:about = $about]/*/concat(namespace-uri(), local-name())),
                 'object-uris': distinct-values($body/rdf:RDF/*[not(rdf:type/@rdf:resource = $ldh:system-types)]/*/@rdf:resource[not(key('resources', .))])

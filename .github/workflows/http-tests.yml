@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       MAVEN_CENTRAL: https://repo1.maven.org/maven2/ # the Jena distribution, as the Dockerfile fetches it
-      JENA_VERSION: 6.1.0
+      JENA_VERSION: 6.3.0
       BASE_URI: https://localhost:4443/
       VERSIONING_TEST_TOKEN: ${{ secrets.VERSIONING_TEST_TOKEN }} # absent on forks - the versioning suite then skips
       VERSIONING_TEST_REPO: ${{ vars.VERSIONING_TEST_REPO }}

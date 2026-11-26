@@ -75,7 +75,7 @@ import org.glassfish.jersey.uri.UriComponent;
  * <p>
  * The class has a single heavyweight {@code @Inject} constructor that wires the JAX-RS request
  * context and an HTTP-backed {@code GraphStoreClient}, so it cannot be instantiated directly in a
- * unit test. The methods exercised here ({@code getChangedResources}, {@code getLastModified}, and
+ * unit test. The methods exercised here ({@code getLastModified} and
  * the {@code writeFile}/{@code writeFiles} guards and file I/O) read no instance state, so we obtain
  * an instance via Mockito's {@code CALLS_REAL_METHODS} (which skips the constructor) and invoke the
  * real method bodies.
@@ -93,54 +93,6 @@ public class DocumentHierarchyGraphStoreImplTest
     }
 
     private final DocumentHierarchyGraphStoreImpl gs = mock(DocumentHierarchyGraphStoreImpl.class, CALLS_REAL_METHODS);
-
-    // getChangedResources()
-
-    @Test
-    public void testChangedResourcesNullBefore()
-    {
-        assertThrows(IllegalArgumentException.class, () -> gs.getChangedResources(null, ModelFactory.createDefaultModel()));
-    }
-
-    @Test
-    public void testChangedResourcesNullAfter()
-    {
-        assertThrows(IllegalArgumentException.class, () -> gs.getChangedResources(ModelFactory.createDefaultModel(), null));
-    }
-
-    @Test
-    public void testChangedResourcesDetectsAddedSubject()
-    {
-        Model before = ModelFactory.createDefaultModel();
-        Model after = ModelFactory.createDefaultModel();
-        Resource added = after.createResource("http://localhost/added");
-        added.addProperty(SIOC.HAS_PARENT, after.createResource("http://localhost/"));
-
-        Set<Resource> changed = gs.getChangedResources(before, after);
-        assertTrue(changed.contains(added));
-    }
-
-    @Test
-    public void testChangedResourcesDetectsRemovedSubject()
-    {
-        Model before = ModelFactory.createDefaultModel();
-        Resource removed = before.createResource("http://localhost/removed");
-        removed.addProperty(SIOC.HAS_PARENT, before.createResource("http://localhost/"));
-        Model after = ModelFactory.createDefaultModel();
-
-        Set<Resource> changed = gs.getChangedResources(before, after);
-        assertTrue(changed.contains(removed));
-    }
-
-    @Test
-    public void testChangedResourcesIdenticalModelsAreEmpty()
-    {
-        Model before = ModelFactory.createDefaultModel();
-        before.createResource("http://localhost/doc").addProperty(DCTerms.creator, before.createResource("http://localhost/agent"));
-        Model after = ModelFactory.createDefaultModel().add(before);
-
-        assertTrue(gs.getChangedResources(before, after).isEmpty());
-    }
 
     // removeOwnership()
 
@@ -745,17 +697,6 @@ public class DocumentHierarchyGraphStoreImplTest
         gs.discardFiles(staged);
 
         assertTrue(Files.exists(target), "discarding after a commit must not delete the committed file");
-    }
-
-    @Test
-    public void testChangedResourcesUnchangedDoesNotContainSubject()
-    {
-        Model before = ModelFactory.createDefaultModel();
-        Resource subject = before.createResource("http://localhost/doc");
-        subject.addProperty(DCTerms.creator, before.createResource("http://localhost/agent"));
-        Model after = ModelFactory.createDefaultModel().add(before);
-
-        assertFalse(gs.getChangedResources(before, after).contains(subject));
     }
 
     // checkDirectIdentification()

@@ -127,6 +127,7 @@ configs:
           proxy_set_header X-Forwarded-For $$remote_addr;
           proxy_set_header Client-Cert $$ssl_client_escaped_cert;
           proxy_set_header Proxy-Secret "${PROXY_SECRET:?set PROXY_SECRET in .env - make secrets generates it}";
+          proxy_set_header Rate-Limit-Exempt ''; # not passed on, as the main config's blocks have it
 
           # a redirector for the federation tests: any method on /see-other/<path> answers 303 See Other to /<path>
           location ~ ^/see-other(/.*)$$ {
@@ -152,6 +153,7 @@ configs:
           proxy_set_header X-Forwarded-For $$remote_addr;
           proxy_set_header Client-Cert $$ssl_client_escaped_cert;
           proxy_set_header Proxy-Secret "${PROXY_SECRET:?set PROXY_SECRET in .env - make secrets generates it}";
+          proxy_set_header Rate-Limit-Exempt ''; # not passed on, as the main config's blocks have it
 
           # a redirector for the federation tests: any method on /see-other/<path> answers 303 See Other to /<path>
           location ~ ^/see-other(/.*)$$ {

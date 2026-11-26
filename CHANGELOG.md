@@ -1,13 +1,54 @@
-## [Unreleased]
+## [6.6.0] - 2026-11-25
+### Migration
+- A deployment that runs a stock Fuseki in place of the compose file's triplestore sets `SERVICE_DELEGATION=false`: a stock Fuseki would send the marker on to the target as it is
+- Package stylesheets pass `for-class` to platform templates, where they passed `forClass`
+- A running instance gets the indexed search by copying the end-user text index from `config/fuseki/config.ttl` and the `sd:propertyFeature` line from `config/system.trig`, restarting, and running `make reindex`
+
+### Security
+- nginx's rate limits exempt the platform's own requests by the proxy secret in `Rate-Limit-Exempt`; a private source address no longer exempts a client
+- `PATCH /settings` refuses to change a dataspace's `lds:origin` or `lds:service` (`422`)
+- `PATCH /settings` refuses to change `lds:versioningRepository`
+
 ### Added
 - A query federates to another dataspace - of this deployment or of another LinkedDataHub - on behalf of the agent who asked: `SERVICE <https://people.example/sparql>` reaches that endpoint as the secretary with `On-Behalf-Of` naming the agent, and the endpoint's own access control decides, as for a write the Linked Data proxy sends. The platform marks each `https` `SERVICE` IRI with the agent and the secretary's signature (`ServiceTargets`, `SERVICE_DELEGATION`, on by default); the triplestore's new LinkedDataHub module (`fuseki-module/`) checks the marker and, where the target asks for a client certificate, makes the call on the agent's behalf, and anonymously anywhere else
 - `atomgraph/linkeddatahub-fuseki`: the triplestore image with that module, built from the `fuseki` stage of the `Dockerfile` and released with the platform; the compose file builds it in place of `atomgraph/fuseki`
+- The search box queries a text index where the dataspace's service declares `sd:propertyFeature text:query`, and a regex elsewhere (#549)
+- `make reindex` rebuilds a dataset's search index after a bulk load, and `make load` runs it
+- A view's Create opens one form for the new document (container, title, description) above the entity
+- Create > Item and Create > Container prefill the container or parent with the current page, changeable through a lookup
+- A SELECT chart drawn as a Table pages its rows with the view's pager (#219)
+- A view's facet on a string-ranged property is a case-insensitive text input (#99)
 
 ### Changed
 - A `SERVICE` clause naming an internal or loopback address, or a variable, answers `400` before the query goes out, instead of the empty result `SILENT` gave a refused call; `ALLOW_INTERNAL_URLS` does not open it, since a query's targets that are the platform's own are its dataspaces' endpoints, reached through their doors. A dataspace of this deployment named by anything but its endpoint is `400` too. An https target on the deployment's own domain (another deployment under it, such as `remote.localhost` on a local stack) is reached through the front door, not checked by the address its name has inside the network
+- `PATCH` accepts leaving a resource the document describes untyped; the document itself still needs its type
+- A container's children view lists its documents themselves: `ldh:SelectChildren` no longer selects their `foaf:primaryTopic`
+- The stylesheets' `forClass` parameter, variable and context key are renamed `for-class`
+- The `ldh` plugin's skills show how to check a type's property views without a browser
 
-### Migration
-- A deployment that runs a stock Fuseki in place of the compose file's triplestore sets `SERVICE_DELEGATION=false`: a stock Fuseki would send the marker on to the target as it is
+### Fixed
+- A resource header's type chips are centred on its title
+- A property's views show on every class its `owl:unionOf` domain or range names
+- The settings dialog keeps package imports its catalog does not list
+- An empty concept scheme can get its first concept
+- A view's Create form refused on save keeps everything typed into it
+- The bootstrap's graph-by-graph load (QLever) sends N-Triples again, with Jena tools upgraded to 6.3.0 (#272)
+- A class-restricted lookup binds its classes with `VALUES` and applies its 100-result limit: 30 s drops to under a second on 15M quads
+- A linked value added from the property picker is looked up among its constructor's class
+- A value can be added to a resource of more than one class
+- A lookup's panel stays under its field on a CSS-zoomed page
+- The language field of a value in a modal is shown whole
+- A lookup across two classes shows a tag per class
+- A type can be added to a resource that has none
+- A type added in a form starts as an empty lookup
+- A type picked for an existing resource is added to it, keeping the resource and its values
+- A paged view's status counts its rows correctly
+- A dataspace described after startup is versioned when its description says so
+- A row saved in place keeps its properties' ontology labels
+- The assistant waits up to 10 minutes for a plan, where nginx cut it at 120 s
+- An empty write through the Linked Data proxy keeps its `Content-Type` and gets `204`
+- An upstream failure's `502` carries a description with its message
+- A view's paging, counting and mapping keep a subquery's own `LIMIT` and `OFFSET`
 
 ## [6.5.2] - 2026-11-12
 ### Fixed

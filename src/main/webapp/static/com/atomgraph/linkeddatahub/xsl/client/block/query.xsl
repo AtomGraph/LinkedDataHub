@@ -96,7 +96,7 @@ exclude-result-prefixes="#all"
 <!--    <xsl:template name="ldh:QueryServiceLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
-        <xsl:param name="forClass" as="xs:anyURI"/>
+        <xsl:param name="for-class" as="xs:anyURI"/>
         <xsl:param name="service-uri" as="xs:anyURI"/>
         
         <xsl:choose>
@@ -105,7 +105,7 @@ exclude-result-prefixes="#all"
 
                 <xsl:result-document href="?." method="ixsl:append-content">
                     <xsl:apply-templates select="key('resources', $service-uri, $results)" mode="ldh:ComboboxChip">
-                        <xsl:with-param name="forClass" select="$forClass"/>
+                        <xsl:with-param name="for-class" select="$for-class"/>
                     </xsl:apply-templates>
                 </xsl:result-document>
             </xsl:when>
@@ -154,7 +154,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="endpoint" as="xs:anyURI?"/>
         <xsl:param name="query" select="string(descendant::*[@property = '&sp;text']//pre)" as="xs:string"/>
         <xsl:param name="show-properties" select="false()" as="xs:boolean"/>
-        <xsl:param name="forClass" select="xs:anyURI('&sd;Service')" as="xs:anyURI"/>
+        <xsl:param name="for-class" select="xs:anyURI('&sd;Service')" as="xs:anyURI"/>
         <!-- the access the agent has to this document, off the pane it is rendered in -->
         <xsl:param name="acl-modes" select="for $mode in tokenize((ancestor::div[contains-token(@class, 'ldh-pane')], ldh:active-pane())[1]/@data-acl-modes, ' ') return xs:anyURI($mode)" as="xs:anyURI*"/>
         
@@ -167,7 +167,7 @@ exclude-result-prefixes="#all"
             'textarea-rows': $textarea-rows,
             'query': $query,
             'service-uri': $service-uri,
-            'forClass': $forClass,
+            'for-class': $for-class,
             'acl-modes': $acl-modes
           }"/>
   
@@ -199,7 +199,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="query" select="$context('query')" as="xs:string"/>
         <xsl:variable name="service-uri" select="$context('service-uri')" as="xs:anyURI?"/>
         <xsl:variable name="service" select="$context('service')" as="element()?"/>
-        <xsl:variable name="forClass" select="$context('forClass')" as="xs:anyURI"/>
+        <xsl:variable name="for-class" select="$context('for-class')" as="xs:anyURI"/>
         
         <xsl:variable name="acl-modes" select="$context('acl-modes')" as="xs:anyURI*"/>
 
@@ -250,12 +250,12 @@ exclude-result-prefixes="#all"
                                     <xsl:when test="$service-uri">
                                         <!-- loaded by ldh:load-service before this step -->
                                         <xsl:apply-templates select="$service" mode="ldh:ComboboxChip">
-                                            <xsl:with-param name="forClass" select="$forClass"/>
+                                            <xsl:with-param name="for-class" select="$for-class"/>
                                         </xsl:apply-templates>
                                     </xsl:when>
                                     <xsl:otherwise>
                                         <xsl:call-template name="ldh:Combobox">
-                                            <xsl:with-param name="forClass" select="$forClass"/>
+                                            <xsl:with-param name="for-class" select="$for-class"/>
                                         </xsl:call-template>
                                     </xsl:otherwise>
                                 </xsl:choose>

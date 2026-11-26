@@ -239,3 +239,5 @@ The ID token path is not replayed. It needs a provider's signed tokens.
 - **The proxy's responses:** which body is re-serialized and which relayed, and the headers it returns, among them the
   `Content-Security-Policy` a relayed body is sandboxed with. They are what the caller gets back, not what is sent
   for the caller.
+- **The request body a hop carries:** whether it is forwarded, and with which media type, an empty one included. It is
+  the caller's payload, not a credential or a header the model's `forwarded` decides.

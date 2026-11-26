@@ -10,8 +10,10 @@
 // opening the dialog leaves the tag the browser holds for the page alone.
 import { test, expect } from '../../../lib/console.mjs';
 import { goto, settled } from '../../../lib/settle.mjs';
-import { itemUri } from '../../../lib/fixtures.mjs';
+import { itemUri, ldh } from '../../../lib/fixtures.mjs';
 import { fillText, save, textValue } from '../../../lib/form.mjs';
+import { endUserBase } from '../../../lib/stack.mjs';
+import { packagesBase, taxonomyPackage } from '../../../lib/taxonomy.mjs';
 
 const TITLE = 'http://purl.org/dc/terms/title';
 // Its own document, so the page tag the second test reads is not one another spec is moving.
@@ -70,6 +72,32 @@ test('saves quoting the tag the settings were read with', { tag: '@owner' }, asy
         const { modal: restore } = await openSettings(page);
         const restored = await saveTitle(page, restore, original);
         expect(restored.status()).toBe(204);
+    }
+});
+
+// The dialog writes back the checked package rows as the dataspace's imports and nothing else: ldh:import is not
+// round-tripped as a hidden input. The rows come from one catalog, so an import the catalog does not list - a
+// package from another registry, such as the fixture registry the taxonomy package is imported from - had no row
+// and was dropped by the next save of the title. The dialog is asked for the row first, because the import
+// surviving the save is only right if it survives as something the reader can see and uncheck.
+test('keeps an import the catalog does not list', { tag: '@owner' }, async ({ page }) => {
+    test.skip(!taxonomyPackage.startsWith(packagesBase), 'the taxonomy package is imported from the catalog, which lists it');
+    const imports = async () => {
+        const { stdout } = await ldh(['get', '--accept', 'application/n-triples', `${endUserBase}settings`]);
+        return stdout.split('\n').filter(line => line.includes('<https://w3id.org/atomgraph/linkeddatahub#import>'));
+    };
+    expect(await imports(), 'the taxonomy package is imported').toContainEqual(expect.stringContaining(`<${taxonomyPackage}>`));
+
+    const { modal } = await openSettings(page);
+    const original = await textValue(modal, TITLE).inputValue();
+    await expect(modal.locator(`input[name="ou"][value="${taxonomyPackage}"]`), 'the import has a row of its own').toBeChecked();
+
+    try {
+        expect((await saveTitle(page, modal, EDITED)).status()).toBe(204);
+        expect(await imports(), 'and the save keeps it').toContainEqual(expect.stringContaining(`<${taxonomyPackage}>`));
+    } finally {
+        const { modal: restore } = await openSettings(page);
+        await saveTitle(page, restore, original);
     }
 });
 

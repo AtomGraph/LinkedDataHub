@@ -2,7 +2,7 @@ FROM maven:3.9-eclipse-temurin-21 AS maven
 
 # download and extract Jena
 
-ARG JENA_VERSION=6.1.0
+ARG JENA_VERSION=6.3.0
 
 # Maven Central keeps every release, on a CDN; archive.apache.org resets connections under load, and dlcdn.apache.org
 # carries the current release only

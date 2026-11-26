@@ -20,6 +20,7 @@ import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.dataspaces.model.AdminDataspace;
 import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
+import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.server.model.impl.DocumentHierarchyGraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
@@ -46,6 +47,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.ResourceFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -349,6 +351,28 @@ public class ResponseHeadersFilterTest
 
         assertTrue(link().contains("<" + BASE_URI + "sparql>; rel=\"" + SD.endpoint.getURI() + "\""));
         assertTrue(link().contains("<" + APP_URI + ">; rel=\"" + LDS.dataspace.getURI() + "\""));
+    }
+
+    // the property functions the endpoint supports, as the dataspace's service declares them: the page asks a text
+    // index for a search where text:query is among them, and runs a regex where it is not
+    @Test
+    public void testAdvertisesPropertyFeaturesTheServiceDeclares() throws IOException
+    {
+        Service service = mock(Service.class);
+        when(service.getPropertyFeatures()).thenReturn(List.of(ResourceFactory.createResource("http://jena.apache.org/text#query")));
+        when(application.getService()).thenReturn(service);
+
+        filter.filter(request, response);
+
+        assertTrue(link().contains("<http://jena.apache.org/text#query>; rel=\"" + com.atomgraph.linkeddatahub.vocabulary.SD.propertyFeature.getURI() + "\""));
+    }
+
+    @Test
+    public void testAdvertisesNoPropertyFeatureWithoutAService() throws IOException
+    {
+        filter.filter(request, response);
+
+        assertFalse(link().contains(com.atomgraph.linkeddatahub.vocabulary.SD.propertyFeature.getURI()));
     }
 
     @Test

@@ -60,6 +60,13 @@ const partsOf = group => ({
     committed: group.locator('span.ac-cb-committed input[name="ou"]'),
     editChip: group.locator('span.ac-cb-committed button.add-combobox').first(),
 });
+// The SPARQL a lookup request carries, and the URIs a VALUES block in it binds the variable to, sorted (none
+// when no block binds it).
+const lookupQuery = request => new URL(request.url()).searchParams.get('query');
+const valuesIn = (query, variable) => {
+    const block = query.match(new RegExp(`VALUES\\s+\\?${variable}\\s*\\{([^}]*)\\}`, 'i'));
+    return block ? [...block[1].matchAll(/<([^>]+)>/g)].map(match => match[1]).sort() : [];
+};
 const titlesIn = panel => panel.locator('li').evaluateAll(items => items.map(li => li.getAttribute('title')));
 // The debounce is 400ms and a stale scheduled load is dropped by ldh:ComboboxLoad's own
 // value check, so a quiet second is enough for "and it stayed shut".
@@ -147,6 +154,27 @@ test.describe('the resource combobox', { tag: '@owner' }, () => {
             await expect.poll(() => titlesIn(panel), { timeout: 20_000 })
                 .not.toContain(concept('drinks'));
             await expect.poll(() => titlesIn(panel)).toEqual([concept('cold-drinks'), concept('hot-drinks')]);
+        });
+
+        // How the scope is put matters as much as that it is. The lookup's SELECT is a UNION of a GRAPH ?graph
+        // branch and a default-graph one, and a FILTER(?Type IN (...)) after it is not pushed into the GRAPH
+        // branch by Jena: that branch walks every typed resource in every graph before the filter drops the ones
+        // of other classes, which on a dataspace of 15M quads took 30 s for one keystroke. Bound with VALUES the
+        // class joins both branches first, and the same lookup took 0.1 s. A lookup is a page of suggestions,
+        // so it also asks for no more than one.
+        test('binds the class in the query, and asks for a page of suggestions', async ({ page }) => {
+            const form = await conceptForm(page);
+            const { input, panel } = partsOf(groupFor(form, RELATED));
+
+            const lookup = page.waitForRequest(request => LOOKUP.test(request.url()), { timeout: 25_000 });
+            await input.click();
+            await input.pressSequentially('drinks', { delay: 110 });
+            const query = lookupQuery(await lookup);
+            await expect(panel).toBeVisible({ timeout: 25_000 });
+
+            expect(valuesIn(query, 'Type'), 'the class is bound with VALUES').toEqual([`${SKOS}Concept`]);
+            expect(query, 'not filtered by IN after the UNION').not.toMatch(/\bIN\s*\(/i);
+            expect(query, 'a page of suggestions').toMatch(/\bLIMIT\s+100\b/i);
         });
     });
 
@@ -361,6 +389,32 @@ test.describe('the resource combobox', { tag: '@owner' }, () => {
             expect(drop.y + drop.height, 'so it sits one gap above the field')
                 .toBeCloseTo(field.y - GAP, 0);
         });
+
+        // Under a CSS zoom on the page (a screen recording runs the whole page at 2), a rect is measured
+        // in zoomed pixels while a style is written in layout ones. Measured before: the translation that
+        // flips the panel above its field was read off the rects and written as it was, so a flip of 316
+        // moved the panel 632, and it sat 548px above the field it drops from, as wide as two of it.
+        test('keeps its place under a CSS zoom', async ({ page }) => {
+            await page.setViewportSize({ width: 1280, height: 720 });
+            const form = await conceptForm(page);
+            await page.evaluate(() => { document.documentElement.style.zoom = '2'; });
+            const parts = partsOf(groupFor(form, RELATED));
+            await parts.input.click();
+            await parts.input.pressSequentially('drinks', { delay: 110 });
+            await expect(parts.panel).toBeVisible({ timeout: 25_000 });
+            await page.waitForTimeout(400);
+            const { field, drop, viewport } = await geometry(page, parts.box, parts.panel);
+
+            // Either placement, whichever the room below the field decides: the doubling threw both off,
+            // a drop below landing a field's height too low, a flip above landing a panel's height too high
+            expect(drop.width, 'as wide as the field, not twice it').toBeCloseTo(field.width, 0);
+            expect(drop.x).toBeCloseTo(field.x, 0);
+            if (viewport - (field.y + field.height) > drop.height) {
+                expect(drop.y, 'one gap under the field').toBeCloseTo(field.y + field.height + GAP, 0);
+            } else {
+                expect(drop.y + drop.height, 'one gap above the field').toBeCloseTo(field.y - GAP, 0);
+            }
+        });
     });
 
     test.describe('a lookup that fails', () => {
@@ -403,8 +457,11 @@ test.describe('the resource combobox', { tag: '@owner' }, () => {
             await typeChip.click();
             const typeInput = form.locator('input.type-combobox');
             await expect(typeInput).toBeVisible({ timeout: 15_000 });
+            // classes are looked up in the namespace endpoint, a page of them at a time like any lookup
+            const lookup = page.waitForRequest(request => /\/ns\?query=DESCRIBE/i.test(request.url()), { timeout: 25_000 });
             await typeInput.click();
             await typeInput.pressSequentially('Collection', { delay: 110 });
+            expect(lookupQuery(await lookup), 'a page of classes').toMatch(/\bLIMIT\s+100\b/i);
 
             const typePanel = page.locator('div.ac-cb-panel.type-combobox');
             await expect(typePanel).toBeVisible({ timeout: 25_000 });
