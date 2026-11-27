@@ -36,8 +36,10 @@ PREFIX schema2: <https://schema.org/>
 # rather than a regex over every label: 30 s on 15M quads, hit or miss, against 0.1-0.4 s with the index, which
 # builds in under a minute (325 MB for 2M labelled resources). The dataspace's service declares it with
 # sd:propertyFeature text:query (config/system.trig), which is how the page knows to ask. One field and no
-# text:graphField: a text:query inside an unbound GRAPH runs once per named graph, one per document, and never
-# finishes. The dataset's parts are named, <#NAME-tdb>, <#NAME-index> and <#NAME-entity-map>: jena-text's assemblers
+# text:graphField: the index stores no graph, so text:query must sit outside GRAPH. Inside one it does not restrict
+# hits to that graph - GRAPH <doc> returns hits from every document, and GRAPH ?g pairs every hit with every named
+# graph (one per document): wrong rows, quickly under a LIMIT, and never finishing without one. The dataset's parts
+# are named, <#NAME-tdb>, <#NAME-index> and <#NAME-entity-map>: jena-text's assemblers
 # read a part's URI, and a blank node stops Fuseki from starting ("Argument to NodeFactory.createURI is null").
 # `make reindex` describes the dataset and its parts for jena.textindexer after a bulk load (the index follows SPARQL
 # Update and Graph Store writes on its own; tdb2.tdbloader writes past it).
