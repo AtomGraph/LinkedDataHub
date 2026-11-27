@@ -1220,7 +1220,8 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <!-- prepend the text:query pattern to WHERE: first, so the index answers before the label patterns run, and never
-         inside their GRAPH ?graph, where a property function is evaluated once per named graph - one per document.
+         inside their GRAPH ?graph: the index stores no graph (no text:graphField), so there the property function pairs
+         every hit with every named graph - one per document - instead of the graph the hit is in.
          The query is a plain literal, which jena-text takes as the query over the index's default field, so no list
          argument has to round-trip through the SPARQL.js generator -->
     <xsl:template match="json:array[@key = 'where']" mode="ldh:add-text-query" priority="1">
