@@ -209,6 +209,10 @@ services:
       - WEBALGEBRA_TRUSTED_ORIGIN=${PROTOCOL}://${HOST}:${HTTPS_PORT}
       - WEBALGEBRA_PROXY_HOST=nginx
       - WEBALGEBRA_PROXY_PORT=9443
+      # that listener forwards the plan's certificate as the Client-Cert header, a few KB of Tomcat's 8 KB header limit,
+      # so a query URL under the client's 8192-character GET limit can still be refused with 400: queries to this
+      # instance go as a POST beyond 4096 characters instead
+      - WEBALGEBRA_TRUSTED_MAX_GET_REQUEST_SIZE=4096
       # the secretary's WebID: the agent every user's WebID document already delegates (root-owner.trig.template, SignUp),
       # so a plan submitted by a user runs under that user's own access control, not the secretary's
       - WEBALGEBRA_KEYSTORE=/var/webalgebra/ssl/secretary/keystore.p12

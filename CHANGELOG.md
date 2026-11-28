@@ -27,6 +27,7 @@
 - The `ldh` plugin's skills show how to check a type's property views without a browser
 
 ### Fixed
+- The assistant's long queries to this instance are POSTed (`WEBALGEBRA_TRUSTED_MAX_GET_REQUEST_SIZE=4096`), where a GET with the forwarded client certificate overflowed Tomcat's header limit and was refused with 400
 - A resource header's type chips are centred on its title
 - A property's views show on every class its `owl:unionOf` domain or range names
 - The settings dialog keeps package imports its catalog does not list
