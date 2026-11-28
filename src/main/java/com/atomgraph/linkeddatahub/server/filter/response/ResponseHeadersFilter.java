@@ -117,7 +117,15 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
         boolean isProxyRequest = request.getProperty(AC.uri.getURI()) != null;
 
         if (!isProxyRequest)
+        {
             response.getHeaders().add(HttpHeaders.LINK, Link.fromUri(request.getUriInfo().getBaseUriBuilder().path(Dispatcher.class, "getSPARQLEndpoint").build()).rel(SD.endpoint.getURI()).build());
+
+            // the property functions the endpoint supports, one Link each beside it, as the dataspace's service declares
+            // them: the page asks a text index for a search where text:query is among them, and the regex where it is not
+            if (getDataspace().isPresent() && getDataspace().get().getService() != null)
+                getDataspace().get().getService().getPropertyFeatures().
+                    forEach(feature -> response.getHeaders().add(HttpHeaders.LINK, Link.fromUri(URI.create(feature.getURI())).rel(com.atomgraph.linkeddatahub.vocabulary.SD.propertyFeature.getURI()).build()));
+        }
 
         // Only add application-specific links if application is present and this is not a proxy request
         if (!isProxyRequest && getDataspace().isPresent())

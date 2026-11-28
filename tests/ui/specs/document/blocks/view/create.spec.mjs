@@ -4,8 +4,8 @@
 // the new resource into it as a fragment, letting the graph store build the containing
 // dh:Item around it. That leaves two triples nobody else can supply, because only the
 // client knows the document it just invented: foaf:primaryTopic, without which the
-// document renders an empty body and the renderers have no topic to pair it with, and the
-// dct:title it is known by everywhere a document is listed.
+// document renders an empty body, and the dct:title it is known by everywhere a document
+// is listed.
 //
 // So the assertions here are in two halves. The DOM half is that the result arrives as one
 // labelled row, which says the save went through and the view re-queried itself. The data

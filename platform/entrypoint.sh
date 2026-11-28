@@ -1086,6 +1086,11 @@ if [ -n "$ALLOW_INTERNAL_URLS" ]; then
     export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.allowInternalUrls=$ALLOW_INTERNAL_URLS"
 fi
 
+# a query's SERVICE calls marked with the asking agent, for the triplestore's LinkedDataHub module to make on their behalf
+if [ -n "$SERVICE_DELEGATION" ]; then
+    export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.serviceDelegation=$SERVICE_DELEGATION"
+fi
+
 # the secret nginx sends in the Proxy-Secret header; the Client-Cert header is accepted only with it.
 # Written to a file only this user can read, and removed from the environment, so the value stays out of
 # the JVM's environment, its command line and the startup log

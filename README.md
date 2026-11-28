@@ -41,7 +41,7 @@ The [`ldh` command line interface](#command-line-interface) is attached to every
 ### Steps
 
   1. [Fork](https://guides.github.com/activities/forking/) this repository and clone the fork into a folder
-  2. In the folder, create an `.env` file and fill out the missing values (you can use [`.env_sample`](https://github.com/AtomGraph/LinkedDataHub/blob/master/.env_sample) as a template). For example:
+  2. In the folder, copy [`.env_sample`](https://github.com/AtomGraph/LinkedDataHub/blob/master/.env_sample) to `.env` and fill in the owner's details, which go into the owner's WebID certificate. For example:
      ```
      COMPOSE_CONVERT_WINDOWS_PATHS=1
      COMPOSE_PROJECT_NAME=linkeddatahub
@@ -60,19 +60,14 @@ The [`ldh` command line interface](#command-line-interface) is attached to every
      OWNER_STATE_OR_PROVINCE=Denmark
      OWNER_COUNTRY_NAME=DK
      ```
-     `.env` also needs `PROXY_SECRET`, a random value nginx sends to the platform with every request: `make secrets` appends one, or add `PROXY_SECRET=` followed by the output of `openssl rand -hex 32`. Docker Compose refuses to start without it.
-  3. Setup server's SSL certificates by running this from command line:
-     ```shell
-     ./bin/server-cert-gen.sh .env nginx ssl
-     ```
-     The script will create an `ssl` sub-folder where the SSL certificates and/or public keys will be placed.
-  4. Create the following secrets with certificate/truststore passwords:
-     - `secrets/client_truststore_password.txt`
-     - `secrets/owner_cert_password.txt`
-     - `secrets/secretary_cert_password.txt`
-     - `secrets/openai_api_key.txt` — optional, only if you [enable the assistant](#assistant): an OpenAI API key, declared in `docker-compose.override.yml` like the OAuth secrets; without it the assistant runs plans but cannot write them
-     The one you will need to remember in order to authenticate with LinkedDataHub using WebID client certificate is `owner_cert_password`.
-  5. Launch the application services by running this from command line:
+     The sample's values work as they are for a local install on `https://localhost:4443/`.
+  3. `make up` creates the rest on its first run, and keeps what already exists:
+     - `PROXY_SECRET` and `FUSEKI_ADMIN_PASSWORD` in `.env`, two random values Docker Compose refuses to start without: the secret nginx sends to the platform with every request, and the password of Fuseki's admin API (`make secrets`)
+     - the certificate and truststore passwords in `secrets/`: `client_truststore_password.txt`, `owner_cert_password.txt` and `secretary_cert_password.txt` (`make secrets`). The one you will need to remember in order to authenticate with LinkedDataHub using WebID client certificate is `owner_cert_password`
+     - the server's SSL certificate in `ssl/server/`, made by `./bin/server-cert-gen.sh .env nginx ssl` (`make cert`)
+
+     To set any of them yourself, create it before the first `make up`. `secrets/openai_api_key.txt` is the one secret it does not create: it is optional, only if you [enable the assistant](#assistant): an OpenAI API key, declared in `docker-compose.override.yml` like the OAuth secrets; without it the assistant runs plans but cannot write them.
+  4. Launch the application services by running this from command line:
      ```shell
      make up -- --build
      ```
@@ -87,17 +82,17 @@ The [`ldh` command line interface](#command-line-interface) is attached to every
      - `datasets` where LDH persists agent metadata files
      - `uploads` where LDH stores content-hashed file uploads
      It should take up to half a minute as datasets are being loaded into triplestores. After a successful startup you should see periodic healtcheck requests being made to the https://localhost:4443/ns URL.
-  6. Install `ssl/owner/keystore.p12` into a web browser of your choice (password is the `owner_cert_password` secret value)
+  5. Install `ssl/owner/keystore.p12` into a web browser of your choice (password is the `owner_cert_password` secret value)
      - Google Chrome: `Settings > Advanced > Manage Certificates > Import...`
      - Mozilla Firefox: `Options > Privacy > Security > View Certificates... > Import...`
      - Apple Safari: The file is installed directly into the operating system. Open the file and import it using the [Keychain Access](https://support.apple.com/guide/keychain-access/what-is-keychain-access-kyca1083/mac) tool (drag it to the `local` section).
      - Microsoft Edge: Does not support certificate management, you need to install the file into Windows. [Read more here](https://social.technet.microsoft.com/Forums/en-US/18301fff-0467-4e41-8dee-4e44823ed5bf/microsoft-edge-browser-and-ssl-certificates?forum=win10itprogeneral).
-  7. For authenticated API access use the `ssl/owner/cert.pem` HTTPS client certificate with `curl`, or the `ssl/owner/keystore.p12` keystore beside it with the [`ldh` CLI](#command-line-interface).
+  6. For authenticated API access use the `ssl/owner/cert.pem` HTTPS client certificate with `curl`, or the `ssl/owner/keystore.p12` keystore beside it with the [`ldh` CLI](#command-line-interface).
      If you are running Linux with user other than `root`, you might need to fix the certificate permissions because Docker bind mounts are owned by `root` by default. For example:
      ```shell
      sudo setfacl -m u:$(whoami):r ./ssl/owner/*
      ```
-  8. Open **https://localhost:4443/** in the web browser or use the API, for example:
+  7. Open **https://localhost:4443/** in the web browser or use the API, for example:
      ```shell
      curl -k -E ./ssl/owner/cert.pem:<your cert password> -H "Accept: text/turtle" 'https://localhost:4443/'
      ```
@@ -253,6 +248,12 @@ _:warning: Do not use blank nodes to identify applications or services. We recom
     <dd>Size of the store the Varnish caches in front of the triplestore keep SPARQL results in, apart from their main one (Varnish size syntax, e.g. <code>64M</code>). A result too large for it ends the fetch, and the triplestore abandons the query, which bounds what one runaway query costs. <code>64M</code> by default</dd>
     <dt><code>COMPOSE_PROFILES</code></dt>
     <dd><code>assistant</code> to run and offer the <a href="#assistant">assistant</a>. Disabled by default</dd>
+    <dt><code>WEBALGEBRA_VERSION</code></dt>
+    <dd>Tag of the <code>ghcr.io/atomgraph/webalgebra-server-ldh</code> image the <a href="#assistant">assistant</a> runs; <code>local</code> for an image built from a REST-VKG checkout. <code>latest</code> by default</dd>
+    <dt><code>OPENAI_MODEL</code></dt>
+    <dd>OpenAI model the <a href="#assistant">assistant</a> writes plans and queries with. <code>gpt-4o</code> by default</dd>
+    <dt><code>FUSEKI_ADMIN_PASSWORD</code></dt>
+    <dd>Password of Fuseki's <code>admin</code> user, for the admin API that creates and removes a dataset per dataspace. Required; <code>make secrets</code> generates one</dd>
     <dt><code>MAIL_SMTP_HOST</code></dt>
     <dd>Hostname of the mail server</dd>
     <dt><code>MAIL_SMTP_PORT</code></dt>
@@ -260,6 +261,8 @@ _:warning: Do not use blank nodes to identify applications or services. We recom
   </dl>
 
 The options are described in more detail in the [configuration documentation](https://docs.linkeddatahub.com/reference/configuration/).
+
+The search box asks a text index where the dataspace's service declares one, and runs a regex over every label where it does not. The end-user dataset in `config/fuseki/config.ttl` carries a jena-text index over the labels the search reads, and `config/system.trig` declares it on the dataspace's service with `sd:propertyFeature <http://jena.apache.org/text#query>`. The index follows writes through Fuseki on its own; after a bulk load with `tdb2.tdbloader`, `make reindex` rebuilds it from the data (`make load` runs it).
 
   ## Reset
 

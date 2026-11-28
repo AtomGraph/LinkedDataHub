@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.atomgraph</groupId>
+    <artifactId>linkeddatahub-fuseki</artifactId>
+    <version>6.5.2</version>
+    <packaging>jar</packaging>
+
+    <name>LinkedDataHub Fuseki module</name>
+    <description>A Fuseki module that sends a SPARQL SERVICE call on behalf of the agent who asked the query, as the
+    platform's secretary vouching for them, to an endpoint that asks for a client certificate</description>
+    <url>https://github.com/AtomGraph/LinkedDataHub</url>
+
+    <licenses>
+        <license>
+            <name>Apache License 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <!-- Fuseki and Jena are the server's own: provided, so the jar holds this module's classes alone and is put on the
+    classpath of the image's Fuseki beside its server jar (Dockerfile, the fuseki stage) -->
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.release>21</maven.compiler.release>
+        <jena.version>6.1.0</jena.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.jena</groupId>
+            <artifactId>jena-fuseki-main</artifactId>
+            <version>${jena.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.12.2</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>linkeddatahub-fuseki</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.14.1</version>
+                <configuration>
+                    <release>21</release>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.2</version>
+                <configuration>
+                    <!-- the Host header of a call to an own origin through the internal proxy is restricted in the JDK client
+                    unless allowed; the image's Fuseki is started with the same property -->
+                    <argLine>-Djdk.httpclient.allowRestrictedHeaders=host</argLine>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>versions-maven-plugin</artifactId>
+                <version>2.21.0</version>
+            </plugin>
+        </plugins>
+    </build>
+</project>

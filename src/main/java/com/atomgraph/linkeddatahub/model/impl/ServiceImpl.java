@@ -19,8 +19,10 @@ package com.atomgraph.linkeddatahub.model.impl;
 import com.atomgraph.core.vocabulary.A;
 import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.model.Service;
+import java.util.List;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
@@ -85,6 +87,16 @@ public class ServiceImpl extends ResourceImpl implements Service
         if (authPwd != null) return authPwd.getString();
 
         return null;
+    }
+
+    @Override
+    public List<Resource> getPropertyFeatures()
+    {
+        return listProperties(com.atomgraph.linkeddatahub.vocabulary.SD.propertyFeature).
+            mapWith(Statement::getObject).
+            filterKeep(RDFNode::isURIResource).
+            mapWith(RDFNode::asResource).
+            toList();
     }
 
 }

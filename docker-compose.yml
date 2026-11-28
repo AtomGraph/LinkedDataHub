@@ -70,6 +70,10 @@ services:
       - MAX_UPLOAD_LENGTH=${MAX_UPLOAD_LENGTH:-} # file uploads (multipart bodies); MAX_CONTENT_LENGTH unless set
       - MAX_QUERY_RESPONSE_LENGTH=${MAX_QUERY_RESPONSE_LENGTH:-} # 5 MiB unless set (Application.DEFAULT_MAX_QUERY_RESPONSE_LENGTH)
       - ALLOW_INTERNAL_URLS=${ALLOW_INTERNAL_URLS:-}
+      # a query's SERVICE calls are marked with the asking agent, for the triplestore (the fuseki image, with LinkedDataHub's
+      # module) to make on their behalf where the target asks for a client certificate. Off with a stock Fuseki, which
+      # would send the marker on as it is
+      - SERVICE_DELEGATION=${SERVICE_DELEGATION:-true}
       - ENABLE_SITEMAP=${ENABLE_SITEMAP:-} # opt-in: /sitemap.xml queries every public document of the dataspace
       - COMPOSE_PROFILES=${COMPOSE_PROFILES:-} # the "assistant" profile also makes the UI offer the assistant (entrypoint.sh)
       - EGRESS_PROXY=${EGRESS_PROXY:-egress:3128} # the platform's own SPARQL SERVICE (PATCH, imports) goes through egress too
@@ -129,13 +133,29 @@ services:
     expose:
       - 8080 # internal only - the platform is the sole client
   fuseki: # one server; every dataspace role is its own dataset in config/fuseki/config.ttl, stored under ./fuseki/<dataset>
-    image: atomgraph/fuseki:6.1.0
+    # the generic Fuseki with LinkedDataHub's module (Dockerfile, the fuseki stage): a SERVICE call the platform marked
+    # with the asking agent is made as the secretary on that agent's behalf, where the target asks for a client
+    # certificate - this deployment's dataspaces and another LinkedDataHub's - and anonymously anywhere else
+    build:
+      context: .
+      target: fuseki
     user: root # otherwise fuseki user does not have permissions to the mounted folder which is owner by root
     mem_limit: 4608m # the former fuseki-admin (1536m) and fuseki-end-user (3072m) combined
     restart: on-failure
     depends_on:
       - egress
+    secrets:
+      - secretary_cert_password
     environment:
+      # the secretary's key answers a server that asks for a client certificate and its certificate checks the
+      # platform's markers; this deployment's origins are reached through nginx's client-certificate listener under
+      # their own name, trusting the deployment's server certificate, as the platform reaches them
+      - LDH_DELEGATION_KEYSTORE=/var/linkeddatahub/ssl/secretary/keystore.p12
+      - LDH_DELEGATION_KEYSTORE_PASSWORD_FILE=/run/secrets/secretary_cert_password
+      - LDH_DELEGATION_TRUSTSTORE=/var/linkeddatahub/ssl/server/server.crt
+      - LDH_DELEGATION_HOST=${HOST}
+      - LDH_DELEGATION_PROXY_HOST=nginx
+      - LDH_DELEGATION_PROXY_PORT=9443
       - JAVA_OPTIONS=-Xmx2304m -Xms2304m # the former heaps combined: 768m admin + 1536m end-user
       # every outbound request (SPARQL SERVICE, LOAD) goes through egress, which only lets it reach public addresses.
       # JAVA_TOOL_OPTIONS rather than JAVA_OPTIONS, which an override setting the heap would replace. The empty
@@ -150,6 +170,8 @@ services:
       - ./config/fuseki/config.ttl:/fuseki/config.ttl:ro
       - ./fuseki:/fuseki/databases
       - ./fuseki/run:/fuseki/run # datasets created at runtime: their configuration and data
+      - ./ssl/secretary:/var/linkeddatahub/ssl/secretary:ro
+      - ./ssl/server:/var/linkeddatahub/ssl/server:ro
     configs:
       - source: fuseki_shiro
         target: /fuseki/shiro.ini
@@ -187,6 +209,10 @@ services:
       - WEBALGEBRA_TRUSTED_ORIGIN=${PROTOCOL}://${HOST}:${HTTPS_PORT}
       - WEBALGEBRA_PROXY_HOST=nginx
       - WEBALGEBRA_PROXY_PORT=9443
+      # that listener forwards the plan's certificate as the Client-Cert header, a few KB of Tomcat's 8 KB header limit,
+      # so a query URL under the client's 8192-character GET limit can still be refused with 400: queries to this
+      # instance go as a POST beyond 4096 characters instead
+      - WEBALGEBRA_TRUSTED_MAX_GET_REQUEST_SIZE=4096
       # the secretary's WebID: the agent every user's WebID document already delegates (root-owner.trig.template, SignUp),
       # so a plan submitted by a user runs under that user's own access control, not the secretary's
       - WEBALGEBRA_KEYSTORE=/var/webalgebra/ssl/secretary/keystore.p12
@@ -278,15 +304,15 @@ configs:
               server ${NGINX_UPSTREAM_SERVER:-varnish-frontend:6060};
           }
 
-          # Exempt internal requests from the linkeddatahub container from rate limiting
-          # Use RFC 1918 private IP ranges (same logic as InetAddress.isSiteLocalAddress())
-          map $$remote_addr $$limit_key {
+          # the platform's requests to its own URLs carry the proxy secret in Rate-Limit-Exempt (ClientUriRewriteFilter) and
+          # are not rate limited; every other client is limited by its address. The exemption is by secret, not by a private
+          # address: a request can arrive from one that is not the platform's - Docker relays IPv6 clients from the bridge
+          # gateway, and a shared front proxy or a load balancer sends everyone from its own. Not Proxy-Secret, the header
+          # nginx sends the platform: a browser cannot send a Proxy-* header, and the page-load test's exempt loads must
+          map_hash_bucket_size 128; # fits the secret as a key: make secrets writes 64 hex characters, the default bucket's size
+          map $$http_rate_limit_exempt $$limit_key {
               default $$binary_remote_addr;
-              ~^10\.          "";  # RFC 1918: 10.0.0.0/8
-              ~^172\.1[6-9]\. "";  # RFC 1918: 172.16.0.0/12 (172.16-19.x.x)
-              ~^172\.2[0-9]\. "";  # RFC 1918: 172.16.0.0/12 (172.20-29.x.x)
-              ~^172\.3[0-1]\. "";  # RFC 1918: 172.16.0.0/12 (172.30-31.x.x)
-              ~^192\.168\.    "";  # RFC 1918: 192.168.0.0/16
+              "${PROXY_SECRET:?set PROXY_SECRET in .env - make secrets generates it}" "";
           }
 
           # a page is many requests at once - up to ~175 on a rich one, 35-46 of them in its first second (measured on
@@ -299,7 +325,7 @@ configs:
 
           # SPARQL endpoints are capped by concurrency, not only by rate: a handful of heavy queries in flight at once is
           # what exhausts the store's heap, however slowly they arrive. The keys are set for an external client's
-          # /sparql request only - every other path and every internal (RFC 1918) caller maps to "", which nginx does not
+          # /sparql request only - every other path and the platform's own requests map to "", which nginx does not
           # count - so the caps sit in the generic locations below without touching anything else
           map $$uri $$sparql_key {
               default "";
@@ -366,6 +392,7 @@ configs:
               proxy_set_header X-Forwarded-For $$remote_addr;
               proxy_set_header Client-Cert $$ssl_client_escaped_cert; # empty, and so not sent, without a client certificate
               proxy_set_header Proxy-Secret "${PROXY_SECRET:?set PROXY_SECRET in .env - make secrets generates it}";
+              proxy_set_header Rate-Limit-Exempt ''; # read here, not passed on
 
               # the platform uses no path parameters (;)
               if ($$request_uri ~ "^[^?]*;") {
@@ -388,10 +415,13 @@ configs:
                   set $$web_algebra http://web-algebra:8080;
                   proxy_pass $$web_algebra;
                   limit_req zone=web_algebra burst=10 nodelay;
-                  proxy_read_timeout 120s; # writing a plan is a 10-30 s model call
+                  # writing a plan is one model call that the sidecar may follow with a repair pass when the model's SPARQL
+                  # does not parse: 40-130 s measured against a 15M-quad dataspace, so the bound sits well above that.
+                  # Executing is polled at /webalgebra/{id}/result and needs no long wait
+                  proxy_read_timeout 600s;
 
                   # repeats the server-level set, since it also clears On-Behalf-Of. Proxy-Secret is for the platform only and
-                  # is not sent to the sidecar
+                  # is not sent to the sidecar, nor is Rate-Limit-Exempt
                   proxy_set_header Host $$host;
                   proxy_set_header X-Forwarded-Host $$host;
                   proxy_set_header X-Forwarded-Proto $$scheme;
@@ -399,6 +429,7 @@ configs:
                   proxy_set_header X-Forwarded-For $$remote_addr;
                   proxy_set_header Client-Cert $$ssl_client_escaped_cert;
                   proxy_set_header On-Behalf-Of '';
+                  proxy_set_header Rate-Limit-Exempt '';
               }
 
               location / {
@@ -474,6 +505,7 @@ configs:
               proxy_set_header X-Forwarded-For $$remote_addr;
               proxy_set_header Client-Cert $$ssl_client_escaped_cert; # empty, and so not sent, without a client certificate
               proxy_set_header Proxy-Secret "${PROXY_SECRET:?set PROXY_SECRET in .env - make secrets generates it}";
+              proxy_set_header Rate-Limit-Exempt ''; # read here, not passed on
 
               # the platform uses no path parameters (;)
               if ($$request_uri ~ "^[^?]*;") {

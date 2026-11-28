@@ -125,9 +125,29 @@ schema:category rdfs:range schema:ProductGroup ;
   backlinks.
 - **A property view shows only on the types the property declares.** An `ldh:inverseView` appears on
   pages whose resource has a type in the property's `rdfs:range`. An `ldh:view` appears on those with a
-  type in its `rdfs:domain`. Declare the range or domain in `ns.ttl`, even for a reused term like
-  `schema:author`, since the dataspace does not import schema.org. Without it the view never appears.
-  Its query can be correct and still never be run, so check the page itself, not only the query.
+  type in its `rdfs:domain`. A domain or range that is an `owl:unionOf` counts each of its classes.
+  Declare the range or domain in `ns.ttl`, even for a reused term like `schema:author`, since the
+  dataspace does not import schema.org. Without it the view never appears.
+  Its query can be correct and still never be run, so check which views a type gets, not only the query.
+  The page looks them up in the browser with a query against the installed ontology at `${LDH_BASE}ns`,
+  and the same query answers without one. List the page's types in `VALUES ?type`:
+
+  ```bash
+  q='PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+  PREFIX owl: <http://www.w3.org/2002/07/owl#>
+  PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+  PREFIX ldh: <https://w3id.org/atomgraph/linkeddatahub#>
+  SELECT ?property ?view ?inverse
+  WHERE {
+    { ?property ldh:view ?view ; rdfs:subPropertyOf*/rdfs:domain/(owl:unionOf/rdf:rest*/rdf:first)? ?type BIND(false AS ?inverse) }
+    UNION
+    { ?property ldh:inverseView ?view ; rdfs:subPropertyOf*/rdfs:range/(owl:unionOf/rdf:rest*/rdf:first)? ?type BIND(true AS ?inverse) }
+    VALUES ?type { <https://localhost:4443/ns#Category> }
+  }'
+  ldh get --accept text/csv "${LDH_BASE}ns?query=$(python3 -c 'import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1]))' "$q")"
+  ```
+
+  A type with no row gets no panel, however correct the view's own query is.
 - Constraints run on every write, imports included. A violating write answers `422`, and an import
   attaches its violations to the import document. Do not add a constraint the data cannot satisfy.
 - View queries `SELECT` resources (one variable, the resource) and do not aggregate. Aggregates
@@ -325,7 +345,10 @@ Load it with `tdb2.tdbloader` straight into the dataspace's end-user TDB2 datase
 - Stop `fuseki` first. One server holds every dataset, so the admin stores go down with it.
 - Remove the stale `fuseki/*/DB2/tdb.lock` files, because their PIDs are container-relative.
 - Resolve the TriG to N-Quads with `riot --base=…`, since `tdbloader` has no `--base`.
-- Load the N-Quads, start `fuseki`, and restart the Varnish caches.
+- Load the N-Quads, then `make reindex`: the dataset's search index follows writes through Fuseki,
+  but `tdbloader` writes past it, so it is rebuilt from the data (`jena.textindexer`, under a minute
+  for 15M quads). Without this the search box finds nothing of what was loaded.
+- Start `fuseki`, and restart the Varnish caches.
 
 The canonical Makefile's `make load` does all of this when `make/config.mk` sets `LOAD_STAGING`
 and `docker-compose.override.yml` defines a `tdb-loader` service. LTLOD's override has one to copy.

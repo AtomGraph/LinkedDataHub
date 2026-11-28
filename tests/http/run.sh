@@ -339,6 +339,16 @@ if [ -z "$PROXY_SECRET" ] && [ -f "$HTTP_TEST_ROOT/../../.env" ]; then
     PROXY_SECRET=$(grep -m1 '^PROXY_SECRET=' "$HTTP_TEST_ROOT/../../.env" | cut -d= -f2-)
     [ -z "$PROXY_SECRET" ] || export PROXY_SECRET
 fi
+
+# nginx rate-limits every client by its address, but for requests carrying the proxy secret in Rate-Limit-Exempt. The
+# suite's requests all come from the runner's one address, and a conformance test sends a hundred and more back to
+# back: without the header they are refused with 429 as the run's pace has it. Every curl of the suite reads this
+# config. The ldh CLI sends no such header, and its requests stay limited
+if [ -n "$PROXY_SECRET" ]; then
+    CURL_HOME=$(mktemp -d)
+    printf 'header = "Rate-Limit-Exempt: %s"\n' "$PROXY_SECRET" > "$CURL_HOME/.curlrc"
+    export CURL_HOME
+fi
 export TEST_RESULTS_DIR="${TEST_RESULTS_DIR:-$HTTP_TEST_ROOT/out}"
 mkdir -p "$TEST_RESULTS_DIR"
 export END_USER_ENDPOINT_URL="http://localhost:3030/end-user/"

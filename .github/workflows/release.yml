@@ -8,6 +8,7 @@ on:
 env:
   PLATFORM_IMAGE: atomgraph/linkeddatahub
   SEF_COMPILER_IMAGE: atomgraph/linkeddatahub-sef-compiler
+  FUSEKI_IMAGE: atomgraph/linkeddatahub-fuseki
 
 jobs:
   # one job per architecture, each on a runner of that architecture. A single multi-platform build
@@ -69,16 +70,33 @@ jobs:
             type=gha,scope=platform-${{ matrix.arch }}
           cache-to: type=gha,mode=max,scope=sef-compiler-${{ matrix.arch }}
 
+      # the triplestore with LinkedDataHub's Fuseki module: a deployment that consumes images needs the one whose module
+      # reads the markers this platform version writes, so it is released with it, from the same maven stage
+      - name: Build and push the Fuseki image
+        id: fuseki
+        uses: docker/build-push-action@v6
+        with:
+          platforms: ${{ matrix.platform }}
+          target: fuseki
+          tags: ${{ env.FUSEKI_IMAGE }} # the repository alone: these manifests are pushed untagged, by digest
+          outputs: type=image,push-by-digest=true,name-canonical=true,push=true
+          cache-from: |
+            type=gha,scope=fuseki-${{ matrix.arch }}
+            type=gha,scope=platform-${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=fuseki-${{ matrix.arch }}
+
       # one empty file per digest, named after it: the manifest job addresses the images it assembles
       # by digest and needs nothing else from this one
       - name: Export the digests
         env:
           PLATFORM_DIGEST: ${{ steps.platform.outputs.digest }}
           SEF_COMPILER_DIGEST: ${{ steps.sef-compiler.outputs.digest }}
+          FUSEKI_DIGEST: ${{ steps.fuseki.outputs.digest }}
         run: |
-          mkdir -p /tmp/digests/platform /tmp/digests/sef-compiler
+          mkdir -p /tmp/digests/platform /tmp/digests/sef-compiler /tmp/digests/fuseki
           touch "/tmp/digests/platform/${PLATFORM_DIGEST#sha256:}"
           touch "/tmp/digests/sef-compiler/${SEF_COMPILER_DIGEST#sha256:}"
+          touch "/tmp/digests/fuseki/${FUSEKI_DIGEST#sha256:}"
 
       - name: Upload the digests
         uses: actions/upload-artifact@v4
@@ -138,6 +156,7 @@ jobs:
 
           create_manifest "$PLATFORM_IMAGE" platform
           create_manifest "$SEF_COMPILER_IMAGE" sef-compiler
+          create_manifest "$FUSEKI_IMAGE" fuseki
 
   cli:
     name: Attach the ldh CLI to the release
